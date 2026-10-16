@@ -1,132 +1,4 @@
 {
- "chars": {
-  "goku": {
-   "file": "chars/goku.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "goku_ssj": {
-   "file": "chars/goku_ssj.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "goku_ssj3": {
-   "file": "chars/goku_ssj3.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "gohan": {
-   "file": "chars/gohan.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "gohan_ssj": {
-   "file": "chars/gohan_ssj.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "gohan_ult": {
-   "file": "chars/gohan_ult.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "saiyaman": {
-   "file": "chars/saiyaman.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "vegeta": {
-   "file": "chars/vegeta.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "vegeta_ssj": {
-   "file": "chars/vegeta_ssj.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "goten": {
-   "file": "chars/goten.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "goten_ssj": {
-   "file": "chars/goten_ssj.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "tiger": {
-   "file": "chars/tiger.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "soldier": {
-   "file": "chars/soldier.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "wolf": {
-   "file": "chars/wolf.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "mohawk": {
-   "file": "chars/mohawk.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "puipui": {
-   "file": "chars/puipui.png",
-   "fw": 64,
-   "fh": 64,
-   "frames": 4
-  },
-  "a17": {
-   "file": "chars/a17.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "a18": {
-   "file": "chars/a18.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "freezer": {
-   "file": "chars/freezer.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  },
-  "buu": {
-   "file": "chars/buu.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 3
-  },
-  "cell": {
-   "file": "chars/cell.png",
-   "fw": 32,
-   "fh": 32,
-   "frames": 4
-  }
- },
  "fx": {
   "kiblast": {
    "file": "fx/kiblast.png",
@@ -405,61 +277,6 @@
   }
  },
  "ui": {
-  "p_goku": {
-   "file": "ui/p_goku.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_goku_ssj": {
-   "file": "ui/p_goku_ssj.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_goku_ssj3": {
-   "file": "ui/p_goku_ssj3.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_gohan": {
-   "file": "ui/p_gohan.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_gohan_ssj": {
-   "file": "ui/p_gohan_ssj.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_saiyaman": {
-   "file": "ui/p_saiyaman.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_gohan_ult": {
-   "file": "ui/p_gohan_ult.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_vegeta": {
-   "file": "ui/p_vegeta.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_vegeta_ssj": {
-   "file": "ui/p_vegeta_ssj.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_goten": {
-   "file": "ui/p_goten.png",
-   "w": 64,
-   "h": 64
-  },
-  "p_goten_ssj": {
-   "file": "ui/p_goten_ssj.png",
-   "w": 64,
-   "h": 64
-  },
   "dmg": {
    "file": "ui/dmg.png",
    "w": 60,
@@ -473,6 +290,506 @@
    "h": 15,
    "fw": 11,
    "fh": 15
+  }
+ },
+ "heroes": {
+  "goku": {
+   "file": "heroes/goku.png",
+   "fw": 33,
+   "fh": 49,
+   "frames": 4
+  },
+  "goku_kaioken": {
+   "file": "heroes/goku_kaioken.png",
+   "fw": 35,
+   "fh": 49,
+   "frames": 4
+  },
+  "krilin": {
+   "file": "heroes/krilin.png",
+   "fw": 33,
+   "fh": 37,
+   "frames": 4
+  },
+  "piccolo": {
+   "file": "heroes/piccolo.png",
+   "fw": 33,
+   "fh": 46,
+   "frames": 4
+  },
+  "gohan_kid": {
+   "file": "heroes/gohan_kid.png",
+   "fw": 28,
+   "fh": 44,
+   "frames": 4
+  },
+  "vegeta_saiyan": {
+   "file": "heroes/vegeta_saiyan.png",
+   "fw": 35,
+   "fh": 45,
+   "frames": 4
+  },
+  "raditz": {
+   "file": "heroes/raditz.png",
+   "fw": 42,
+   "fh": 46,
+   "frames": 4
+  },
+  "raditz_ssj": {
+   "file": "heroes/raditz_ssj.png",
+   "fw": 41,
+   "fh": 46,
+   "frames": 4
+  },
+  "saibaman": {
+   "file": "heroes/saibaman.png",
+   "fw": 29,
+   "fh": 37,
+   "frames": 4
+  },
+  "bardock": {
+   "file": "heroes/bardock.png",
+   "fw": 34,
+   "fh": 49,
+   "frames": 4
+  },
+  "bardock_ssj": {
+   "file": "heroes/bardock_ssj.png",
+   "fw": 34,
+   "fh": 51,
+   "frames": 4
+  },
+  "bardock_ssj4": {
+   "file": "heroes/bardock_ssj4.png",
+   "fw": 40,
+   "fh": 47,
+   "frames": 4
+  },
+  "goku_ssj_namek": {
+   "file": "heroes/goku_ssj_namek.png",
+   "fw": 29,
+   "fh": 51,
+   "frames": 4
+  },
+  "vegeta": {
+   "file": "heroes/vegeta.png",
+   "fw": 32,
+   "fh": 50,
+   "frames": 4
+  },
+  "freezer_1": {
+   "file": "heroes/freezer_1.png",
+   "fw": 34,
+   "fh": 40,
+   "frames": 4
+  },
+  "freezer_3": {
+   "file": "heroes/freezer_3.png",
+   "fw": 57,
+   "fh": 65,
+   "frames": 4
+  },
+  "freezer_final": {
+   "file": "heroes/freezer_final.png",
+   "fw": 31,
+   "fh": 40,
+   "frames": 4
+  },
+  "freezer_fp": {
+   "file": "heroes/freezer_fp.png",
+   "fw": 36,
+   "fh": 44,
+   "frames": 4
+  },
+  "freezer_golden": {
+   "file": "heroes/freezer_golden.png",
+   "fw": 37,
+   "fh": 47,
+   "frames": 4
+  },
+  "cooler": {
+   "file": "heroes/cooler.png",
+   "fw": 33,
+   "fh": 46,
+   "frames": 4
+  },
+  "turles": {
+   "file": "heroes/turles.png",
+   "fw": 34,
+   "fh": 49,
+   "frames": 4
+  },
+  "goku_ssj": {
+   "file": "heroes/goku_ssj.png",
+   "fw": 33,
+   "fh": 51,
+   "frames": 4
+  },
+  "vegeta_ssj_grade": {
+   "file": "heroes/vegeta_ssj_grade.png",
+   "fw": 35,
+   "fh": 51,
+   "frames": 4
+  },
+  "gohan_teen_ssj": {
+   "file": "heroes/gohan_teen_ssj.png",
+   "fw": 28,
+   "fh": 45,
+   "frames": 4
+  },
+  "gohan_teen_ssj2": {
+   "file": "heroes/gohan_teen_ssj2.png",
+   "fw": 28,
+   "fh": 47,
+   "frames": 4
+  },
+  "trunks": {
+   "file": "heroes/trunks.png",
+   "fw": 38,
+   "fh": 47,
+   "frames": 4
+  },
+  "trunks_ssj": {
+   "file": "heroes/trunks_ssj.png",
+   "fw": 33,
+   "fh": 51,
+   "frames": 4
+  },
+  "trunks_armor": {
+   "file": "heroes/trunks_armor.png",
+   "fw": 31,
+   "fh": 45,
+   "frames": 4
+  },
+  "a16": {
+   "file": "heroes/a16.png",
+   "fw": 31,
+   "fh": 49,
+   "frames": 4
+  },
+  "a17": {
+   "file": "heroes/a17.png",
+   "fw": 35,
+   "fh": 43,
+   "frames": 4
+  },
+  "a18": {
+   "file": "heroes/a18.png",
+   "fw": 28,
+   "fh": 40,
+   "frames": 4
+  },
+  "cell_1": {
+   "file": "heroes/cell_1.png",
+   "fw": 40,
+   "fh": 53,
+   "frames": 4
+  },
+  "cell_2": {
+   "file": "heroes/cell_2.png",
+   "fw": 49,
+   "fh": 57,
+   "frames": 4
+  },
+  "cell_perfect": {
+   "file": "heroes/cell_perfect.png",
+   "fw": 32,
+   "fh": 52,
+   "frames": 4
+  },
+  "goku_ssj2": {
+   "file": "heroes/goku_ssj2.png",
+   "fw": 33,
+   "fh": 51,
+   "frames": 4
+  },
+  "goku_ssj3": {
+   "file": "heroes/goku_ssj3.png",
+   "fw": 37,
+   "fh": 48,
+   "frames": 4
+  },
+  "vegeta_buu": {
+   "file": "heroes/vegeta_buu.png",
+   "fw": 35,
+   "fh": 45,
+   "frames": 4
+  },
+  "vegeta_buu_ssj": {
+   "file": "heroes/vegeta_buu_ssj.png",
+   "fw": 35,
+   "fh": 45,
+   "frames": 4
+  },
+  "majin_vegeta": {
+   "file": "heroes/majin_vegeta.png",
+   "fw": 36,
+   "fh": 49,
+   "frames": 4
+  },
+  "gohan_adult": {
+   "file": "heroes/gohan_adult.png",
+   "fw": 29,
+   "fh": 48,
+   "frames": 4
+  },
+  "gohan_mystic": {
+   "file": "heroes/gohan_mystic.png",
+   "fw": 30,
+   "fh": 50,
+   "frames": 4
+  },
+  "gotenks": {
+   "file": "heroes/gotenks.png",
+   "fw": 34,
+   "fh": 41,
+   "frames": 4
+  },
+  "buu_fat": {
+   "file": "heroes/buu_fat.png",
+   "fw": 47,
+   "fh": 57,
+   "frames": 4
+  },
+  "buu_evil": {
+   "file": "heroes/buu_evil.png",
+   "fw": 33,
+   "fh": 52,
+   "frames": 4
+  },
+  "buu_super": {
+   "file": "heroes/buu_super.png",
+   "fw": 42,
+   "fh": 51,
+   "frames": 4
+  },
+  "buu_gohan": {
+   "file": "heroes/buu_gohan.png",
+   "fw": 37,
+   "fh": 53,
+   "frames": 4
+  },
+  "buu_kid": {
+   "file": "heroes/buu_kid.png",
+   "fw": 37,
+   "fh": 43,
+   "frames": 4
+  },
+  "vegito": {
+   "file": "heroes/vegito.png",
+   "fw": 23,
+   "fh": 51,
+   "frames": 4
+  },
+  "vegito_ssj": {
+   "file": "heroes/vegito_ssj.png",
+   "fw": 29,
+   "fh": 51,
+   "frames": 4
+  },
+  "vegito_ssj2": {
+   "file": "heroes/vegito_ssj2.png",
+   "fw": 31,
+   "fh": 53,
+   "frames": 4
+  },
+  "gogeta": {
+   "file": "heroes/gogeta.png",
+   "fw": 36,
+   "fh": 51,
+   "frames": 4
+  },
+  "broly_2": {
+   "file": "heroes/broly_2.png",
+   "fw": 41,
+   "fh": 55,
+   "frames": 4
+  },
+  "broly_3": {
+   "file": "heroes/broly_3.png",
+   "fw": 41,
+   "fh": 50,
+   "frames": 4
+  },
+  "broly_lssj": {
+   "file": "heroes/broly_lssj.png",
+   "fw": 51,
+   "fh": 72,
+   "frames": 4
+  },
+  "broly_ssj4": {
+   "file": "heroes/broly_ssj4.png",
+   "fw": 57,
+   "fh": 72,
+   "frames": 4
+  },
+  "janemba": {
+   "file": "heroes/janemba.png",
+   "fw": 35,
+   "fh": 49,
+   "frames": 4
+  },
+  "goku_ssj4": {
+   "file": "heroes/goku_ssj4.png",
+   "fw": 42,
+   "fh": 52,
+   "frames": 4
+  },
+  "vegeta_ssj4": {
+   "file": "heroes/vegeta_ssj4.png",
+   "fw": 36,
+   "fh": 50,
+   "frames": 4
+  },
+  "goku_god": {
+   "file": "heroes/goku_god.png",
+   "fw": 30,
+   "fh": 52,
+   "frames": 4
+  },
+  "goku_blue": {
+   "file": "heroes/goku_blue.png",
+   "fw": 28,
+   "fh": 51,
+   "frames": 4
+  },
+  "goku_blue_kaioken": {
+   "file": "heroes/goku_blue_kaioken.png",
+   "fw": 30,
+   "fh": 53,
+   "frames": 4
+  },
+  "goku_ui": {
+   "file": "heroes/goku_ui.png",
+   "fw": 31,
+   "fh": 56,
+   "frames": 4
+  },
+  "goku_mui": {
+   "file": "heroes/goku_mui.png",
+   "fw": 34,
+   "fh": 56,
+   "frames": 4
+  },
+  "vegeta_god": {
+   "file": "heroes/vegeta_god.png",
+   "fw": 35,
+   "fh": 45,
+   "frames": 4
+  },
+  "vegeta_blue": {
+   "file": "heroes/vegeta_blue.png",
+   "fw": 29,
+   "fh": 55,
+   "frames": 4
+  },
+  "vegeta_blue_fp": {
+   "file": "heroes/vegeta_blue_fp.png",
+   "fw": 27,
+   "fh": 56,
+   "frames": 4
+  },
+  "vegito_blue": {
+   "file": "heroes/vegito_blue.png",
+   "fw": 32,
+   "fh": 52,
+   "frames": 4
+  },
+  "beerus": {
+   "file": "heroes/beerus.png",
+   "fw": 34,
+   "fh": 56,
+   "frames": 4
+  },
+  "hit": {
+   "file": "heroes/hit.png",
+   "fw": 25,
+   "fh": 48,
+   "frames": 4
+  },
+  "goku_black": {
+   "file": "heroes/goku_black.png",
+   "fw": 37,
+   "fh": 47,
+   "frames": 4
+  },
+  "goku_black_rose": {
+   "file": "heroes/goku_black_rose.png",
+   "fw": 27,
+   "fh": 52,
+   "frames": 4
+  },
+  "zamasu": {
+   "file": "heroes/zamasu.png",
+   "fw": 36,
+   "fh": 50,
+   "frames": 4
+  },
+  "zamasu_fused": {
+   "file": "heroes/zamasu_fused.png",
+   "fw": 27,
+   "fh": 49,
+   "frames": 4
+  },
+  "jiren": {
+   "file": "heroes/jiren.png",
+   "fw": 29,
+   "fh": 41,
+   "frames": 4
+  },
+  "toppo": {
+   "file": "heroes/toppo.png",
+   "fw": 47,
+   "fh": 53,
+   "frames": 4
+  },
+  "caulifla": {
+   "file": "heroes/caulifla.png",
+   "fw": 34,
+   "fh": 50,
+   "frames": 4
+  },
+  "kale": {
+   "file": "heroes/kale.png",
+   "fw": 35,
+   "fh": 42,
+   "frames": 4
+  },
+  "kale_ssj": {
+   "file": "heroes/kale_ssj.png",
+   "fw": 32,
+   "fh": 44,
+   "frames": 4
+  },
+  "kefla": {
+   "file": "heroes/kefla.png",
+   "fw": 31,
+   "fh": 52,
+   "frames": 4
+  },
+  "cabba": {
+   "file": "heroes/cabba.png",
+   "fw": 33,
+   "fh": 40,
+   "frames": 4
+  },
+  "cabba_ssj": {
+   "file": "heroes/cabba_ssj.png",
+   "fw": 33,
+   "fh": 40,
+   "frames": 4
+  },
+  "frost_1": {
+   "file": "heroes/frost_1.png",
+   "fw": 30,
+   "fh": 40,
+   "frames": 4
+  },
+  "frost_final": {
+   "file": "heroes/frost_final.png",
+   "fw": 36,
+   "fh": 42,
+   "frames": 4
   }
  }
 }

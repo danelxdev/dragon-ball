@@ -1,55 +1,143 @@
-// Datos del juego: personajes, técnicas, pasivas, enemigos y oleadas.
-// `sprite` es el id de la hoja en assets/chars (ver tools/build_assets.py).
+// Datos del juego: sagas, personajes coleccionables, técnicas, objetos, misiones y enemigos.
+// `sprite` es el id de la tira en assets/heroes (ver tools/build_sagas.py).
 
-export const CHARACTERS = [
-  {
-    id: 'goku', name: 'Goku', cost: 0, weapon: 'kamehameha', sprite: 'goku', portrait: 'goku',
-    desc: 'Saiyajin criado en la Tierra. Equilibrado en todo.',
-    stats: { hp: 100, speed: 1, might: 1 },
-    forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'goku_ssj', portrait: 'goku_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'goku_ssj', portrait: 'goku_ssj', aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 },
-      { lvl: 30, name: 'Super Saiyajin 3', sprite: 'goku_ssj3', portrait: 'goku_ssj3', aura: '#ffd000', sparks: true, big: true, might: 0.9, speed: 0.15 },
-    ],
-  },
-  {
-    id: 'vegeta', name: 'Vegeta', cost: 0, weapon: 'galick', sprite: 'vegeta', portrait: 'vegeta',
-    desc: 'El príncipe de los Saiyajin. Más daño, menos vida.',
-    stats: { hp: 85, speed: 1, might: 1.15 },
-    forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Vegeta', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffd84a', might: 0.5, speed: 0.1 },
-      { lvl: 30, name: 'Majin Vegeta', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffe14a', sparks: true, big: true, might: 0.95, speed: 0.15 },
-    ],
-  },
-  {
-    id: 'gohan', name: 'Gohan', cost: 0, weapon: 'masenko', sprite: 'gohan', portrait: 'gohan',
-    desc: 'Poder oculto inmenso. Recibe más experiencia.',
-    stats: { hp: 95, speed: 1.03, might: 1, growth: 0.1 },
-    forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'gohan_ssj', portrait: 'gohan_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'gohan_ssj', portrait: 'gohan_ssj', aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 },
-      { lvl: 30, name: 'Gohan Definitivo', sprite: 'gohan_ult', portrait: 'gohan_ult', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
-    ],
-  },
-  {
-    id: 'goten', name: 'Goten', cost: 400, weapon: 'kiblast', sprite: 'goten', portrait: 'goten',
-    desc: 'El hijo pequeño de Goku. Rápido y con más imán.',
-    stats: { hp: 90, speed: 1.1, might: 1, magnet: 0.3 },
-    forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'goten_ssj', portrait: 'goten_ssj', aura: '#ffe14a', might: 0.3, speed: 0.1 },
-      { lvl: 20, name: 'Super Saiyajin al máximo', sprite: 'goten_ssj', portrait: 'goten_ssj', aura: '#fff07a', sparks: true, might: 0.65, speed: 0.15 },
-    ],
-  },
-  {
-    id: 'saiyaman', name: 'Gran Saiyaman', cost: 800, weapon: 'bakuhatsuha', sprite: 'saiyaman', portrait: 'saiyaman',
-    desc: '¡El héroe de la justicia! Mucha vida y daño desde el principio.',
-    stats: { hp: 120, speed: 1.05, might: 1.2, regen: 0.3 },
-    forms: [
-      { lvl: 15, name: '¡Justicia implacable!', sprite: 'saiyaman', portrait: 'saiyaman', aura: '#ff6a6a', might: 0.4, speed: 0.1 },
-      { lvl: 30, name: 'Poder definitivo', sprite: 'gohan_ult', portrait: 'gohan_ult', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
-    ],
-  },
+export const SAGAS = [
+  { id: 'saiyan', name: 'Saga Saiyajin', color: '#ff9a3a' },
+  { id: 'freezer', name: 'Saga Freezer', color: '#b07aff' },
+  { id: 'cell', name: 'Saga Cell', color: '#5fe07a' },
+  { id: 'buu', name: 'Saga Buu', color: '#ff7ab8' },
+  { id: 'movies', name: 'Películas y GT', color: '#ff5a5a' },
+  { id: 'super', name: 'Dragon Ball Super', color: '#5ab8ff' },
+];
+
+export const RARITY = {
+  C: { name: 'Común', color: '#b8c4d0', stars: 1, rate: 55, mult: 1, shards: 3 },
+  R: { name: 'Raro', color: '#4ab0ff', stars: 2, rate: 30, mult: 1.08, shards: 5 },
+  E: { name: 'Épico', color: '#c77bff', stars: 3, rate: 12, mult: 1.16, shards: 8 },
+  L: { name: 'Legendario', color: '#ffd23a', stars: 4, rate: 3, mult: 1.25, shards: 15 },
+};
+
+export const GACHA = { cost1: 150, cost10: 1350, shinyRate: 3, starters: ['goku_s', 'krilin', 'piccolo'], welcome: 1500 };
+
+// Personajes coleccionables. `forms` son sus evoluciones dentro de la partida: se
+// alcanzan al llegar al nivel indicado. La primera forma es la inicial.
+const f = (lvl, name, sprite, extra = {}) => ({ lvl, name, sprite, ...extra });
+export const ROSTER = [
+  // --- Saga Saiyajin ---
+  { id: 'goku_s', name: 'Goku', saga: 'saiyan', rarity: 'R', weapon: 'kamehameha', stats: { hp: 100, speed: 1, might: 1 },
+    desc: 'El Saiyajin criado en la Tierra.', forms: [f(1, 'Goku', 'goku'), f(12, 'Kaioken', 'goku_kaioken', { aura: '#ff5a5a', might: 0.35, speed: 0.12 })] },
+  { id: 'krilin', name: 'Krilin', saga: 'saiyan', rarity: 'C', weapon: 'kienzan', stats: { hp: 90, speed: 1.08, might: 1, magnet: 0.3 },
+    desc: 'El humano más fuerte de la Tierra.', forms: [f(1, 'Krilin', 'krilin'), f(15, 'Potencial liberado', 'krilin', { aura: '#ffffff', might: 0.35, speed: 0.1 })] },
+  { id: 'piccolo', name: 'Piccolo', saga: 'saiyan', rarity: 'R', weapon: 'makanko', stats: { hp: 110, speed: 0.97, might: 1, regen: 0.4 },
+    desc: 'Guerrero namekiano. Se regenera solo.', forms: [f(1, 'Piccolo', 'piccolo'), f(15, 'Sin pesas', 'piccolo', { aura: '#b8ff9a', might: 0.3, speed: 0.2 })] },
+  { id: 'gohan_kid', name: 'Gohan (niño)', saga: 'saiyan', rarity: 'C', weapon: 'masenko', stats: { hp: 85, speed: 1.05, might: 1, growth: 0.15 },
+    desc: 'Poder oculto que estalla con la ira.', forms: [f(1, 'Gohan', 'gohan_kid'), f(15, 'Ira desatada', 'gohan_kid', { aura: '#ffe14a', might: 0.5 })] },
+  { id: 'vegeta_s', name: 'Vegeta', saga: 'saiyan', rarity: 'E', weapon: 'galick', stats: { hp: 90, speed: 1, might: 1.15 },
+    desc: 'El príncipe de los Saiyajin llega a la Tierra.', forms: [f(1, 'Vegeta', 'vegeta_saiyan'), f(15, 'Orgullo Saiyajin', 'vegeta_saiyan', { aura: '#9fd8ff', might: 0.4 })] },
+  { id: 'raditz', name: 'Raditz', saga: 'saiyan', rarity: 'C', weapon: 'kiblast', stats: { hp: 105, speed: 1, might: 1.05 },
+    desc: 'El hermano de Goku. ¿Y si fuera Super Saiyajin?', forms: [f(1, 'Raditz', 'raditz'), f(18, 'Raditz SSJ', 'raditz_ssj', { aura: '#ffe14a', might: 0.5, speed: 0.1 })] },
+  { id: 'bardock', name: 'Bardock', saga: 'saiyan', rarity: 'L', weapon: 'bigbang', stats: { hp: 110, speed: 1, might: 1.1 },
+    desc: 'El padre de Goku, guerrero de clase baja.', forms: [f(1, 'Bardock', 'bardock'), f(12, 'Super Saiyajin', 'bardock_ssj', { aura: '#ffe14a', might: 0.35, speed: 0.1 }),
+      f(28, 'Super Saiyajin 4', 'bardock_ssj4', { aura: '#ff4a4a', sparks: true, might: 0.9, speed: 0.15 })] },
+  // --- Saga Freezer ---
+  { id: 'goku_n', name: 'Goku (Namek)', saga: 'freezer', rarity: 'E', weapon: 'kamehameha', stats: { hp: 100, speed: 1.03, might: 1.05 },
+    desc: 'La leyenda despierta en Namek.', forms: [f(1, 'Goku', 'goku'), f(8, 'Kaioken x20', 'goku_kaioken', { aura: '#ff5a5a', might: 0.25, speed: 0.1 }),
+      f(18, 'Super Saiyajin', 'goku_ssj_namek', { aura: '#ffe14a', sparks: true, might: 0.6, speed: 0.15 })] },
+  { id: 'vegeta_n', name: 'Vegeta (Namek)', saga: 'freezer', rarity: 'R', weapon: 'galick', stats: { hp: 95, speed: 1.02, might: 1.1 },
+    desc: 'Cada combate le hace más fuerte.', forms: [f(1, 'Vegeta', 'vegeta'), f(15, 'Zenkai', 'vegeta', { aura: '#9fd8ff', might: 0.4, speed: 0.1 })] },
+  { id: 'freezer', name: 'Freezer', saga: 'freezer', rarity: 'L', weapon: 'deathbeam', stats: { hp: 95, speed: 1.02, might: 1.15 },
+    desc: 'El emperador del universo y sus transformaciones.', forms: [f(1, 'Primera forma', 'freezer_1'), f(10, 'Tercera forma', 'freezer_3', { aura: '#c77bff', might: 0.25 }),
+      f(20, 'Forma final', 'freezer_final', { aura: '#c77bff', might: 0.5, speed: 0.1 }), f(30, 'Máximo poder', 'freezer_fp', { aura: '#ff7ad8', might: 0.8, speed: 0.12 }),
+      f(40, 'Golden Freezer', 'freezer_golden', { aura: '#ffd23a', sparks: true, might: 1.2, speed: 0.18 })] },
+  { id: 'cooler', name: 'Cooler', saga: 'freezer', rarity: 'E', weapon: 'supernova', stats: { hp: 110, speed: 0.98, might: 1.12 },
+    desc: 'El hermano mayor de Freezer.', forms: [f(1, 'Cooler', 'cooler'), f(20, 'Furia de Cooler', 'cooler', { aura: '#c77bff', might: 0.6 })] },
+  { id: 'turles', name: 'Turles', saga: 'freezer', rarity: 'C', weapon: 'bakuhatsuha', stats: { hp: 100, speed: 1, might: 1.05, regen: 0.3 },
+    desc: 'Se alimenta del fruto del Árbol Sagrado.', forms: [f(1, 'Turles', 'turles'), f(16, 'Fruto del árbol', 'turles', { aura: '#7aff6a', might: 0.45, regen: 0.6 })] },
+  // --- Saga Cell ---
+  { id: 'goku_c', name: 'Goku SSJ', saga: 'cell', rarity: 'E', weapon: 'kamehameha', stats: { hp: 105, speed: 1.05, might: 1.12 },
+    desc: 'Super Saiyajin dominado tras entrenar en la Sala del Tiempo.', forms: [f(1, 'Super Saiyajin', 'goku_ssj', { aura: '#ffe14a' }), f(20, 'SSJ al máximo', 'goku_ssj', { aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 })] },
+  { id: 'gohan_teen', name: 'Gohan (adolescente)', saga: 'cell', rarity: 'E', weapon: 'masenko', stats: { hp: 95, speed: 1.04, might: 1.08, growth: 0.1 },
+    desc: 'El guerrero que superó a Cell.', forms: [f(1, 'Super Saiyajin', 'gohan_teen_ssj', { aura: '#ffe14a' }), f(18, 'Super Saiyajin 2', 'gohan_teen_ssj2', { aura: '#fff07a', sparks: true, might: 0.6, speed: 0.15 })] },
+  { id: 'vegeta_c', name: 'Super Vegeta', saga: 'cell', rarity: 'R', weapon: 'galick', stats: { hp: 100, speed: 0.98, might: 1.15 },
+    desc: 'Vegeta supera el Super Saiyajin.', forms: [f(1, 'Super Vegeta', 'vegeta_ssj_grade', { aura: '#ffe14a' }), f(20, 'Poder al límite', 'vegeta_ssj_grade', { aura: '#ffd84a', might: 0.5 })] },
+  { id: 'trunks', name: 'Trunks del Futuro', saga: 'cell', rarity: 'E', weapon: 'sword', stats: { hp: 100, speed: 1.05, might: 1.1 },
+    desc: 'Viene del futuro con su espada.', forms: [f(1, 'Trunks', 'trunks'), f(12, 'Super Saiyajin', 'trunks_ssj', { aura: '#ffe14a', might: 0.4, speed: 0.1 })] },
+  { id: 'trunks_armor', name: 'Trunks (armadura)', saga: 'cell', rarity: 'R', weapon: 'bigbang', stats: { hp: 110, speed: 1, might: 1.05, armor: 1 },
+    desc: 'Con la armadura Saiyajin de Vegeta.', forms: [f(1, 'Trunks', 'trunks_armor'), f(16, 'Furia del futuro', 'trunks_armor', { aura: '#ffe14a', might: 0.4 })] },
+  { id: 'a16', name: 'Androide 16', saga: 'cell', rarity: 'C', weapon: 'bakuhatsuha', stats: { hp: 130, speed: 0.92, might: 1.05, armor: 2 },
+    desc: 'Gigante pacífico con un gran poder.', forms: [f(1, 'Androide 16', 'a16')] },
+  { id: 'a17', name: 'Androide 17', saga: 'cell', rarity: 'R', weapon: 'aura', stats: { hp: 100, speed: 1.08, might: 1.05 },
+    desc: 'Energía infinita y una barrera impenetrable.', forms: [f(1, 'Androide 17', 'a17')] },
+  { id: 'a18', name: 'Androide 18', saga: 'cell', rarity: 'C', weapon: 'kienzan', stats: { hp: 95, speed: 1.1, might: 1.05 },
+    desc: 'Rápida y letal.', forms: [f(1, 'Androide 18', 'a18')] },
+  { id: 'cell', name: 'Cell', saga: 'cell', rarity: 'L', weapon: 'kamehameha', stats: { hp: 110, speed: 1, might: 1.12, regen: 0.4 },
+    desc: 'El androide definitivo del Dr. Gero.', forms: [f(1, 'Cell imperfecto', 'cell_1'), f(12, 'Cell semiperfecto', 'cell_2', { aura: '#5fe07a', might: 0.35 }),
+      f(25, 'Cell perfecto', 'cell_perfect', { aura: '#ffe14a', sparks: true, might: 0.8, speed: 0.15 })] },
+  // --- Saga Buu ---
+  { id: 'goku_b', name: 'Goku (Saga Buu)', saga: 'buu', rarity: 'L', weapon: 'kamehameha', stats: { hp: 105, speed: 1.05, might: 1.12 },
+    desc: 'Regresa del Otro Mundo con nuevas transformaciones.', forms: [f(1, 'Goku', 'goku'), f(10, 'Super Saiyajin', 'goku_ssj', { aura: '#ffe14a', might: 0.25, speed: 0.08 }),
+      f(20, 'Super Saiyajin 2', 'goku_ssj2', { aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 }),
+      f(30, 'Super Saiyajin 3', 'goku_ssj3', { aura: '#ffd000', sparks: true, big: true, might: 0.95, speed: 0.15 })] },
+  { id: 'vegeta_b', name: 'Vegeta (Saga Buu)', saga: 'buu', rarity: 'E', weapon: 'galick', stats: { hp: 95, speed: 1.02, might: 1.15 },
+    desc: 'Vuelve a ser el príncipe malvado.', forms: [f(1, 'Vegeta', 'vegeta_buu'), f(10, 'Super Saiyajin', 'vegeta_buu_ssj', { aura: '#ffe14a', might: 0.3, speed: 0.08 }),
+      f(22, 'Majin Vegeta', 'majin_vegeta', { aura: '#ffe14a', sparks: true, might: 0.8, speed: 0.14 })] },
+  { id: 'gohan_b', name: 'Gohan (Saga Buu)', saga: 'buu', rarity: 'R', weapon: 'masenko', stats: { hp: 100, speed: 1.03, might: 1.08, growth: 0.1 },
+    desc: 'El poder definitivo de Gohan.', forms: [f(1, 'Gohan', 'gohan_adult'), f(22, 'Gohan Definitivo', 'gohan_mystic', { aura: '#ffffff', big: true, might: 0.9, speed: 0.15 })] },
+  { id: 'gotenks', name: 'Gotenks', saga: 'buu', rarity: 'R', weapon: 'orbit', stats: { hp: 95, speed: 1.1, might: 1.08 },
+    desc: 'La fusión de Goten y Trunks.', forms: [f(1, 'Gotenks', 'gotenks'), f(18, 'Gotenks al máximo', 'gotenks', { aura: '#ffe14a', might: 0.55, speed: 0.12 })] },
+  { id: 'buu', name: 'Majin Buu', saga: 'buu', rarity: 'L', weapon: 'candybeam', stats: { hp: 130, speed: 0.95, might: 1.08, regen: 0.6 },
+    desc: 'Todas las formas del monstruo rosa.', forms: [f(1, 'Majin Buu', 'buu_fat'), f(10, 'Buu malvado', 'buu_evil', { aura: '#ff7ab8', might: 0.25 }),
+      f(20, 'Super Buu', 'buu_super', { aura: '#ff7ab8', might: 0.5, speed: 0.1 }), f(30, 'Buu absorbe a Gohan', 'buu_gohan', { aura: '#c77bff', might: 0.8, speed: 0.12 }),
+      f(40, 'Kid Buu', 'buu_kid', { aura: '#ff4a8a', sparks: true, might: 1.15, speed: 0.18 })] },
+  { id: 'vegito', name: 'Vegito', saga: 'buu', rarity: 'L', weapon: 'sword', stats: { hp: 110, speed: 1.06, might: 1.18 },
+    desc: 'La fusión Potara de Goku y Vegeta.', forms: [f(1, 'Vegito', 'vegito'), f(10, 'Super Vegito', 'vegito_ssj', { aura: '#ffe14a', might: 0.35, speed: 0.1 }),
+      f(22, 'Vegito SSJ2', 'vegito_ssj2', { aura: '#fff07a', sparks: true, might: 0.7, speed: 0.14 })] },
+  // --- Películas y GT ---
+  { id: 'broly', name: 'Broly', saga: 'movies', rarity: 'L', weapon: 'eraser', stats: { hp: 140, speed: 0.95, might: 1.15 },
+    desc: 'El legendario Super Saiyajin.', forms: [f(1, 'Broly', 'broly_2'), f(10, 'Super Saiyajin', 'broly_3', { aura: '#ffe14a', might: 0.3 }),
+      f(20, 'Legendario Super Saiyajin', 'broly_lssj', { aura: '#7aff6a', sparks: true, might: 0.7, speed: 0.1 }),
+      f(35, 'Super Saiyajin 4', 'broly_ssj4', { aura: '#ff4a4a', sparks: true, big: true, might: 1.15, speed: 0.15 })] },
+  { id: 'gogeta', name: 'Gogeta', saga: 'movies', rarity: 'L', weapon: 'bigbangkame', stats: { hp: 110, speed: 1.08, might: 1.2 },
+    desc: 'La fusión por la Danza de la Metamorfosis.', forms: [f(1, 'Gogeta SSJ', 'gogeta', { aura: '#ffe14a' }), f(20, 'Gogeta al máximo', 'gogeta', { aura: '#fff07a', sparks: true, might: 0.7 })] },
+  { id: 'janemba', name: 'Janemba', saga: 'movies', rarity: 'E', weapon: 'sword', stats: { hp: 120, speed: 1, might: 1.1 },
+    desc: 'El demonio nacido de la maldad pura.', forms: [f(1, 'Janemba', 'janemba'), f(20, 'Janemba definitivo', 'janemba', { aura: '#ff4a4a', might: 0.6 })] },
+  { id: 'goku_gt', name: 'Goku SSJ4', saga: 'movies', rarity: 'L', weapon: 'kamehameha', stats: { hp: 115, speed: 1.06, might: 1.2 },
+    desc: 'La transformación definitiva de GT.', forms: [f(1, 'Super Saiyajin 4', 'goku_ssj4', { aura: '#ff4a4a' }), f(25, 'SSJ4 al máximo', 'goku_ssj4', { aura: '#ff7a4a', sparks: true, might: 0.8, speed: 0.12 })] },
+  { id: 'vegeta_gt', name: 'Vegeta SSJ4', saga: 'movies', rarity: 'E', weapon: 'finalflash', stats: { hp: 105, speed: 1.04, might: 1.2 },
+    desc: 'El orgullo Saiyajin llevado al límite.', forms: [f(1, 'Super Saiyajin 4', 'vegeta_ssj4', { aura: '#ff4a4a' }), f(25, 'SSJ4 al máximo', 'vegeta_ssj4', { aura: '#ff7a4a', sparks: true, might: 0.8 })] },
+  // --- Dragon Ball Super ---
+  { id: 'goku_super', name: 'Goku (Super)', saga: 'super', rarity: 'L', weapon: 'kamehameha', stats: { hp: 110, speed: 1.08, might: 1.2 },
+    desc: 'De dios Saiyajin al Ultra Instinto.', forms: [f(1, 'Super Saiyajin Dios', 'goku_god', { aura: '#ff5a5a' }), f(12, 'Super Saiyajin Blue', 'goku_blue', { aura: '#4ac8ff', might: 0.3, speed: 0.1 }),
+      f(22, 'Blue Kaioken', 'goku_blue_kaioken', { aura: '#ff4a6a', sparks: true, might: 0.55, speed: 0.12 }),
+      f(32, 'Ultra Instinto', 'goku_ui', { aura: '#c8d8ff', sparks: true, might: 0.85, speed: 0.2 }),
+      f(42, 'Ultra Instinto dominado', 'goku_mui', { aura: '#ffffff', sparks: true, big: true, might: 1.3, speed: 0.28 })] },
+  { id: 'vegeta_super', name: 'Vegeta (Super)', saga: 'super', rarity: 'L', weapon: 'galick', stats: { hp: 105, speed: 1.05, might: 1.22 },
+    desc: 'El príncipe alcanza el poder de los dioses.', forms: [f(1, 'Super Saiyajin Dios', 'vegeta_god', { aura: '#ff5a5a' }), f(14, 'Super Saiyajin Blue', 'vegeta_blue', { aura: '#4ac8ff', might: 0.35, speed: 0.1 }),
+      f(30, 'Blue evolucionado', 'vegeta_blue_fp', { aura: '#4a8aff', sparks: true, might: 0.9, speed: 0.16 })] },
+  { id: 'vegito_blue', name: 'Vegito Blue', saga: 'super', rarity: 'L', weapon: 'sword', stats: { hp: 110, speed: 1.1, might: 1.25 },
+    desc: 'La fusión Potara con el poder de los dioses.', forms: [f(1, 'Vegito Blue', 'vegito_blue', { aura: '#4ac8ff' }), f(25, 'Espada definitiva', 'vegito_blue', { aura: '#9fe8ff', sparks: true, might: 0.8 })] },
+  { id: 'beerus', name: 'Bills', saga: 'super', rarity: 'L', weapon: 'hakai', stats: { hp: 115, speed: 1, might: 1.25 },
+    desc: 'El Dios de la Destrucción del Universo 7.', forms: [f(1, 'Bills', 'beerus', { aura: '#c77bff' }), f(25, 'Hakai', 'beerus', { aura: '#a04aff', sparks: true, might: 0.8 })] },
+  { id: 'hit', name: 'Hit', saga: 'super', rarity: 'E', weapon: 'timeskip', stats: { hp: 100, speed: 1.1, might: 1.12 },
+    desc: 'El asesino legendario que salta en el tiempo.', forms: [f(1, 'Hit', 'hit'), f(20, 'Salto temporal perfecto', 'hit', { aura: '#c77bff', might: 0.6, speed: 0.15 })] },
+  { id: 'goku_black', name: 'Goku Black', saga: 'super', rarity: 'E', weapon: 'sword', stats: { hp: 100, speed: 1.06, might: 1.15 },
+    desc: 'Zamasu en el cuerpo de Goku.', forms: [f(1, 'Goku Black', 'goku_black'), f(15, 'Super Saiyajin Rosé', 'goku_black_rose', { aura: '#ff7ad8', sparks: true, might: 0.6, speed: 0.12 })] },
+  { id: 'zamasu', name: 'Zamasu', saga: 'super', rarity: 'E', weapon: 'deathbeam', stats: { hp: 110, speed: 1, might: 1.1, regen: 0.5 },
+    desc: 'El Kaio-shin que odia a los mortales.', forms: [f(1, 'Zamasu', 'zamasu'), f(22, 'Zamasu fusionado', 'zamasu_fused', { aura: '#9fffd8', sparks: true, might: 0.8, speed: 0.12 })] },
+  { id: 'jiren', name: 'Jiren', saga: 'super', rarity: 'L', weapon: 'powerfist', stats: { hp: 130, speed: 1, might: 1.25, armor: 2 },
+    desc: 'El guerrero más fuerte del Universo 11.', forms: [f(1, 'Jiren', 'jiren'), f(25, 'Jiren al máximo', 'jiren', { aura: '#ff4a4a', sparks: true, might: 0.8 })] },
+  { id: 'toppo', name: 'Toppo', saga: 'super', rarity: 'R', weapon: 'destruction', stats: { hp: 135, speed: 0.95, might: 1.1, armor: 1 },
+    desc: 'Líder de las Tropas del Orgullo.', forms: [f(1, 'Toppo', 'toppo'), f(20, 'Modo Dios de la Destrucción', 'toppo', { aura: '#a04aff', might: 0.6 })] },
+  { id: 'caulifla', name: 'Caulifla', saga: 'super', rarity: 'C', weapon: 'kiblast', stats: { hp: 95, speed: 1.1, might: 1.08 },
+    desc: 'Saiyajin del Universo 6 con talento innato.', forms: [f(1, 'Caulifla', 'caulifla'), f(16, 'Super Saiyajin', 'caulifla', { aura: '#ffe14a', might: 0.45, speed: 0.1 })] },
+  { id: 'kale', name: 'Kale', saga: 'super', rarity: 'E', weapon: 'eraser', stats: { hp: 115, speed: 1, might: 1.1 },
+    desc: 'La legendaria Super Saiyajin del Universo 6.', forms: [f(1, 'Kale', 'kale'), f(12, 'Super Saiyajin berserker', 'kale_ssj', { aura: '#7aff6a', sparks: true, might: 0.6, speed: 0.1 })] },
+  { id: 'kefla', name: 'Kefla', saga: 'super', rarity: 'L', weapon: 'bigbangkame', stats: { hp: 110, speed: 1.1, might: 1.2 },
+    desc: 'La fusión Potara de Caulifla y Kale.', forms: [f(1, 'Kefla SSJ', 'kefla', { aura: '#7aff6a' }), f(22, 'Kefla SSJ2', 'kefla', { aura: '#b8ff9a', sparks: true, might: 0.75, speed: 0.12 })] },
+  { id: 'cabba', name: 'Cabba', saga: 'super', rarity: 'C', weapon: 'galick', stats: { hp: 95, speed: 1.05, might: 1.05 },
+    desc: 'Un joven Saiyajin noble del Universo 6.', forms: [f(1, 'Cabba', 'cabba'), f(14, 'Super Saiyajin', 'cabba_ssj', { aura: '#ffe14a', might: 0.45, speed: 0.1 })] },
+  { id: 'frost', name: 'Frost', saga: 'super', rarity: 'R', weapon: 'deathbeam', stats: { hp: 100, speed: 1.02, might: 1.1 },
+    desc: 'El tramposo del Universo 6.', forms: [f(1, 'Frost', 'frost_1'), f(15, 'Forma final', 'frost_final', { aura: '#9fd8ff', might: 0.55, speed: 0.1 })] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -227,47 +315,270 @@ export const META = {
 // ---------------------------------------------------------------------------
 // Enemigos
 // ---------------------------------------------------------------------------
-export const ENEMIES = {
-  tiger: { name: 'Bandido Tigre', sprite: 'tiger', hp: 7, speed: 54, dmg: 5, xp: 1, r: 6 },
-  soldier: { name: 'Soldado', sprite: 'soldier', hp: 18, speed: 46, dmg: 8, xp: 2, r: 6 },
-  wolf: {
-    name: 'Bandido Lobo', sprite: 'wolf', hp: 30, speed: 60, dmg: 10, xp: 3, r: 6,
-    ranged: { range: 130, cd: 4, speed: 130, dmg: 4, fx: 'bullet' },
+
+// ---------------------------------------------------------------------------
+// Técnicas exclusivas y evoluciones de técnicas
+// `evo`: con la técnica al nivel máximo y la pasiva `need`, se puede evolucionar a `into`.
+// ---------------------------------------------------------------------------
+Object.assign(WEAPONS, {
+  deathbeam: {
+    name: 'Rayo Mortal', color: '#ff6ad8', kind: 'beam', hue: 120,
+    desc: 'Rayos finos que atraviesan a los enemigos.',
+    levels: [
+      { dmg: 26, cd: 1.5, len: 230, width: 5, dur: 0.22, aim: true, once: true },
+      { dmg: 32, cd: 1.4, len: 250, width: 5, dur: 0.22, aim: true, once: true },
+      { dmg: 32, cd: 1.3, len: 260, width: 6, dur: 0.22, aim: true, once: true, dual: true },
+      { dmg: 42, cd: 1.2, len: 280, width: 6, dur: 0.22, aim: true, once: true, dual: true },
+      { dmg: 55, cd: 1.0, len: 320, width: 7, dur: 0.25, aim: true, once: true, dual: true },
+    ],
   },
-  mohawk: {
-    name: 'Lanzacohetes', sprite: 'mohawk', hp: 70, speed: 50, dmg: 14, xp: 6, r: 7,
-    ranged: { range: 170, cd: 5, speed: 105, dmg: 6, fx: 'rocket' },
+  bigbang: {
+    name: 'Big Bang Attack', color: '#7ad8ff', kind: 'bomb', hue: 0,
+    desc: 'Esfera de energía rápida que estalla al impactar.',
+    levels: [
+      { dmg: 40, cd: 2.4, speed: 170, size: 7, blast: 50 },
+      { dmg: 52, cd: 2.3, speed: 180, size: 7, blast: 55 },
+      { dmg: 64, cd: 2.1, speed: 190, size: 8, blast: 62 },
+      { dmg: 80, cd: 1.9, speed: 200, size: 8, blast: 70 },
+      { dmg: 105, cd: 1.6, speed: 210, size: 9, blast: 82 },
+    ],
   },
+  supernova: {
+    name: 'Supernova', color: '#ffa040', kind: 'bomb', hue: 170,
+    desc: 'Una esfera gigantesca de destrucción.',
+    levels: [
+      { dmg: 150, cd: 8, speed: 55, size: 15, blast: 90 },
+      { dmg: 200, cd: 7.5, speed: 60, size: 16, blast: 100 },
+      { dmg: 250, cd: 7, speed: 62, size: 18, blast: 110 },
+      { dmg: 320, cd: 6.5, speed: 65, size: 20, blast: 125 },
+      { dmg: 420, cd: 5.5, speed: 70, size: 23, blast: 145 },
+    ],
+  },
+  eraser: {
+    name: 'Cañón Borrador', color: '#7aff6a', kind: 'bomb', hue: 260,
+    desc: 'Esfera verde que arrasa todo a su paso.',
+    levels: [
+      { dmg: 60, cd: 3, speed: 110, size: 11, blast: 65 },
+      { dmg: 78, cd: 2.9, speed: 115, size: 12, blast: 72 },
+      { dmg: 95, cd: 2.7, speed: 120, size: 13, blast: 80 },
+      { dmg: 120, cd: 2.4, speed: 125, size: 14, blast: 90 },
+      { dmg: 160, cd: 2.1, speed: 130, size: 16, blast: 105 },
+    ],
+  },
+  candybeam: {
+    name: 'Rayo de Caramelo', color: '#ff8ac8', kind: 'beam', hue: 140,
+    desc: 'Convierte a los enemigos en dulces (o casi).',
+    levels: [
+      { dmg: 8, cd: 2.2, len: 150, width: 12, dur: 0.5, aim: true },
+      { dmg: 10, cd: 2.1, len: 170, width: 13, dur: 0.5, aim: true },
+      { dmg: 12, cd: 1.9, len: 190, width: 15, dur: 0.6, aim: true },
+      { dmg: 15, cd: 1.7, len: 210, width: 16, dur: 0.6, aim: true },
+      { dmg: 19, cd: 1.5, len: 240, width: 19, dur: 0.7, aim: true, dual: true },
+    ],
+  },
+  hakai: {
+    name: 'Hakai', color: '#b07aff', kind: 'flash',
+    desc: 'La destrucción divina borra a los enemigos cercanos.',
+    levels: [
+      { dmg: 45, cd: 6, radius: 95, stun: 0.6 },
+      { dmg: 60, cd: 5.6, radius: 105, stun: 0.7 },
+      { dmg: 80, cd: 5.2, radius: 115, stun: 0.8 },
+      { dmg: 105, cd: 4.8, radius: 130, stun: 0.9 },
+      { dmg: 140, cd: 4.2, radius: 150, stun: 1 },
+    ],
+  },
+  timeskip: {
+    name: 'Salto Temporal', color: '#d0a0ff', kind: 'flash',
+    desc: 'Detiene el tiempo a tu alrededor y golpea.',
+    levels: [
+      { dmg: 14, cd: 5, radius: 120, stun: 2.2 },
+      { dmg: 18, cd: 4.8, radius: 130, stun: 2.4 },
+      { dmg: 24, cd: 4.5, radius: 140, stun: 2.6 },
+      { dmg: 30, cd: 4.2, radius: 155, stun: 2.9 },
+      { dmg: 40, cd: 3.8, radius: 175, stun: 3.2 },
+    ],
+  },
+  powerfist: {
+    name: 'Puño de Poder', color: '#ff5a4a', kind: 'ring',
+    desc: 'Ondas de choque devastadoras.',
+    levels: [
+      { dmg: 26, cd: 3.2, maxR: 115 },
+      { dmg: 34, cd: 3, maxR: 125 },
+      { dmg: 42, cd: 2.8, maxR: 140 },
+      { dmg: 54, cd: 2.5, maxR: 155 },
+      { dmg: 70, cd: 2.2, maxR: 180 },
+    ],
+  },
+  destruction: {
+    name: 'Energía de Destrucción', color: '#a04aff', kind: 'aura',
+    desc: 'Un aura de destrucción que desintegra lo que toca.',
+    levels: [
+      { dmg: 5, cd: 0.35, radius: 40 },
+      { dmg: 6, cd: 0.33, radius: 46 },
+      { dmg: 8, cd: 0.3, radius: 52 },
+      { dmg: 10, cd: 0.28, radius: 58 },
+      { dmg: 13, cd: 0.26, radius: 66 },
+    ],
+  },
+  finalflash: {
+    name: 'Final Flash', color: '#ffe36a', kind: 'beam', hue: -150,
+    desc: 'El rayo más poderoso de Vegeta.',
+    levels: [
+      { dmg: 12, cd: 3.2, len: 200, width: 20, dur: 0.7, aim: true },
+      { dmg: 15, cd: 3, len: 230, width: 22, dur: 0.7, aim: true },
+      { dmg: 18, cd: 2.8, len: 260, width: 24, dur: 0.8, aim: true },
+      { dmg: 22, cd: 2.6, len: 290, width: 26, dur: 0.8, aim: true },
+      { dmg: 28, cd: 2.3, len: 340, width: 30, dur: 0.9, aim: true },
+    ],
+  },
+  bigbangkame: {
+    name: 'Big Bang Kamehameha', color: '#9fe8ff', kind: 'bomb', hue: 0,
+    desc: 'Una fusión de técnicas que lo arrasa todo.',
+    levels: [
+      { dmg: 70, cd: 3.2, speed: 130, size: 12, blast: 75 },
+      { dmg: 90, cd: 3, speed: 135, size: 13, blast: 82 },
+      { dmg: 110, cd: 2.8, speed: 140, size: 14, blast: 90 },
+      { dmg: 140, cd: 2.5, speed: 150, size: 15, blast: 100 },
+      { dmg: 185, cd: 2.2, speed: 160, size: 17, blast: 118 },
+    ],
+  },
+  // --- Evoluciones (una sola etapa, ya al máximo) ---
+  kame10: { name: 'Kamehameha x10', color: '#9fe8ff', kind: 'beam', evolved: true, desc: 'El Kamehameha definitivo.',
+    levels: [{ dmg: 26, cd: 1.6, len: 330, width: 30, dur: 0.9, aim: true, dual: true }] },
+  ffmax: { name: 'Final Flash definitivo', color: '#ffe36a', kind: 'beam', hue: -150, evolved: true, desc: 'Destruye todo en línea recta.',
+    levels: [{ dmg: 40, cd: 2, len: 380, width: 36, dur: 1, aim: true, dual: true }] },
+  masenko_max: { name: 'Gekiretsu Madan', color: '#fff27a', kind: 'wave', evolved: true, desc: 'Una lluvia de ondas de energía.',
+    levels: [{ dmg: 34, cd: 0.8, speed: 240, size: 12, pierce: 20, count: 5 }] },
+  kiblast_inf: { name: 'Ráfaga Infinita', color: '#ffe36a', kind: 'projectile', evolved: true, desc: 'Un torrente imparable de ki.',
+    levels: [{ dmg: 20, cd: 0.28, count: 6, speed: 320, size: 5, pierce: 4 }] },
+  kienzan_max: { name: 'Kienzan Doble', color: '#ffe9a8', kind: 'disc', evolved: true, desc: 'Discos que lo cortan todo.',
+    levels: [{ dmg: 60, cd: 1.1, speed: 300, count: 5, range: 300 }] },
+  genki_max: { name: 'Genkidama Universal', color: '#9ad8ff', kind: 'bomb', evolved: true, desc: 'La energía de todo el universo.',
+    levels: [{ dmg: 650, cd: 5, speed: 95, size: 26, blast: 170 }] },
+  makanko_max: { name: 'Makankosappo Supremo', color: '#ffb84a', kind: 'beam', evolved: true, desc: 'Atraviesa cualquier defensa.',
+    levels: [{ dmg: 140, cd: 1.1, len: 380, width: 10, dur: 0.3, aim: true, once: true, dual: true }] },
+  deathbeam_max: { name: 'Rayos Mortales Múltiples', color: '#ff6ad8', kind: 'beam', hue: 120, evolved: true, desc: 'Una lluvia de rayos letales.',
+    levels: [{ dmg: 90, cd: 0.6, len: 340, width: 8, dur: 0.22, aim: true, once: true, dual: true }] },
+  bigbang_max: { name: 'Final Shine', color: '#7aff9a', kind: 'bomb', evolved: true, desc: 'Explosiones de energía colosales.',
+    levels: [{ dmg: 180, cd: 1.2, speed: 230, size: 11, blast: 110 }] },
+  sword_max: { name: 'Espada Z', color: '#e0f0ff', kind: 'slash', evolved: true, desc: 'La legendaria Espada Z.',
+    levels: [{ dmg: 90, cd: 0.6, range: 80, arc: 3.2, back: true }] },
+  aura_max: { name: 'Aura Divina', color: '#ffffff', kind: 'aura', evolved: true, desc: 'Un aura que desintegra todo lo cercano.',
+    levels: [{ dmg: 18, cd: 0.22, radius: 85 }] },
+  ring_max: { name: 'Explosión Planetaria', color: '#ff7a3a', kind: 'ring', evolved: true, desc: 'Ondas que sacuden el planeta.',
+    levels: [{ dmg: 90, cd: 1.8, maxR: 230 }] },
+});
+
+export const EVOLUTIONS = {
+  kamehameha: { need: 'concentracion', into: 'kame10' },
+  galick: { need: 'poder', into: 'ffmax' },
+  finalflash: { need: 'poder', into: 'ffmax' },
+  masenko: { need: 'control', into: 'masenko_max' },
+  kiblast: { need: 'multiplicacion', into: 'kiblast_inf' },
+  kienzan: { need: 'velocidad', into: 'kienzan_max' },
+  genkidama: { need: 'meditacion', into: 'genki_max' },
+  makanko: { need: 'armadura', into: 'makanko_max' },
+  deathbeam: { need: 'concentracion', into: 'deathbeam_max' },
+  bigbang: { need: 'vida', into: 'bigbang_max' },
+  bigbangkame: { need: 'vida', into: 'bigbang_max' },
+  sword: { need: 'crecimiento', into: 'sword_max' },
+  aura: { need: 'radar', into: 'aura_max' },
+  destruction: { need: 'radar', into: 'aura_max' },
+  bakuhatsuha: { need: 'vida', into: 'ring_max' },
+  powerfist: { need: 'vida', into: 'ring_max' },
 };
+
+// Técnicas que pueden salir al subir de nivel (las exclusivas solo las trae su personaje).
+export const COMMON_WEAPONS = ['kiblast', 'kamehameha', 'masenko', 'kienzan', 'taiyoken', 'aura', 'bakuhatsuha', 'orbit', 'genkidama', 'galick', 'makanko', 'sword'];
+
+// ---------------------------------------------------------------------------
+// Objetos equipables (uno por partida)
+// ---------------------------------------------------------------------------
+export const ITEMS = {
+  pesas: { name: 'Pesas de Piccolo', desc: '+15% de daño, -5% de velocidad.', price: 400, mod: { might: 0.15, speed: -0.05 } },
+  kinton: { name: 'Nube Kinton', desc: '+20% de velocidad.', price: 400, mod: { speed: 0.2 } },
+  radar: { name: 'Radar del Dragón', desc: 'Las Bolas de Dragón aparecen antes y atraes objetos desde más lejos.', price: 500, mod: { magnet: 0.4, dball: 0.6 } },
+  scouter: { name: 'Rastreador', desc: '+12% de golpe crítico y +10% de experiencia.', price: 600, mod: { crit: 0.12, growth: 0.1 } },
+  senzu: { name: 'Bolsa de Semillas', desc: 'Revives una vez al caer.', price: 900, mod: { revive: 1 } },
+  nyoibo: { name: 'Báculo Sagrado', desc: '+1 proyectil en todas las técnicas.', price: 1200, mod: { amount: 1 } },
+  potara: { name: 'Pendientes Potara', desc: '+10% de daño, velocidad y vida.', price: 1500, mod: { might: 0.1, speed: 0.1, hp: 0.1 } },
+  agua: { name: 'Agua Ultradivina', desc: '+40% de daño pero -30% de vida.', price: 800, mod: { might: 0.4, hp: -0.3 } },
+  capsula: { name: 'Cápsula Corp', desc: 'Empiezas con una técnica extra al azar.', price: 700, mod: { extraWeapon: 1 } },
+  cola: { name: 'Cola de mono', desc: 'Te transformas 4 niveles antes.', price: 1000, mod: { formLvl: -4 } },
+  halo: { name: 'Halo del Otro Mundo', desc: '+1 de vida por segundo.', price: 600, mod: { regen: 1 } },
+  ropa: { name: 'Ropa de Kaio-sama', desc: '-10% de recarga y +10% de área.', price: 800, mod: { haste: 0.1, area: 0.1 } },
+};
+
+// ---------------------------------------------------------------------------
+// Misiones (logros). `stat` es una clave de save.stats; `target` el valor a alcanzar.
+// ---------------------------------------------------------------------------
+export const MISSIONS = [
+  { id: 'k1', name: 'Primeros pasos', desc: 'Derrota a 500 enemigos.', stat: 'kills', target: 500, reward: 150 },
+  { id: 'k2', name: 'Exterminador', desc: 'Derrota a 5.000 enemigos.', stat: 'kills', target: 5000, reward: 500 },
+  { id: 'k3', name: 'Leyenda viviente', desc: 'Derrota a 30.000 enemigos.', stat: 'kills', target: 30000, reward: 1500 },
+  { id: 'r1', name: 'Calentamiento', desc: 'Juega 3 partidas.', stat: 'runs', target: 3, reward: 150 },
+  { id: 's1', name: 'Superviviente', desc: 'Aguanta 5 minutos.', stat: 'best', target: 300, reward: 200 },
+  { id: 's2', name: 'Guerrero Z', desc: 'Aguanta 10 minutos.', stat: 'best', target: 600, reward: 400 },
+  { id: 's3', name: 'Salvador de la Tierra', desc: 'Aguanta los 15 minutos.', stat: 'best', target: 900, reward: 1000 },
+  { id: 'b1', name: 'Adiós, Raditz', desc: 'Derrota a Raditz.', stat: 'boss_raditz', target: 1, reward: 200 },
+  { id: 'b2', name: 'El fin del emperador', desc: 'Derrota a Freezer.', stat: 'boss_freezer', target: 1, reward: 300 },
+  { id: 'b3', name: 'Juegos de Cell', desc: 'Derrota a Cell.', stat: 'boss_cell', target: 1, reward: 400 },
+  { id: 'b4', name: 'Adiós, Buu', desc: 'Derrota a Kid Buu.', stat: 'boss_buu', target: 1, reward: 500 },
+  { id: 'b5', name: 'El legendario', desc: 'Derrota a Broly.', stat: 'boss_broly', target: 1, reward: 700 },
+  { id: 'd1', name: 'Sal, Shenlong', desc: 'Pide un deseo a Shenlong.', stat: 'wishes', target: 1, reward: 300 },
+  { id: 'd2', name: 'Coleccionista de esferas', desc: 'Pide 5 deseos.', stat: 'wishes', target: 5, reward: 800 },
+  { id: 'l1', name: 'Entrenamiento duro', desc: 'Llega al nivel 25 en una partida.', stat: 'maxLevel', target: 25, reward: 250 },
+  { id: 'l2', name: 'Más de 9.000', desc: 'Llega al nivel 50 en una partida.', stat: 'maxLevel', target: 50, reward: 700 },
+  { id: 'f1', name: 'Despertar', desc: 'Alcanza la última forma de un personaje.', stat: 'maxForms', target: 1, reward: 400 },
+  { id: 'e1', name: 'Técnica definitiva', desc: 'Evoluciona una técnica.', stat: 'evolutions', target: 1, reward: 400 },
+  { id: 'c1', name: 'Equipo Z', desc: 'Consigue 10 personajes.', stat: 'owned', target: 10, reward: 400 },
+  { id: 'c2', name: 'Multiverso', desc: 'Consigue 25 personajes.', stat: 'owned', target: 25, reward: 1000 },
+  { id: 'c3', name: 'Todos los guerreros', desc: 'Consigue todos los personajes.', stat: 'owned', target: ROSTER.length, reward: 4000 },
+  { id: 'g1', name: 'Deseo de poder', desc: 'Haz 10 invocaciones.', stat: 'pulls', target: 10, reward: 200 },
+  { id: 'g2', name: 'Adicto a las cápsulas', desc: 'Haz 100 invocaciones.', stat: 'pulls', target: 100, reward: 1200 },
+  { id: 'sh', name: '¡Brilla!', desc: 'Consigue un personaje brillante.', stat: 'shinies', target: 1, reward: 600 },
+  { id: 'w3', name: 'Muchos héroes', desc: 'Gana con 3 personajes distintos.', stat: 'winners', target: 3, reward: 1500 },
+];
+
+// ---------------------------------------------------------------------------
+// Enemigos: hordas de Saibaman y variantes de color; élites y jefes son villanos de la serie.
+// ---------------------------------------------------------------------------
+export const ENEMIES = {
+  saibaman: { name: 'Saibaman', sprite: 'saibaman', hp: 7, speed: 52, dmg: 5, xp: 1, r: 6 },
+  kyukonman: { name: 'Kyukonman', sprite: 'saibaman', hue: -55, hp: 18, speed: 47, dmg: 7, xp: 2, r: 6 },
+  jinkouman: { name: 'Jinkouman', sprite: 'saibaman', hue: 150, hp: 38, speed: 68, dmg: 10, xp: 4, r: 6 },
+  tennenman: { name: 'Tennenman', sprite: 'saibaman', hue: -120, hp: 75, speed: 58, dmg: 14, xp: 6, r: 8,
+    ranged: { range: 150, cd: 4.5, speed: 120, dmg: 6, fx: 'ki' } },
+};
+
+// Élites (con contorno dorado): villanos que aparecen cada cierto tiempo.
+export const ELITES = ['raditz', 'a16', 'a17', 'a18', 'turles', 'freezer_1', 'cell_1', 'buu_fat', 'frost_1', 'cooler'];
 
 export const BOSSES = {
-  puipui: { name: 'Pui Pui', sprite: 'puipui', scale: 2, r: 16, hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a' },
-  a17: { name: 'Androide 17', sprite: 'a17', scale: 2, r: 12, hp: 1100, speed: 60, dmg: 20, xp: 80, color: '#7ad8ff' },
-  a18: { name: 'Androide 18', sprite: 'a18', scale: 2, r: 12, hp: 1100, speed: 60, dmg: 20, xp: 80, color: '#ffe07a' },
-  freezer: { name: 'Freezer', sprite: 'freezer', scale: 2, r: 12, hp: 4200, speed: 62, dmg: 25, xp: 220, color: '#c77bff' },
-  cell: { name: 'Cell', sprite: 'cell', scale: 2, r: 12, hp: 8500, speed: 66, dmg: 30, xp: 350, color: '#5fe07a' },
-  buu: { name: 'Majin Buu', sprite: 'buu', scale: 2, r: 12, hp: 15000, speed: 72, dmg: 35, xp: 500, color: '#ff8ac8' },
+  raditz: { name: 'Raditz', sprite: 'raditz', r: 12, hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a' },
+  freezer: { name: 'Freezer', sprite: 'freezer_final', r: 12, hp: 2200, speed: 60, dmg: 22, xp: 160, color: '#c77bff' },
+  cell: { name: 'Cell Perfecto', sprite: 'cell_perfect', r: 13, hp: 6000, speed: 64, dmg: 28, xp: 300, color: '#5fe07a' },
+  buu: { name: 'Kid Buu', sprite: 'buu_kid', r: 11, hp: 11000, speed: 74, dmg: 32, xp: 450, color: '#ff8ac8' },
+  broly: { name: 'Broly', sprite: 'broly_lssj', r: 16, hp: 18000, speed: 68, dmg: 38, xp: 600, color: '#7aff6a' },
 };
 
-// Composición de oleadas según el tiempo (segundos).
 export const WAVES = [
-  { t: 0, types: ['tiger'], rate: 3.5 },
-  { t: 60, types: ['tiger', 'tiger', 'soldier'], rate: 6 },
-  { t: 150, types: ['soldier', 'tiger', 'wolf'], rate: 8 },
-  { t: 240, types: ['soldier', 'wolf'], rate: 10 },
-  { t: 360, types: ['wolf', 'soldier', 'mohawk'], rate: 12 },
-  { t: 480, types: ['wolf', 'mohawk', 'soldier'], rate: 14 },
-  { t: 600, types: ['mohawk', 'wolf'], rate: 16 },
-  { t: 720, types: ['mohawk', 'wolf', 'soldier'], rate: 19 },
+  { t: 0, types: ['saibaman'], rate: 3.5 },
+  { t: 60, types: ['saibaman', 'saibaman', 'kyukonman'], rate: 6 },
+  { t: 150, types: ['kyukonman', 'saibaman', 'jinkouman'], rate: 8 },
+  { t: 240, types: ['kyukonman', 'jinkouman'], rate: 10 },
+  { t: 360, types: ['jinkouman', 'kyukonman', 'tennenman'], rate: 12 },
+  { t: 480, types: ['jinkouman', 'tennenman', 'kyukonman'], rate: 14 },
+  { t: 600, types: ['tennenman', 'jinkouman'], rate: 16 },
+  { t: 720, types: ['tennenman', 'jinkouman', 'kyukonman'], rate: 19 },
 ];
 
 export const BOSS_SCHEDULE = [
-  { t: 120, id: 'puipui' },
-  { t: 270, id: 'a17' },
-  { t: 270, id: 'a18' },
-  { t: 450, id: 'freezer' },
-  { t: 630, id: 'cell' },
-  { t: 810, id: 'buu' },
+  { t: 120, id: 'raditz' },
+  { t: 270, id: 'freezer' },
+  { t: 450, id: 'cell' },
+  { t: 630, id: 'buu' },
+  { t: 810, id: 'broly' },
 ];
 
 // Zonas: el suelo cambia con el tiempo. `decor` son pares [id, peso];

@@ -11,10 +11,9 @@ Fuentes (clónalas/descárgalas dentro de una misma carpeta <SRC>):
 
 Uso:  python3 tools/build_assets.py <SRC> assets
 
-- Personajes jugables: hojas de Buu's Fury (rips de Mister Man), todos con el mismo estilo.
-- Enemigos y jefes: Legacy of Goku II / Buu's Fury.
+- Los personajes salen de tools/build_sagas.py (ejecútalo después de este script).
 - Suelos y decorado: sacados de los mapas completos de Legacy of Goku (VGMaps).
-- Retratos (rip de Omega), Bolas de Dragón y objetos (rip de ApplePie) de Buu's Fury.
+- Bolas de Dragón y objetos (rip de ApplePie) de Buu's Fury.
 - Interfaz y números: Legacy of Goku Maker Engine.
 
 Las hojas de personaje salen con fotogramas de 32x32, 4 filas (abajo, izquierda,
@@ -39,7 +38,7 @@ BRIAN = os.path.join(SRC, "briansukhnandan_DBZ-Legacy-of-Goku-3/Club-Project/Ass
 ENRIQ = os.path.join(SRC, "enriquefdez5_TheLegacyOfGokuClone/res")
 VGMAPS = os.path.join(SRC, "vgmaps")
 
-manifest = {"chars": {}, "fx": {}, "tiles": {}, "decor": {}, "items": {}, "ui": {}}
+manifest = {"fx": {}, "tiles": {}, "decor": {}, "items": {}, "ui": {}}
 
 
 def ensure(path):
@@ -159,64 +158,6 @@ def from_strip(path, n, scale=1):
         frames = [f.resize((round(f.width * scale), round(f.height * scale)), Image.NEAREST) for f in frames]
     return frames
 
-
-# Jugables (Buu's Fury)
-GOKU, GOHAN, VEGETA, GOTEN = (f"assets/{n}/{n}.png" for n in ("goku", "gohan", "vegeta", "goten"))
-from_boxes("goku", GOKU, 0, 1, 2)
-from_boxes("goku_ssj", GOKU, 4, 5, 6)
-from_boxes("goku_ssj3", GOKU, 8, 9, 10)
-from_boxes("gohan", GOHAN, 14, 15, 16)
-from_boxes("gohan_ssj", GOHAN, 19, 20, 21)
-from_boxes("gohan_ult", GOHAN, 31, 32, 33)
-from_boxes("saiyaman", GOHAN, 10, 11, 12)
-from_boxes("vegeta", VEGETA, 0, 1, 2)
-from_boxes("vegeta_ssj", VEGETA, 4, 5, 6)
-from_boxes("goten", GOTEN, 0, 1, 2)
-from_boxes("goten_ssj", GOTEN, 5, 6, 7)
-
-# Enemigos (Legacy of Goku)
-from_ariku("tiger", "enemies/tiger_bandit/walk.png")
-from_ariku("soldier", "enemies/shooter/walk.png")
-from_ariku("wolf", "enemies/shooter/variants/gunner/walk.png")
-from_ariku("mohawk", "enemies/shooter/variants/rocketlauncher/walk.png")
-
-# Jefes
-from_ariku("puipui", "enemies/boss/pui_pui/walk.png", 64, 64)
-from_ariku("a17", "enemies/boss/android_17/walk.png")
-from_ariku("a18", "enemies/boss/android_18/walk.png")
-fz = os.path.join(BRIAN, "Frieza Sprites")
-from_files(
-    "freezer",
-    [os.path.join(fz, "walk_south", f"{i}.png") for i in (2, 3, 4, 5)],
-    None,
-    [os.path.join(fz, "walk_east", f"{i}.png") for i in (26, 27, 28, 29)],
-    [os.path.join(fz, "walk_north", f"{i}.png") for i in (49, 50, 51, 52)],
-)
-bu = os.path.join(BRIAN, "Buu Sprites")
-from_files(
-    "buu",
-    [os.path.join(bu, "Flying South", f"{i}.png") for i in (0, 1, 2)],
-    [os.path.join(bu, "Flying West", f"{i}.png") for i in (4, 5, 6)],
-    [os.path.join(bu, "Flying East", f"{i}.png") for i in (3, 4, 5)],
-    [os.path.join(bu, "Flying North", f"{i}.png") for i in (6, 7, 8)],
-)
-write_sheet("cell", [
-    from_strip(os.path.join(ENRIQ, f"cell_movimiento_{d}.png"), 4, 0.5)
-    for d in ("abajo", "izquierda", "derecha", "arriba")
-])
-
-# ---------------------------------------------------------------------------
-# Retratos (Buu's Fury, 64x64): fila, columna dentro de portraits.png
-# ---------------------------------------------------------------------------
-pimg = Image.open(os.path.join(CHAKIB, "dialog/portraits.png"))
-prow = find_boxes(pimg.crop((0, 0, pimg.width, 1100)), pimg.convert("RGB").getpixel((0, 0)))
-for key, (r, c) in {
-    "goku": (1, 0), "goku_ssj": (2, 0), "goku_ssj3": (2, 2),
-    "gohan": (3, 0), "gohan_ssj": (3, 3), "saiyaman": (3, 4), "gohan_ult": (5, 0),
-    "vegeta": (9, 0), "vegeta_ssj": (10, 0), "goten": (8, 0), "goten_ssj": (8, 3),
-}.items():
-    x, y, w, h = prow[r][c]
-    save("ui", "p_" + key, pimg.convert("RGBA").crop((x, y, x + w, y + h)))
 
 # ---------------------------------------------------------------------------
 # Objetos de Buu's Fury: Bolas de Dragón 1-7, semilla y cápsula
@@ -389,6 +330,5 @@ for key, (im, box, g) in decor_set.items():
 with open(os.path.join(OUT, "manifest.json"), "w") as f:
     json.dump(manifest, f, indent=1)
 
-print("personajes:", ", ".join(manifest["chars"]))
 print("decorado:", ", ".join(manifest["decor"]))
 print("objetos:", ", ".join(manifest["items"]), "| ui:", len(manifest["ui"]))

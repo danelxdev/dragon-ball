@@ -1,7 +1,8 @@
 import {
   WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_WEAPONS, MAX_PASSIVES, BIOMES,
+  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES,
 } from './data.js';
-import { img, meta, recolor, drawChar, drawStrip, drawNumber } from './assets.js';
+import { img, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber } from './assets.js';
 import { sfx } from './audio.js';
 
 function rng(seed) {
@@ -82,13 +83,17 @@ function angleDiff(a, b) {
 }
 
 export class Game {
-  constructor(canvas, input, char, save, ui) {
+  // char: entrada de ROSTER; prog: progreso guardado del personaje; item: id de objeto equipado.
+  constructor(canvas, input, char, save, ui, prog = {}, item = null) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.input = input;
     this.char = char;
     this.save = save;
     this.ui = ui;
+    this.prog = prog;
+    this.item = item ? ITEMS[item] : null;
+    this.itemId = item;
     this.W = canvas.width;
     this.H = canvas.height;
     this.scale = 1;
@@ -104,18 +109,22 @@ export class Game {
     this.kills = 0;
     this.coins = 0;
     this.bossKills = 0;
+    this.bossesBeaten = [];
+    this.wishes = 0;
+    this.evolutions = 0;
+    this.itemsFound = [];
     this.level = 1;
     this.xp = 0;
     this.nextXp = this.xpFor(1);
     this.pendingLevels = 0;
     this.dballs = 0;
     this.nextDballT = 40;
-    this.nextEliteT = 50;
+    this.nextEliteT = 85;
     this.bossIdx = 0;
     this.hordeIdx = 0;
     this.spawnAcc = 0;
     this.bonusMight = 1;
-    this.revives = 0;
+    this.revives = this.mod('revive');
     this.shake = 0;
     this.flashScreen = 0;
     this.nextId = 1;
@@ -125,7 +134,7 @@ export class Game {
 
     this.player = {
       x: 0, y: 0, r: 6, hp: 1, maxHp: 1, face: 1, dirX: 1, dirY: 0, dir: 0,
-      inv: 0, walkT: 0, moving: false, form: -1,
+      inv: 0, walkT: 0, moving: false, form: 0,
     };
     this.weapons = [];
     this.passives = {};
@@ -144,13 +153,25 @@ export class Game {
     this.recalc();
     this.player.hp = this.player.maxHp;
     this.addWeapon(char.weapon);
+    if (this.mod('extraWeapon')) {
+      const pool = COMMON_WEAPONS.filter((id) => id !== char.weapon);
+      this.addWeapon(pick(pool));
+    }
+  }
+
+  mod(k) {
+    return (this.item && this.item.mod[k]) || 0;
   }
 
   // -------------------------------------------------------------------------
   // Estadísticas
   // -------------------------------------------------------------------------
   get form() {
-    return this.player.form >= 0 ? this.char.forms[this.player.form] : null;
+    return this.char.forms[this.player.form] || this.char.forms[0];
+  }
+
+  get sprite() {
+    return this.form.sprite;
   }
 
   recalc() {
@@ -158,24 +179,32 @@ export class Game {
     const m = this.save.upgrades;
     const p = this.passives;
     const f = this.form || {};
+    const cu = this.prog.up || {};
     const lv = (o, k) => o[k] || 0;
+    const rar = RARITY[this.char.rarity] || RARITY.C;
+    const stars = 1 + 0.06 * ((this.prog.stars || 1) - 1);
+    const shiny = this.prog.shiny ? 1.1 : 1;
     const prevMax = this.player.maxHp;
     this.stats = {
-      might: b.might * (1 + 0.05 * lv(m, 'poder')) * (1 + 0.1 * lv(p, 'poder')) * (1 + (f.might || 0)) * this.bonusMight,
-      speed: 82 * b.speed * (1 + 0.04 * lv(m, 'velocidad')) * (1 + 0.07 * lv(p, 'velocidad')) * (1 + (f.speed || 0)),
-      armor: lv(m, 'armadura') + lv(p, 'armadura'),
-      haste: Math.max(0.4, 1 - 0.07 * lv(p, 'concentracion')),
-      area: 1 + 0.1 * lv(p, 'control'),
-      regen: (b.regen || 0) + 0.15 * lv(m, 'regen') + 0.3 * lv(p, 'meditacion') + (f.regen || 0),
-      magnet: 50 * (1 + 0.1 * lv(m, 'iman')) * (1 + 0.25 * lv(p, 'radar')) * (1 + (b.magnet || 0)),
-      amount: lv(p, 'multiplicacion'),
-      growth: (1 + (b.growth || 0)) * (1 + 0.05 * lv(m, 'crecimiento')) * (1 + 0.08 * lv(p, 'crecimiento')),
+      might: b.might * rar.mult * stars * shiny * (1 + 0.05 * lv(m, 'poder')) * (1 + 0.06 * lv(cu, 'poder')) *
+        (1 + 0.1 * lv(p, 'poder')) * (1 + (f.might || 0)) * (1 + this.mod('might')) * this.bonusMight,
+      speed: 80 * b.speed * (1 + 0.04 * lv(m, 'velocidad')) * (1 + 0.04 * lv(cu, 'velocidad')) *
+        (1 + 0.07 * lv(p, 'velocidad')) * (1 + (f.speed || 0)) * (1 + this.mod('speed')),
+      armor: lv(m, 'armadura') + lv(p, 'armadura') + (b.armor || 0),
+      haste: Math.max(0.35, (1 - 0.07 * lv(p, 'concentracion')) * (1 - 0.04 * lv(cu, 'recarga')) * (1 - this.mod('haste'))),
+      area: (1 + 0.1 * lv(p, 'control')) * (1 + this.mod('area')),
+      regen: (b.regen || 0) + 0.15 * lv(m, 'regen') + 0.3 * lv(p, 'meditacion') + (f.regen || 0) + this.mod('regen'),
+      magnet: 55 * (1 + 0.1 * lv(m, 'iman')) * (1 + 0.25 * lv(p, 'radar')) * (1 + (b.magnet || 0)) * (1 + this.mod('magnet')),
+      amount: lv(p, 'multiplicacion') + this.mod('amount'),
+      growth: (1 + (b.growth || 0)) * (1 + 0.05 * lv(m, 'crecimiento')) * (1 + 0.08 * lv(p, 'crecimiento')) * (1 + this.mod('growth')),
       greed: 1 + 0.1 * lv(m, 'avaricia'),
+      crit: 0.06 + this.mod('crit'),
     };
-    const maxHp = b.hp + 10 * lv(m, 'vida') + 20 * lv(p, 'vida') + (this.extraHp || 0);
-    this.player.maxHp = maxHp;
+    const maxHp = (b.hp * rar.mult * stars + 10 * lv(m, 'vida') + 12 * lv(cu, 'vida') + 20 * lv(p, 'vida') + (this.extraHp || 0)) *
+      (1 + this.mod('hp'));
+    this.player.maxHp = Math.round(maxHp);
     if (prevMax > 1 && maxHp > prevMax) this.player.hp += maxHp - prevMax;
-    this.player.hp = Math.min(this.player.hp, maxHp);
+    this.player.hp = Math.min(this.player.hp, this.player.maxHp);
   }
 
   xpFor(level) {
@@ -208,7 +237,14 @@ export class Game {
   levelUpOptions() {
     const opts = [];
     for (const w of this.weapons) {
-      if (w.level < w.def.levels.length) {
+      const evo = EVOLUTIONS[w.id];
+      if (w.level >= w.def.levels.length && evo && this.passives[evo.need]) {
+        const into = WEAPONS[evo.into];
+        opts.push({
+          type: 'evolve', id: w.id, into: evo.into, name: into.name, color: into.color, w: 99,
+          desc: `${w.def.name} + ${PASSIVES[evo.need].name}: ${into.desc}`,
+        });
+      } else if (w.level < w.def.levels.length) {
         opts.push({
           type: 'weapon', id: w.id, level: w.level + 1, name: w.def.name, color: w.def.color,
           desc: diffDesc(w.def.levels[w.level - 1], w.def.levels[w.level]),
@@ -216,8 +252,8 @@ export class Game {
       }
     }
     if (this.weapons.length < MAX_WEAPONS) {
-      for (const id of Object.keys(WEAPONS)) {
-        if (this.weapons.some((w) => w.id === id)) continue;
+      for (const id of COMMON_WEAPONS) {
+        if (this.weapons.some((w) => w.id === id || (EVOLUTIONS[id] && EVOLUTIONS[id].into === w.id))) continue;
         const d = WEAPONS[id];
         opts.push({ type: 'weapon', id, level: 1, name: d.name, color: d.color, desc: d.desc, isNew: true });
       }
@@ -228,10 +264,11 @@ export class Game {
       const cur = this.passives[id] || 0;
       if (cur >= d.max) continue;
       if (!cur && owned.length >= MAX_PASSIVES) continue;
-      opts.push({ type: 'passive', id, level: cur + 1, name: d.name, color: d.color, desc: d.desc, isNew: !cur });
+      // las pasivas que permiten evolucionar una técnica tuya salen más a menudo
+      const helps = this.weapons.some((w) => EVOLUTIONS[w.id] && EVOLUTIONS[w.id].need === id);
+      opts.push({ type: 'passive', id, level: cur + 1, name: d.name, color: d.color, desc: d.desc, isNew: !cur, helps });
     }
-    // Barajar priorizando mejoras de lo que ya tienes.
-    for (const o of opts) o.w = Math.random() * (o.isNew ? 1 : 1.4);
+    for (const o of opts) if (o.w === undefined) o.w = Math.random() * (o.isNew ? 1 : 1.4) * (o.helps ? 1.6 : 1);
     opts.sort((a, b) => b.w - a.w);
     const out = opts.slice(0, 3);
     if (!out.length) {
@@ -242,7 +279,19 @@ export class Game {
   }
 
   applyOption(o) {
-    if (o.type === 'weapon') {
+    if (o.type === 'evolve') {
+      const w = this.weapons.find((x) => x.id === o.id);
+      if (w) {
+        w.id = o.into;
+        w.def = WEAPONS[o.into];
+        w.level = 1;
+        w.timer = 0.1;
+        this.evolutions++;
+        if (w.def.kind === 'orbit') this.rebuildOrbs();
+        this.ui.banner('¡' + w.def.name.toUpperCase() + '!', w.def.color);
+        sfx('transform');
+      }
+    } else if (o.type === 'weapon') {
       const w = this.weapons.find((x) => x.id === o.id);
       if (w) w.level = o.level;
       else this.addWeapon(o.id);
@@ -279,9 +328,10 @@ export class Game {
 
   checkTransform() {
     const forms = this.char.forms;
-    let idx = -1;
-    for (let i = 0; i < forms.length; i++) if (this.level >= forms[i].lvl) idx = i;
-    if (idx !== this.player.form) {
+    const shift = this.mod('formLvl');
+    let idx = 0;
+    for (let i = 0; i < forms.length; i++) if (this.level >= forms[i].lvl + shift) idx = i;
+    if (idx > this.player.form) {
       this.player.form = idx;
       this.recalc();
       this.heal(this.player.maxHp * 0.3);
@@ -291,7 +341,8 @@ export class Game {
       this.flashScreen = 0.6;
       this.effects.push({ kind: 'burst', x: this.player.x, y: this.player.y, t: 0, dur: 0.9, color: f.aura || '#ffe14a' });
       this.knockAll(this.player.x, this.player.y, 140, 260);
-      this.ui.banner(f.name.toUpperCase() + '!');
+      this.ui.banner(f.name.toUpperCase() + '!', f.aura);
+      if (idx === forms.length - 1 && forms.length > 1) this.maxForm = true;
     }
   }
 
@@ -374,16 +425,31 @@ export class Game {
     return { x: this.player.x + Math.cos(a) * d, y: this.player.y + Math.sin(a) * d };
   }
 
-  spawnEnemy(type, x, y, elite = false) {
+  spawnEnemy(type, x, y) {
     const def = ENEMIES[type];
-    const hpScale = 1 + this.t / 120 + (this.t / 300) ** 2;
+    const hpScale = 1 + this.t / 100 + (this.t / 230) ** 2;
     const e = {
-      id: this.nextId++, type, def, x, y, r: def.r * (elite ? 2 : 1),
-      hp: def.hp * hpScale * (elite ? 14 : 1), speed: def.speed * (elite ? 0.85 : 1) * rand(0.9, 1.1),
-      dmg: def.dmg * (1 + this.t / 600) * (elite ? 1.5 : 1), xp: def.xp * (elite ? 10 : 1),
-      vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite, boss: false,
-      scale: 1, dead: false, orbCd: 0, sprite: def.sprite,
+      id: this.nextId++, type, def, x, y, r: def.r,
+      hp: def.hp * hpScale, speed: def.speed * rand(0.9, 1.1),
+      dmg: def.dmg * (1 + this.t / 450), xp: def.xp,
+      vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: false, boss: false,
+      scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: def.hue ? 'hue' + def.hue : null,
       shot: def.ranged ? rand(0.5, def.ranged.cd) : 0,
+    };
+    e.maxHp = e.hp;
+    this.enemies.push(e);
+    return e;
+  }
+
+  // Élite: un villano de la serie con contorno dorado. Suelta una Cápsula Corp.
+  spawnElite(x, y) {
+    const sprite = pick(ELITES);
+    const hpScale = 1 + this.t / 100 + (this.t / 230) ** 2;
+    const e = {
+      id: this.nextId++, type: 'elite', def: { name: 'Élite', dmg: 12 }, x, y, r: 11,
+      hp: 110 * hpScale, speed: 46 * rand(0.9, 1.1), dmg: 11 * (1 + this.t / 500), xp: 30,
+      vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: true, boss: false,
+      scale: 1, dead: false, orbCd: 0, sprite, mode: null, shot: 0,
     };
     e.maxHp = e.hp;
     this.enemies.push(e);
@@ -395,9 +461,9 @@ export class Game {
     const pt = this.spawnPoint(20);
     const e = {
       id: this.nextId++, type: id, def, x: pt.x, y: pt.y, r: def.r,
-      hp: def.hp, maxHp: def.hp, speed: def.speed, dmg: def.dmg, xp: def.xp,
+      hp: def.hp * 1.6, maxHp: def.hp * 1.6, speed: def.speed, dmg: def.dmg, xp: def.xp,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0, elite: false, boss: true,
-      scale: def.scale, dead: false, orbCd: 0, sprite: def.sprite,
+      scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: null,
       ai: { t: 2 + Math.random(), mode: 'walk', dash: 0, wx: 0, wy: 0, shots: 0 },
     };
     this.enemies.push(e);
@@ -419,9 +485,9 @@ export class Game {
     }
 
     if (this.t >= this.nextEliteT) {
-      this.nextEliteT += 55;
+      this.nextEliteT += 50;
       const pt = this.spawnPoint();
-      this.spawnEnemy(pick(wave.types), pt.x, pt.y, true);
+      this.spawnElite(pt.x, pt.y);
     }
 
     const bs = BOSS_SCHEDULE[this.bossIdx];
@@ -443,7 +509,7 @@ export class Game {
     }
 
     if (this.t >= this.nextDballT) {
-      this.nextDballT += 95;
+      this.nextDballT += 95 * (1 - this.mod('dball'));
       const onMap = this.pickups.filter((k) => k.type === 'dragonball').length;
       if (this.dballs + onMap < 7) {
         const a = Math.random() * TAU;
@@ -549,7 +615,7 @@ export class Game {
         for (const a of angles) {
           this.beams.push({
             ang: a, len: s.len * st.area, width: s.width * st.area, dur: s.dur, t: 0, dmg: s.dmg,
-            color, once: !!s.once, spiral: w.id === 'makanko', hue: w.id === 'galick' ? 90 : 0, hit: new Set(), tick: 0,
+            color, once: !!s.once, spiral: w.id === 'makanko', hue: w.def.hue !== undefined ? w.def.hue : w.id === 'galick' ? 90 : 0, hit: new Set(), tick: 0,
           });
         }
         sfx('beam', 0.2);
@@ -571,7 +637,7 @@ export class Game {
       }
       case 'flash': {
         const R = s.radius * st.area;
-        this.effects.push({ kind: 'flash', x: p.x, y: p.y, t: 0, dur: 0.5, r: R });
+        this.effects.push({ kind: 'flash', x: p.x, y: p.y, t: 0, dur: 0.5, r: R, color });
         this.flashScreen = Math.max(this.flashScreen, 0.25);
         this.grid.query(p.x, p.y, R, this.tmp);
         for (const e of this.tmp) {
@@ -600,7 +666,7 @@ export class Game {
         const a = this.aimAngle(true);
         this.projs.push({
           kind: 'bomb', x: p.x, y: p.y - 30, vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-          r: s.size * st.area, dmg: s.dmg, blast: s.blast * st.area, life: 3.5, color, grow: 0,
+          r: s.size * st.area, dmg: s.dmg, blast: s.blast * st.area, life: 3.5, color, grow: 0, hue: w.def.hue || 0,
         });
         sfx('beam', 0.2);
         break;
@@ -714,7 +780,7 @@ export class Game {
 
   hit(e, base, fx, fy, knock, quiet = false) {
     if (e.dead) return;
-    const crit = Math.random() < 0.06;
+    const crit = Math.random() < this.stats.crit;
     const dmg = base * this.stats.might * (crit ? 2 : 1) * rand(0.9, 1.1);
     e.hp -= dmg;
     e.flash = 0.08;
@@ -731,7 +797,7 @@ export class Game {
     }
     if (!quiet) {
       sfx('hit', 0.05);
-      if (this.effects.length < 120) this.effects.push({ kind: 'hitfx', x: e.x + rand(-3, 3), y: e.y - 10 * e.scale, t: 0, dur: 0.15 });
+      if (this.effects.length < 120) this.effects.push({ kind: 'hitfx', x: e.x + rand(-3, 3), y: e.y - 20, t: 0, dur: 0.15 });
     }
     if (e.hp <= 0) this.kill(e);
   }
@@ -749,7 +815,10 @@ export class Game {
     }
     if (e.boss) {
       this.bossKills++;
+      this.bossesBeaten.push(e.type);
       this.coins += 40;
+      // a veces sueltan un objeto equipable nuevo
+      if (Math.random() < 0.4) this.pickups.push({ type: 'itembox', x: e.x, y: e.y - 14 });
       this.shake = 0.8;
       sfx('boom', 0);
       this.effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: 0.9, r: 90, color: e.def.color, fx: 'ki' });
@@ -1032,6 +1101,20 @@ export class Game {
         sfx('level');
         break;
       }
+      case 'itembox': {
+        const owned = new Set([...(this.save.items || []), ...this.itemsFound]);
+        const left = Object.keys(ITEMS).filter((id) => !owned.has(id));
+        if (left.length) {
+          const id = pick(left);
+          this.itemsFound.push(id);
+          this.ui.toast(`¡Objeto nuevo: ${ITEMS[id].name}!`);
+        } else {
+          this.coins += 100;
+          this.ui.toast('Cápsula de objeto: +100 Zeni');
+        }
+        sfx('dragonball');
+        break;
+      }
       case 'dragonball':
         this.dballs++;
         sfx('dragonball');
@@ -1068,6 +1151,7 @@ export class Game {
   }
 
   grantWish(o) {
+    this.wishes++;
     switch (o.id) {
       case 'power':
         this.bonusMight *= 1.3;
@@ -1136,10 +1220,11 @@ export class Game {
   end(win) {
     if (this.state === 'over') return;
     this.state = 'over';
-    const zeni = Math.floor((this.coins + this.kills / 20 + this.t / 10) * this.stats.greed);
+    const zeni = Math.floor((this.coins + this.kills / 20 + this.t / 10 + this.bossKills * 30) * this.stats.greed);
     this.ui.showEnd({
       win, time: this.t, kills: this.kills, level: this.level, zeni, char: this.char,
-      bosses: this.bossKills,
+      bosses: this.bossKills, bossesBeaten: this.bossesBeaten, wishes: this.wishes,
+      evolutions: this.evolutions, maxForm: !!this.maxForm, itemsFound: this.itemsFound,
     });
   }
 
@@ -1339,45 +1424,52 @@ export class Game {
   drawPlayer(ctx) {
     const p = this.player;
     const f = this.form;
-    const sprite = (f && f.sprite) || this.char.sprite;
-    const frame = p.moving ? Math.floor(p.walkT * 8) : 0;
+    const sprite = this.sprite;
+    const { h } = heroSize(sprite);
+    const frame = Math.floor(this.t * (p.moving ? 9 : 5));
 
-    this.drawShadow(ctx, p.x, p.y);
+    this.drawShadow(ctx, p.x, p.y, true);
 
-    if (f) {
-      // Aura de transformación
-      ctx.fillStyle = f.aura || '#ffe14a';
-      const big = f.big ? 1.4 : 1;
-      for (let i = 0; i < 6; i++) {
-        const fx = p.x + rand(-8, 8) * big;
-        const h = rand(14, 26) * big;
-        ctx.globalAlpha = rand(0.15, 0.35);
+    if (f.aura && this.player.form > 0 || (f.aura && this.char.forms.length === 1)) {
+      // Aura de ki de la forma actual
+      ctx.fillStyle = f.aura;
+      const big = f.big ? 1.35 : 1;
+      for (let i = 0; i < 7; i++) {
+        const fx = p.x + rand(-10, 10) * big;
+        const fh = rand(h * 0.55, h * 0.95) * big;
+        ctx.globalAlpha = rand(0.12, 0.3);
         ctx.beginPath();
-        ctx.moveTo(fx - 5, p.y + 1);
-        ctx.lineTo(fx, p.y + 1 - h - 8);
-        ctx.lineTo(fx + 5, p.y + 1);
+        ctx.moveTo(fx - 6, p.y + 1);
+        ctx.lineTo(fx + rand(-3, 3), p.y + 1 - fh - 8);
+        ctx.lineTo(fx + 6, p.y + 1);
         ctx.fill();
       }
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha = 0.16;
       ctx.beginPath();
-      ctx.ellipse(p.x, p.y - 13, 13 * big, 18 * big, 0, 0, TAU);
+      ctx.ellipse(p.x, p.y - h * 0.48, 16 * big, h * 0.6 * big, 0, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
 
     const blink = p.inv > 0 && Math.floor(this.t * 20) % 2;
-    if (!blink) drawChar(ctx, sprite, p.dir, frame, p.x, p.y + 2);
+    if (!blink) {
+      if (this.prog.shiny && Math.floor(this.t * 4) % 2) drawShinyOutline(ctx, sprite, frame, p.x, p.y + 2, p.face < 0);
+      drawHero(ctx, sprite, frame, p.x, p.y + 2, p.face < 0);
+    }
 
-    if (f && f.sparks && Math.random() < 0.35) {
+    if (this.prog.shiny && Math.random() < 0.25) {
+      this.particles.push({ x: p.x + rand(-10, 10), y: p.y - rand(0, h), vx: 0, vy: -20, t: 0, dur: 0.5, color: '#fff6a0', s: 1 });
+    }
+    if (f.sparks && Math.random() < 0.35) {
       ctx.strokeStyle = '#bfe8ff';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      let lx = p.x + rand(-10, 10);
-      let ly = p.y + rand(-28, -2);
+      let lx = p.x + rand(-12, 12);
+      let ly = p.y - rand(h * 0.3, h);
       ctx.moveTo(lx, ly);
       for (let i = 0; i < 3; i++) {
         lx += rand(-4, 4);
-        ly += rand(2, 5);
+        ly += rand(2, 6);
         ctx.lineTo(lx, ly);
       }
       ctx.stroke();
@@ -1385,41 +1477,39 @@ export class Game {
   }
 
   drawEnemy(ctx, e) {
-    const s = e.scale;
-    const m = meta('chars', e.sprite);
-    const h = m.fh * s;
-    const frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 7);
-    this.drawShadow(ctx, e.x, e.y, s > 1 || m.fw > 32);
+    const { w, h } = heroSize(e.sprite);
+    const frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 6);
+    const flip = e.face < 0;
+    this.drawShadow(ctx, e.x, e.y, e.boss || e.elite);
     if (e.boss) {
-      ctx.globalAlpha = 0.22 + Math.sin(this.t * 6) * 0.08;
-      ctx.fillStyle = e.boss ? e.def.color : '#ffcf3a';
+      ctx.globalAlpha = 0.2 + Math.sin(this.t * 6) * 0.08;
+      ctx.fillStyle = e.def.color;
       ctx.beginPath();
-      ctx.ellipse(e.x, e.y - h * 0.45, m.fw * s * 0.45, h * 0.55, 0, 0, TAU);
+      ctx.ellipse(e.x, e.y - h * 0.45, w * 0.55, h * 0.6, 0, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
     if (e.elite && e.flash <= 0) {
-      // Contorno dorado para las élites
       for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-        drawChar(ctx, e.sprite, e.dir, frame, e.x + ox, e.y + 2 * s + oy, s, 'silffd040');
+        drawHero(ctx, e.sprite, frame, e.x + ox, e.y + 2 + oy, flip, 'silffd040');
       }
     }
-    drawChar(ctx, e.sprite, e.dir, frame, e.x, e.y + 2 * s, s, e.flash > 0 ? 'white' : null);
-    const top = Math.round(e.y - h * 0.85);
+    drawHero(ctx, e.sprite, frame, e.x, e.y + 2, flip, e.flash > 0 ? 'white' : e.mode);
+    const top = Math.round(e.y - h - 2);
     if (e.stun > 0) {
       ctx.fillStyle = '#ffff9a';
       const a = this.t * 6;
       for (let i = 0; i < 3; i++) {
         const sa = a + (i * TAU) / 3;
-        ctx.fillRect(Math.round(e.x + Math.cos(sa) * 6), Math.round(top + Math.sin(sa) * 2), 2, 2);
+        ctx.fillRect(Math.round(e.x + Math.cos(sa) * 7), Math.round(top + 4 + Math.sin(sa) * 2), 2, 2);
       }
     }
-    if (e.elite) {
-      const bw = 24;
+    if (e.elite || e.boss) {
+      const bw = e.boss ? 40 : 26;
       ctx.fillStyle = '#1a1020';
-      ctx.fillRect(Math.round(e.x - bw / 2) - 1, top - 6, bw + 2, 4);
-      ctx.fillStyle = '#ffcf3a';
-      ctx.fillRect(Math.round(e.x - bw / 2), top - 5, Math.max(0, (e.hp / e.maxHp) * bw), 2);
+      ctx.fillRect(Math.round(e.x - bw / 2) - 1, top - 4, bw + 2, 4);
+      ctx.fillStyle = e.boss ? '#ff5a7a' : '#ffcf3a';
+      ctx.fillRect(Math.round(e.x - bw / 2), top - 3, Math.max(0, (e.hp / e.maxHp) * bw), 2);
     }
   }
 
@@ -1436,11 +1526,11 @@ export class Game {
       drawStrip(ctx, 'items', 'zeni', Math.floor(this.t * 8 + k.x), Math.round(k.x - 4), Math.round(k.y - 4 + bob), 8, 8);
       return;
     }
-    const key = k.type === 'dragonball' ? 'db' + Math.min(7, Math.max(1, k.stars || 1)) : k.type;
+    const key = k.type === 'dragonball' ? 'db' + Math.min(7, Math.max(1, k.stars || 1)) : k.type === 'itembox' ? 'capsule' : k.type;
     const im = img('items', key);
-    if (k.type === 'dragonball' || k.type === 'capsule') {
+    if (k.type === 'dragonball' || k.type === 'capsule' || k.type === 'itembox') {
       ctx.globalAlpha = 0.25 + Math.sin(this.t * 5) * 0.12;
-      ctx.fillStyle = k.type === 'dragonball' ? '#ffa31a' : '#9fd8ff';
+      ctx.fillStyle = k.type === 'dragonball' ? '#ffa31a' : k.type === 'itembox' ? '#d07aff' : '#9fd8ff';
       ctx.beginPath();
       ctx.arc(k.x, k.y + bob, 10, 0, TAU);
       ctx.fill();
@@ -1452,7 +1542,7 @@ export class Game {
 
   drawProj(ctx, pr) {
     ctx.save();
-    ctx.translate(0, -8);
+    ctx.translate(0, -18);
     this.drawProjInner(ctx, pr);
     ctx.restore();
   }
@@ -1487,13 +1577,14 @@ export class Game {
     } else if (pr.kind === 'bomb') {
       const r = pr.r * (0.4 + pr.grow * 0.6);
       const s = Math.round(r * 2.4);
-      ctx.drawImage(img('fx', 'genkidama'), Math.round(pr.x - s / 2), Math.round(pr.y - s / 2), s, s);
+      const gi = pr.hue ? recolor('fx', 'genkidama', 'hue' + pr.hue) : img('fx', 'genkidama');
+      ctx.drawImage(gi, Math.round(pr.x - s / 2), Math.round(pr.y - s / 2), s, s);
     }
   }
 
   drawEnemyProj(ctx, b) {
     ctx.save();
-    ctx.translate(Math.round(b.x), Math.round(b.y) - 8);
+    ctx.translate(Math.round(b.x), Math.round(b.y) - 16);
     if (b.fx === 'bullet') {
       ctx.rotate(b.ang);
       drawStrip(ctx, 'fx', 'bullet', 0, -8, -4, 16, 8, 16, 8);
@@ -1513,7 +1604,7 @@ export class Game {
     const w = Math.max(2, b.width * k);
     const mode = b.hue ? 'hue' + b.hue : null;
     ctx.save();
-    ctx.translate(p.x + Math.cos(b.ang) * 6, p.y - 12 + Math.sin(b.ang) * 6);
+    ctx.translate(p.x + Math.cos(b.ang) * 8, p.y - 22 + Math.sin(b.ang) * 6);
     ctx.rotate(b.ang);
     if (b.spiral) {
       ctx.fillStyle = b.color;
@@ -1555,7 +1646,7 @@ export class Game {
       ctx.strokeStyle = '#fff';
       ctx.stroke();
     } else if (f.kind === 'flash') {
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = f.color || '#ffffff';
       ctx.globalAlpha = (1 - k) * 0.6;
       ctx.beginPath();
       ctx.arc(f.x, f.y, f.r * (0.6 + k * 0.4), 0, TAU);

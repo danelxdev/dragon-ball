@@ -139,3 +139,66 @@ export function drawNumber(ctx, key, text, x, y, align = 'center', mode = null) 
     cx += adv;
   }
 }
+
+// Personajes en vista lateral (assets/heroes): tira de fotogramas mirando a la derecha.
+// Los pies quedan en (x, y); flip los gira para mirar a la izquierda.
+export function drawHero(ctx, id, frame, x, y, flip = false, mode = null, scale = 1) {
+  const m = assets.m.heroes[id];
+  if (!m) return;
+  const src = mode ? recolor('heroes', id, mode) : img('heroes', id);
+  const f = ((frame % m.frames) + m.frames) % m.frames;
+  const w = m.fw * scale;
+  const h = m.fh * scale;
+  if (flip) {
+    ctx.save();
+    ctx.translate(Math.round(x), 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(src, f * m.fw, 0, m.fw, m.fh, Math.round(-w / 2), Math.round(y - h), w, h);
+    ctx.restore();
+  } else {
+    ctx.drawImage(src, f * m.fw, 0, m.fw, m.fh, Math.round(x - w / 2), Math.round(y - h), w, h);
+  }
+}
+
+export function heroSize(id) {
+  const m = assets.m.heroes[id];
+  return m ? { w: m.fw, h: m.fh } : { w: 32, h: 48 };
+}
+
+// Retrato: la parte superior del primer fotograma (cabeza y torso) en un lienzo cuadrado.
+export function heroPortrait(id, size = 48, mode = null) {
+  const m = assets.m.heroes[id];
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  if (!m) return c;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const src = mode ? recolor('heroes', id, mode) : img('heroes', id);
+  const crop = Math.min(m.fw, Math.round(m.fh * 0.62));
+  const sx = Math.round((m.fw - crop) / 2);
+  ctx.drawImage(src, sx, 0, crop, crop, 0, 0, size, size);
+  return c;
+}
+
+// Dibuja el personaje entero centrado en un lienzo (para cartas y menús).
+export function heroCard(id, w, h, mode = null, frame = 0, shiny = false) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const m = assets.m.heroes[id];
+  if (!m) return c;
+  const s = Math.max(1, Math.floor(Math.min(w / (m.fw + 2), (h - 3) / (m.fh + 1))));
+  if (shiny) drawShinyOutline(ctx, id, frame, w / 2, h - 2, false, s);
+  drawHero(ctx, id, frame, w / 2, h - 2, false, mode, s);
+  return c;
+}
+
+// Contorno luminoso para personajes brillantes (sin cambiar sus colores).
+export function drawShinyOutline(ctx, id, frame, x, y, flip = false, scale = 1) {
+  for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+    drawHero(ctx, id, frame, x + ox * scale, y + oy * scale, flip, 'silfff2a0', scale);
+  }
+}
