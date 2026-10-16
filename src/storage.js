@@ -5,7 +5,7 @@ const KEY = 'dbsurvivors-save-v1';
 const DEFAULT = () => ({
   zeni: 0,
   upgrades: {},
-  unlocked: ['goku', 'vegeta', 'gohan', 'piccolo'],
+  unlocked: ['goku', 'vegeta', 'gohan'],
   best: {}, // id personaje -> segundos
   wins: 0,
   muted: false,

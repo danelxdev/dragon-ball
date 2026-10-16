@@ -1,102 +1,48 @@
 // Datos del juego: personajes, técnicas, pasivas, enemigos y oleadas.
-
-const GOKU_PAL = {
-  H: '#1b1b2b', h: '#3a3a55',
-  G: '#f07a1a', g: '#c45a0c', U: '#2547a8', B: '#2547a8', W: '#2547a8', K: '#2547a8',
-  L: '#f07a1a', l: '#c45a0c',
-};
-const GOLD = { H: '#ffe14a', h: '#f0b020' };
+// `sprite` es el id de la hoja en assets/chars (ver tools/build_assets.py).
 
 export const CHARACTERS = [
   {
-    id: 'goku', name: 'Goku', cost: 0, weapon: 'kamehameha',
+    id: 'goku', name: 'Goku', cost: 0, weapon: 'kamehameha', sprite: 'goku',
     desc: 'Saiyajin criado en la Tierra. Equilibrado en todo.',
     stats: { hp: 100, speed: 1, might: 1 },
-    look: { hair: 'goku', pal: GOKU_PAL },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', hair: 'ssj', pal: GOLD, aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', hair: 'ssj', pal: GOLD, aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 },
-      { lvl: 30, name: 'Super Saiyajin 3', hair: 'ssj3', pal: GOLD, aura: '#ffd000', sparks: true, might: 0.9, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'goku_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'goku_ssj', aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 },
+      { lvl: 30, name: 'Super Saiyajin 3', sprite: 'goku_ssj', aura: '#ffd000', sparks: true, big: true, might: 0.9, speed: 0.15 },
     ],
   },
   {
-    id: 'vegeta', name: 'Vegeta', cost: 0, weapon: 'galick',
+    id: 'vegeta', name: 'Vegeta', cost: 0, weapon: 'galick', sprite: 'vegeta',
     desc: 'El príncipe de los Saiyajin. Más daño, menos vida.',
     stats: { hp: 85, speed: 1, might: 1.15 },
-    look: {
-      hair: 'vegeta',
-      pal: {
-        H: '#1b1b2b', h: '#3a3a55', G: '#2e4fb8', g: '#1f3a8a', U: '#f2f2f2', B: '#f2f2f2',
-        W: '#f2f2f2', K: '#f2f2f2', L: '#2e4fb8', l: '#1f3a8a',
-      },
-    },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', pal: GOLD, aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Vegeta', pal: GOLD, aura: '#ffd84a', might: 0.5, speed: 0.1 },
-      { lvl: 30, name: 'Majin Vegeta', pal: { ...GOLD, E: '#5a0a0a' }, aura: '#ffe14a', sparks: true, might: 0.95, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'vegeta_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Vegeta', sprite: 'vegeta_ssj', aura: '#ffd84a', might: 0.5, speed: 0.1 },
+      { lvl: 30, name: 'Majin Vegeta', sprite: 'vegeta_ssj', aura: '#ffe14a', sparks: true, big: true, might: 0.95, speed: 0.15 },
     ],
   },
   {
-    id: 'gohan', name: 'Gohan', cost: 0, weapon: 'masenko',
+    id: 'gohan', name: 'Gohan', cost: 0, weapon: 'masenko', sprite: 'gohan',
     desc: 'Poder oculto inmenso. Recibe más experiencia.',
     stats: { hp: 95, speed: 1.03, might: 1, growth: 0.1 },
-    look: {
-      hair: 'gohan',
-      pal: {
-        H: '#1b1b2b', h: '#3a3a55', G: '#5b3aa0', g: '#432a7a', U: '#5b3aa0', B: '#c0302a',
-        W: '#c0302a', K: '#6b3a1a', L: '#5b3aa0', l: '#432a7a',
-      },
-    },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', hair: 'ssj', pal: GOLD, aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', hair: 'ssj', pal: GOLD, aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 },
-      { lvl: 30, name: 'Gohan Definitivo', aura: '#ffffff', might: 1.0, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'gohan_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'gohan_ssj', aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 },
+      { lvl: 30, name: 'Gohan Definitivo', sprite: 'gohan', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
     ],
   },
   {
-    id: 'piccolo', name: 'Piccolo', cost: 0, weapon: 'makanko',
-    desc: 'Guerrero namekiano. Se regenera con el tiempo.',
-    stats: { hp: 110, speed: 0.97, might: 1, regen: 0.4 },
-    look: {
-      hair: 'piccolo',
-      pal: {
-        S: '#5fae3a', s: '#3f7f25', G: '#4b2a7a', g: '#351d58', U: '#4b2a7a', B: '#3a6fd8',
-        W: '#6b3a1a', K: '#6b3a1a', L: '#4b2a7a', l: '#351d58', T: '#f2f2f2', P: '#6a3aa0',
-      },
-    },
-    forms: [
-      { lvl: 10, name: 'Fusión con Nail', aura: '#b8ff9a', might: 0.2, speed: 0.06, regen: 0.4 },
-      { lvl: 20, name: 'Fusión con Kami', aura: '#e6ffe0', might: 0.45, speed: 0.1, regen: 0.8 },
-      { lvl: 30, name: 'Piccolo Despertado', pal: { G: '#2a1450', U: '#2a1450', L: '#2a1450' }, aura: '#ffffff', sparks: true, might: 0.8, speed: 0.12, regen: 1.2 },
-    ],
-  },
-  {
-    id: 'krillin', name: 'Krilin', cost: 400, weapon: 'kienzan',
-    desc: 'El humano más fuerte. Rápido y con más imán.',
+    id: 'goten', name: 'Goten', cost: 400, weapon: 'kiblast', sprite: 'goten',
+    desc: 'El hijo pequeño de Goku. Rápido y con más imán.',
     stats: { hp: 90, speed: 1.1, might: 1, magnet: 0.3 },
-    look: { hair: 'krillin', pal: { ...GOKU_PAL, s: '#c98b5c' } },
     forms: [
-      { lvl: 10, name: 'Potencial liberado', aura: '#ffffff', might: 0.3, speed: 0.1 },
-      { lvl: 20, name: 'Maestro del Kienzan', aura: '#ffe9a8', might: 0.6, speed: 0.15 },
-    ],
-  },
-  {
-    id: 'trunks', name: 'Trunks', cost: 800, weapon: 'sword',
-    desc: 'Viene del futuro con su espada. Mucho daño cuerpo a cuerpo.',
-    stats: { hp: 100, speed: 1.05, might: 1.1 },
-    look: {
-      hair: 'trunks',
-      pal: {
-        H: '#b79be0', h: '#8f73c0', G: '#3b4a8a', g: '#2a3566', U: '#1b1b2b', B: '#e8c23a',
-        W: '#e8c23a', K: '#e8c23a', L: '#555566', l: '#3a3a48',
-      },
-    },
-    forms: [
-      { lvl: 10, name: 'Super Saiyajin', pal: GOLD, aura: '#ffe14a', might: 0.3, speed: 0.08 },
-      { lvl: 20, name: 'Super Trunks', pal: GOLD, aura: '#ffd84a', sparks: true, might: 0.65, speed: 0.12 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'goten_ssj', aura: '#ffe14a', might: 0.3, speed: 0.1 },
+      { lvl: 20, name: 'Super Saiyajin al máximo', sprite: 'goten_ssj', aura: '#fff07a', sparks: true, might: 0.65, speed: 0.15 },
     ],
   },
 ];
+
 
 // ---------------------------------------------------------------------------
 // Técnicas (armas). Cada nivel tiene sus estadísticas completas.
@@ -224,8 +170,8 @@ export const WEAPONS = {
     ],
   },
   sword: {
-    name: 'Espada del Futuro', color: '#e0f0ff', kind: 'slash',
-    desc: 'Tajo en arco frente a ti.',
+    name: 'Espada de Energía', color: '#e0f0ff', kind: 'slash',
+    desc: 'Tajo de energía en arco frente a ti.',
     levels: [
       { dmg: 22, cd: 1.1, range: 44, arc: 2.0 },
       { dmg: 28, cd: 1.05, range: 48, arc: 2.1 },
@@ -274,90 +220,53 @@ export const META = {
 // Enemigos
 // ---------------------------------------------------------------------------
 export const ENEMIES = {
-  saibaman: {
-    name: 'Saibaman', sprite: 'critter', pal: { G: '#4fb83a', g: '#2f7d1f', R: '#d42020' },
-    hp: 7, speed: 54, dmg: 5, xp: 1, r: 5,
+  tiger: { name: 'Bandido Tigre', sprite: 'tiger', hp: 7, speed: 54, dmg: 5, xp: 1, r: 6 },
+  soldier: { name: 'Soldado', sprite: 'soldier', hp: 18, speed: 46, dmg: 8, xp: 2, r: 6 },
+  wolf: {
+    name: 'Bandido Lobo', sprite: 'wolf', hp: 30, speed: 60, dmg: 10, xp: 3, r: 6,
+    ranged: { range: 130, cd: 4, speed: 130, dmg: 4, fx: 'bullet' },
   },
-  soldier: {
-    name: 'Soldado de Freezer', sprite: 'humanoid', hair: 'soldier',
-    pal: {
-      H: '#2a2a3a', S: '#9ad0ff', s: '#6aa0d0', G: '#f2f2f2', g: '#c8c8d8', U: '#2a2a50', B: '#e0c050',
-      W: '#f2f2f2', K: '#f2f2f2', L: '#2a2a50', l: '#1a1a35',
-    },
-    hp: 18, speed: 46, dmg: 8, xp: 2, r: 6,
+  mohawk: {
+    name: 'Lanzacohetes', sprite: 'mohawk', hp: 70, speed: 50, dmg: 14, xp: 6, r: 7,
+    ranged: { range: 170, cd: 5, speed: 105, dmg: 6, fx: 'rocket' },
   },
-  celljr: {
-    name: 'Cell Jr.', sprite: 'humanoid', hair: 'celljr',
-    pal: {
-      H: '#4aa0ff', h: '#2a6ad0', S: '#9ad8ff', s: '#6ab0e0', G: '#4aa0ff', g: '#2a6ad0', U: '#2a2a50',
-      B: '#2a2a50', W: '#2a2a50', K: '#2a2a50', L: '#4aa0ff', l: '#2a6ad0',
-    },
-    hp: 38, speed: 74, dmg: 10, xp: 4, r: 6,
-  },
-  majin: {
-    name: 'Esbirro Majin', sprite: 'critter', pal: { G: '#ff8ac8', g: '#d0609a', R: '#1a1020' },
-    hp: 75, speed: 58, dmg: 14, xp: 6, r: 6,
-  },
-};
-
-const SAIYAN_ARMOR = {
-  G: '#f2f2f2', g: '#c8c8d8', U: '#1f2a66', B: '#c09040', W: '#f2f2f2', K: '#f2f2f2',
-  L: '#1f2a66', l: '#151d4a',
 };
 
 export const BOSSES = {
-  raditz: {
-    name: 'Raditz', hair: 'raditz', pal: { ...SAIYAN_ARMOR, H: '#1b1b2b', h: '#3a3a55' },
-    hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a',
-  },
-  nappa: {
-    name: 'Nappa', hair: 'nappa', pal: { ...SAIYAN_ARMOR, h: '#1b1b2b' },
-    hp: 1600, speed: 46, dmg: 20, xp: 120, color: '#ffb04a',
-  },
-  freezer: {
-    name: 'Freezer', hair: 'freezer',
-    pal: {
-      S: '#f4f0f8', s: '#cfc4dc', E: '#c01030', P: '#9a4ad8', G: '#f4f0f8', g: '#cfc4dc', U: '#9a4ad8',
-      B: '#f4f0f8', W: '#f4f0f8', K: '#f4f0f8', L: '#f4f0f8', l: '#cfc4dc',
-    },
-    hp: 4200, speed: 62, dmg: 25, xp: 220, color: '#c77bff',
-  },
-  cell: {
-    name: 'Cell', hair: 'cell',
-    pal: {
-      H: '#3fae5a', h: '#1b1b2b', S: '#e8d8ee', s: '#c4b0cc', G: '#3fae5a', g: '#1b1b2b', U: '#1b1b2b',
-      B: '#1b1b2b', W: '#3fae5a', K: '#e8d8ee', L: '#3fae5a', l: '#1b1b2b',
-    },
-    hp: 8500, speed: 66, dmg: 30, xp: 350, color: '#5fe07a',
-  },
-  buu: {
-    name: 'Majin Buu', hair: 'buu',
-    pal: {
-      S: '#ff9ccc', s: '#e070a8', E: '#1a1020', G: '#ff9ccc', g: '#e070a8', U: '#ff9ccc', B: '#1b1b2b',
-      W: '#f0d040', K: '#1b1b2b', L: '#f4f4f4', l: '#c8c8d8',
-    },
-    hp: 15000, speed: 72, dmg: 35, xp: 500, color: '#ff8ac8',
-  },
+  puipui: { name: 'Pui Pui', sprite: 'puipui', scale: 2, r: 16, hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a' },
+  a17: { name: 'Androide 17', sprite: 'a17', scale: 2, r: 12, hp: 1100, speed: 60, dmg: 20, xp: 80, color: '#7ad8ff' },
+  a18: { name: 'Androide 18', sprite: 'a18', scale: 2, r: 12, hp: 1100, speed: 60, dmg: 20, xp: 80, color: '#ffe07a' },
+  freezer: { name: 'Freezer', sprite: 'freezer', scale: 2, r: 12, hp: 4200, speed: 62, dmg: 25, xp: 220, color: '#c77bff' },
+  cell: { name: 'Cell', sprite: 'cell', scale: 2, r: 12, hp: 8500, speed: 66, dmg: 30, xp: 350, color: '#5fe07a' },
+  buu: { name: 'Majin Buu', sprite: 'buu', scale: 2, r: 12, hp: 15000, speed: 72, dmg: 35, xp: 500, color: '#ff8ac8' },
 };
 
 // Composición de oleadas según el tiempo (segundos).
 export const WAVES = [
-  { t: 0, types: ['saibaman'], rate: 3.5 },
-  { t: 60, types: ['saibaman', 'saibaman', 'soldier'], rate: 6 },
-  { t: 150, types: ['soldier', 'saibaman'], rate: 8 },
-  { t: 240, types: ['soldier', 'celljr'], rate: 10 },
-  { t: 360, types: ['celljr', 'soldier'], rate: 12 },
-  { t: 480, types: ['celljr', 'majin'], rate: 14 },
-  { t: 600, types: ['majin', 'celljr'], rate: 16 },
-  { t: 720, types: ['majin', 'celljr', 'soldier'], rate: 19 },
+  { t: 0, types: ['tiger'], rate: 3.5 },
+  { t: 60, types: ['tiger', 'tiger', 'soldier'], rate: 6 },
+  { t: 150, types: ['soldier', 'tiger', 'wolf'], rate: 8 },
+  { t: 240, types: ['soldier', 'wolf'], rate: 10 },
+  { t: 360, types: ['wolf', 'soldier', 'mohawk'], rate: 12 },
+  { t: 480, types: ['wolf', 'mohawk', 'soldier'], rate: 14 },
+  { t: 600, types: ['mohawk', 'wolf'], rate: 16 },
+  { t: 720, types: ['mohawk', 'wolf', 'soldier'], rate: 19 },
 ];
 
 export const BOSS_SCHEDULE = [
-  { t: 120, id: 'raditz' },
-  { t: 270, id: 'nappa' },
+  { t: 120, id: 'puipui' },
+  { t: 270, id: 'a17' },
+  { t: 270, id: 'a18' },
   { t: 450, id: 'freezer' },
   { t: 630, id: 'cell' },
   { t: 810, id: 'buu' },
+];
+
+// Zonas: el suelo cambia con el tiempo.
+export const BIOMES = [
+  { t: 0, name: 'Llanuras de la Tierra', tile: 'grass', decor: ['tree', 'tree', 'bush', 'stone_big', 'stone_med', 'stone_small'] },
+  { t: 300, name: 'Desierto rocoso', tile: 'sand', decor: ['mesa', 'stone_big', 'stone_med', 'stone_small', 'stone_small'] },
+  { t: 600, name: 'Interior de Majin Buu', tile: 'buu', decor: ['stone_big', 'stone_med', 'stone_small'] },
 ];
 
 export const HORDES = [180, 360, 540, 720];

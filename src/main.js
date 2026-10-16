@@ -1,7 +1,7 @@
 import { CHARACTERS, WEAPONS, PASSIVES, META, WIN_TIME } from './data.js';
 import { Game } from './game.js';
 import { Input } from './input.js';
-import { humanoid } from './sprites.js';
+import { loadAssets, drawChar } from './assets.js';
 import { loadSave, writeSave } from './storage.js';
 import { unlockAudio, setMuted, isMuted } from './audio.js';
 
@@ -274,11 +274,19 @@ document.addEventListener('visibilitychange', () => {
 // Pantallas de menú
 // ---------------------------------------------------------------------------
 function charPreview(c) {
-  const spr = humanoid('p-' + c.id + '--1', c.look.hair, c.look.pal);
   const cv = document.createElement('canvas');
-  cv.width = 16;
-  cv.height = 24;
-  cv.getContext('2d').drawImage(spr.frames[0][0], 0, 0);
+  cv.width = 32;
+  cv.height = 32;
+  const ctx = cv.getContext('2d');
+  let t = 0;
+  const draw = () => {
+    if (!cv.isConnected && t > 0) return;
+    ctx.clearRect(0, 0, 32, 32);
+    drawChar(ctx, c.sprite, 0, Math.floor(t / 8), 16, 32);
+    t++;
+    setTimeout(draw, 16);
+  };
+  draw();
   return cv;
 }
 
@@ -297,7 +305,7 @@ function titleScreen() {
       <button class="btn alt" id="records">Récords</button>
       <button class="btn alt" id="help">Cómo jugar</button>
     </div>
-    <div class="foot">Fan game no oficial y sin ánimo de lucro. Dragon Ball es propiedad de Akira Toriyama, Bird Studio, Shueisha y Toei Animation. Todo el pixel art es original.</div>
+    <div class="foot">Fan game no oficial y sin ánimo de lucro. Dragon Ball es propiedad de Akira Toriyama, Bird Studio, Shueisha y Toei Animation. Sprites de Dragon Ball Z: The Legacy of Goku y Buu's Fury (Webfoot / Atari), extraídos por la comunidad.</div>
   </div>`, 'title-bg');
   $('play').addEventListener('click', () => { unlockAudio(); charSelect(); });
   $('shop').addEventListener('click', shopScreen);
@@ -393,8 +401,8 @@ function helpScreen() {
     <p><b>Recoge las esferas de ki</b> que sueltan los enemigos para subir de nivel y elige una técnica o habilidad nueva (teclas 1-3, R para cambiar opciones).</p>
     <p><b>Transfórmate:</b> a los niveles 10, 20 y 30 tu guerrero alcanza nuevas formas, como el Super Saiyajin.</p>
     <p><b>Bolas de Dragón:</b> el radar marca dónde están. Los jefes también las sueltan. Reúne las 7 para pedirle un deseo a Shenlong.</p>
-    <p><b>Jefes:</b> Raditz, Nappa, Freezer, Cell y Majin Buu. Aguanta 15 minutos para salvar la Tierra.</p>
-    <p>Los enemigos de élite sueltan <b>Cápsulas Corp</b> que mejoran una técnica, y a veces caen <b>Semillas del Ermitaño</b>. Con el <b>Zeni</b> compras mejoras permanentes y desbloqueas a Krilin y Trunks.</p>
+    <p><b>Jefes:</b> Pui Pui, los Androides 17 y 18, Freezer, Cell y Majin Buu. Aguanta 15 minutos para salvar la Tierra.</p>
+    <p>Los enemigos de élite sueltan <b>cofres</b> que mejoran una técnica, y a veces caen <b>Semillas del Ermitaño</b>. Con el <b>Zeni</b> compras mejoras permanentes y desbloqueas a Goten.</p>
     <div class="row"><button class="btn alt small" id="back">Volver</button></div>
   </div>`, 'title-bg');
   $('back').addEventListener('click', titleScreen);
@@ -412,5 +420,10 @@ function startGame(c) {
 // Acceso para pruebas automáticas.
 window.__dbs = { get game() { return game; }, startGame, CHARACTERS };
 
-titleScreen();
-requestAnimationFrame(frame);
+show('<div class="zeni">Cargando...</div>', 'title-bg');
+loadAssets()
+  .then(() => {
+    titleScreen();
+    requestAnimationFrame(frame);
+  })
+  .catch((err) => show(`<div class="panel"><h2>Error</h2><p>${err.message}</p></div>`));

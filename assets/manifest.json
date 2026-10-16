@@ -1,0 +1,290 @@
+{
+ "chars": {
+  "goku": {
+   "file": "chars/goku.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "goku_ssj": {
+   "file": "chars/goku_ssj.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "gohan": {
+   "file": "chars/gohan.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "gohan_ssj": {
+   "file": "chars/gohan_ssj.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "vegeta": {
+   "file": "chars/vegeta.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "vegeta_ssj": {
+   "file": "chars/vegeta_ssj.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "goten": {
+   "file": "chars/goten.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "goten_ssj": {
+   "file": "chars/goten_ssj.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "tiger": {
+   "file": "chars/tiger.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "soldier": {
+   "file": "chars/soldier.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "wolf": {
+   "file": "chars/wolf.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "mohawk": {
+   "file": "chars/mohawk.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "puipui": {
+   "file": "chars/puipui.png",
+   "fw": 64,
+   "fh": 64,
+   "frames": 4
+  },
+  "a17": {
+   "file": "chars/a17.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "a18": {
+   "file": "chars/a18.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "freezer": {
+   "file": "chars/freezer.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "buu": {
+   "file": "chars/buu.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 3
+  },
+  "cell": {
+   "file": "chars/cell.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  }
+ },
+ "fx": {
+  "kiblast": {
+   "file": "fx/kiblast.png",
+   "w": 32,
+   "h": 64,
+   "fw": 16,
+   "fh": 16
+  },
+  "kihit": {
+   "file": "fx/kihit.png",
+   "w": 14,
+   "h": 15
+  },
+  "masenko": {
+   "file": "fx/masenko.png",
+   "w": 48,
+   "h": 16,
+   "fw": 16,
+   "fh": 16
+  },
+  "masenko_boom": {
+   "file": "fx/masenko_boom.png",
+   "w": 128,
+   "h": 32,
+   "fw": 32,
+   "fh": 32
+  },
+  "genkidama": {
+   "file": "fx/genkidama.png",
+   "w": 32,
+   "h": 32
+  },
+  "genki_hit": {
+   "file": "fx/genki_hit.png",
+   "w": 128,
+   "h": 32,
+   "fw": 32,
+   "fh": 32
+  },
+  "bigbang": {
+   "file": "fx/bigbang.png",
+   "w": 32,
+   "h": 32
+  },
+  "boom": {
+   "file": "fx/boom.png",
+   "w": 576,
+   "h": 32,
+   "fw": 32,
+   "fh": 32
+  },
+  "kame_begin": {
+   "file": "fx/kame_begin.png",
+   "w": 32,
+   "h": 64,
+   "fw": 16,
+   "fh": 16
+  },
+  "kame_mid": {
+   "file": "fx/kame_mid.png",
+   "w": 24,
+   "h": 24
+  },
+  "kame_end": {
+   "file": "fx/kame_end.png",
+   "w": 32,
+   "h": 64,
+   "fw": 16,
+   "fh": 16
+  },
+  "sword": {
+   "file": "fx/sword.png",
+   "w": 24,
+   "h": 32
+  },
+  "bullet": {
+   "file": "fx/bullet.png",
+   "w": 48,
+   "h": 8,
+   "fw": 16,
+   "fh": 8
+  },
+  "rocket": {
+   "file": "fx/rocket.png",
+   "w": 22,
+   "h": 8
+  },
+  "shadow": {
+   "file": "fx/shadow.png",
+   "w": 10,
+   "h": 4
+  },
+  "shadowbig": {
+   "file": "fx/shadowbig.png",
+   "w": 24,
+   "h": 10
+  }
+ },
+ "tiles": {
+  "grass": {
+   "file": "tiles/grass.png",
+   "w": 128,
+   "h": 64
+  },
+  "field": {
+   "file": "tiles/field.png",
+   "w": 64,
+   "h": 72
+  },
+  "sand": {
+   "file": "tiles/sand.png",
+   "w": 64,
+   "h": 64
+  },
+  "buu": {
+   "file": "tiles/buu.png",
+   "w": 64,
+   "h": 64
+  }
+ },
+ "decor": {
+  "tree": {
+   "file": "decor/tree.png",
+   "w": 240,
+   "h": 184,
+   "fw": 80,
+   "fh": 92
+  },
+  "stone_big": {
+   "file": "decor/stone_big.png",
+   "w": 30,
+   "h": 31
+  },
+  "stone_med": {
+   "file": "decor/stone_med.png",
+   "w": 24,
+   "h": 26
+  },
+  "stone_small": {
+   "file": "decor/stone_small.png",
+   "w": 21,
+   "h": 20
+  },
+  "mesa": {
+   "file": "decor/mesa.png",
+   "w": 96,
+   "h": 88
+  },
+  "bush": {
+   "file": "decor/bush.png",
+   "w": 80,
+   "h": 57
+  }
+ },
+ "items": {
+  "senzu": {
+   "file": "items/senzu.png",
+   "w": 10,
+   "h": 10
+  },
+  "zeni": {
+   "file": "items/zeni.png",
+   "w": 24,
+   "h": 8,
+   "fw": 8,
+   "fh": 8
+  },
+  "chest": {
+   "file": "items/chest.png",
+   "w": 32,
+   "h": 28
+  },
+  "dragonball": {
+   "file": "items/dragonball.png",
+   "w": 14,
+   "h": 14
+  }
+ }
+}
