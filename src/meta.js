@@ -12,16 +12,33 @@ export const CHAR_UPGRADES = {
 export const upgradeCost = (lvl) => (lvl + 1) * 4;
 export const MAX_STARS = 5;
 
+// Solo se empieza con Goku. El regalo de bienvenida da cristales y tickets para las primeras invocaciones
+// (las partidas guardadas de antes de los cristales también lo reciben una vez).
 export function ensureStarters(save) {
   for (const id of GACHA.starters) {
     if (!save.roster[id]) save.roster[id] = { stars: 1, shards: 0, shiny: false, up: {} };
   }
-  if (!save.welcomed) {
-    save.zeni += GACHA.welcome;
+  if (!save.welcomed2) {
+    const w = GACHA.welcome;
+    save.crystals += w.crystals;
+    save.tickets += w.tickets;
+    save.ticket10 += w.ticket10;
+    if (!save.welcomed) save.zeni += w.zeni;
     save.welcomed = true;
+    save.welcomed2 = true;
     return true;
   }
   return false;
+}
+
+// Recompensa diaria (una vez al día)
+export function dailyReward(save) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (save.lastDaily === today) return null;
+  save.lastDaily = today;
+  save.crystals += GACHA.daily.crystals;
+  save.tickets += GACHA.daily.tickets;
+  return GACHA.daily;
 }
 
 export function ownedIds(save) {
@@ -75,12 +92,27 @@ export function grant(save, unit, shiny) {
   return res;
 }
 
-export function pull(save, saga, n) {
-  const cost = n === 10 ? GACHA.cost10 : GACHA.cost1 * n;
-  if (save.zeni < cost) return null;
-  save.zeni -= cost;
+// Formas de pago de una invocación de n (1 o 10): devuelve la que se puede usar (primero tickets).
+export function payOptions(save, n) {
+  const out = [];
+  if (n === 10 && save.ticket10 > 0) out.push('ticket10');
+  if (save.tickets >= n) out.push('tickets');
+  if (save.crystals >= (n === 10 ? GACHA.cost10 : GACHA.cost1)) out.push('crystals');
+  return out;
+}
+
+export function pull(save, saga, n, pay = payOptions(save, n)[0]) {
+  if (!payOptions(save, n).includes(pay)) return null;
+  if (pay === 'ticket10') save.ticket10--;
+  else if (pay === 'tickets') save.tickets -= n;
+  else save.crystals -= n === 10 ? GACHA.cost10 : GACHA.cost1;
   const units = [];
-  for (let i = 0; i < n; i++) units.push(rollUnit(saga));
+  for (let i = 0; i < n; i++) {
+    // Pity: tras GACHA.pity invocaciones sin Legendario, el siguiente lo es seguro
+    const u = save.pity + 1 >= GACHA.pity ? rollUnit(saga, 'L') : rollUnit(saga);
+    save.pity = u.rarity === 'L' ? 0 : save.pity + 1;
+    units.push(u);
+  }
   // en la tirada x10 hay al menos un Épico
   if (n === 10 && !units.some((u) => u.rarity === 'E' || u.rarity === 'L')) units[9] = rollUnit(saga, 'E');
   const results = units.map((u) => grant(save, u, Math.random() * 100 < GACHA.shinyRate));
@@ -120,7 +152,8 @@ export function claim(save, id) {
   if (!m || !m.done || m.claimed) return 0;
   save.claimed.push(id);
   save.zeni += m.reward;
-  return m.reward;
+  save.crystals += m.crystals;
+  return m;
 }
 
 // Aplica el resultado de una partida a las estadísticas.
@@ -129,6 +162,12 @@ export function applyRun(save, r) {
   addStat(save, 'kills', r.kills);
   addStat(save, 'wishes', r.wishes);
   addStat(save, 'evolutions', r.evolutions);
+  addStat(save, 'bonds', r.bonds || 0);
+  addStat(save, 'ults', r.ults || 0);
+  addStat(save, 'pods', r.pods || 0);
+  save.crystals += r.crystals || 0;
+  save.tickets += r.tickets || 0;
+  save.ticket10 += r.ticket10 || 0;
   if (r.maxForm) addStat(save, 'maxForms');
   maxStat(save, 'maxLevel', r.level);
   for (const b of r.bossesBeaten) addStat(save, 'boss_' + b);

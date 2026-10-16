@@ -1,8 +1,8 @@
 import {
-  WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_WEAPONS, MAX_PASSIVES, BIOMES,
-  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES,
+  WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_PASSIVES, BIOMES,
+  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES, MAX_SLOTS, BOND_MAX, ULTS,
 } from './data.js';
-import { img, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber } from './assets.js';
+import { img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard } from './assets.js';
 import { sfx } from './audio.js';
 
 function rng(seed) {
@@ -24,6 +24,7 @@ function dirFrom(x, y, prev) {
 }
 
 const TAU = Math.PI * 2;
+export const BUFF_COLORS = { fury: '#ff5a4a', speed: '#7affd0', haste: '#7ab8ff', magnet: '#ffd23a' };
 const MAX_ENEMIES = 480;
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[(Math.random() * arr.length) | 0];
@@ -149,14 +150,200 @@ export class Game {
     this.texts = [];
     this.orbs = [];
     this.boss = null;
+    this.ebeams = []; // rayos de jefe con aviso en el suelo
+
+    // Formato PokeSurvivor: hasta 4 ranuras de técnicas y solo dispara la activa.
+    // Los vínculos (al derrotar jefes) juntan ranuras para lanzar varias técnicas a la vez.
+    this.slots = [];
+    this.active = 0;
+    this.bonds = 0;
+    this.bondsUsed = 0;
+    this.pendingBond = false;
+    // Barra de ki: al llenarse se puede lanzar el ataque definitivo del guerrero.
+    this.ki = 0;
+    this.kiRate = 1 + 0.15 * (save.upgrades.ki || 0);
+    this.ults = 0;
+    this.cutin = null;
+    this.ult = null;
+    // Botín de la partida
+    this.crystals = 0;
+    this.tickets = 0;
+    this.ticket10 = 0;
+    this.podsBroken = 0;
+    this.buffs = {};
+    this.nextPodT = 10;
 
     this.recalc();
     this.player.hp = this.player.maxHp;
     this.addWeapon(char.weapon);
-    if (this.mod('extraWeapon')) {
+    if (this.mod('extraWeapon') || save.upgrades.repertorio) {
       const pool = COMMON_WEAPONS.filter((id) => id !== char.weapon);
       this.addWeapon(pick(pool));
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Ranuras, vínculos y ki
+  // -------------------------------------------------------------------------
+  get activeSlot() {
+    return this.slots[this.active] || this.slots[0];
+  }
+
+  setActive(i) {
+    if (i === this.active || i < 0 || i >= this.slots.length || this.state !== 'play') return;
+    this.active = i;
+    for (const w of this.activeSlot.ws) {
+      const s = this.weaponStats(w);
+      if (s.cd) w.timer = Math.min(w.timer, s.cd * this.stats.haste * 0.35);
+    }
+    this.rebuildOrbs();
+    sfx('switch');
+  }
+
+  cycleSlot(d) {
+    if (this.slots.length < 2) return;
+    this.setActive((this.active + d + this.slots.length) % this.slots.length);
+  }
+
+  // Opciones de vínculo: juntar dos ranuras si caben (máximo BOND_MAX técnicas por ranura).
+  bondOptions() {
+    const out = [];
+    for (let a = 0; a < this.slots.length; a++) {
+      for (let b = 0; b < this.slots.length; b++) {
+        if (a === b) continue;
+        const A = this.slots[a].ws;
+        const B = this.slots[b].ws;
+        if (A.length + B.length > BOND_MAX) continue;
+        // se fusiona la pequeña en la grande (en caso de empate, en la de índice menor)
+        if (B.length > A.length || (B.length === A.length && b < a)) continue;
+        out.push({ a, b, size: A.length + B.length, names: [...A, ...B].map((w) => w.def.name) });
+      }
+    }
+    out.sort((x, y) => y.size - x.size || (x.a === this.active ? -1 : 0));
+    return out.slice(0, 3);
+  }
+
+  applyBond(o) {
+    if (o) {
+      const A = this.slots[o.a];
+      const B = this.slots[o.b];
+      A.ws.push(...B.ws);
+      this.slots.splice(o.b, 1);
+      if (this.active === o.b) this.active = o.a > o.b ? o.a - 1 : o.a;
+      else if (this.active > o.b) this.active--;
+      this.bonds--;
+      this.bondsUsed++;
+      this.rebuildOrbs();
+      sfx('bond');
+      this.flashScreen = 0.4;
+      this.ui.banner('¡VÍNCULO! ' + A.ws.map((w) => w.def.name).join(' + ').toUpperCase(), '#ffd23a');
+    } else {
+      this.ui.toast('Guardas el vínculo para más tarde');
+    }
+    this.state = 'play';
+    this.ui.hideModal();
+  }
+
+  gainKi(v) {
+    if (this.ult || this.cutin) return;
+    const before = this.ki;
+    this.ki = Math.min(100, this.ki + v * this.kiRate);
+    if (before < 100 && this.ki >= 100) {
+      sfx('dragonball');
+      this.ui.toast('¡Ki al máximo! Pulsa ESPACIO (o el botón KI) para tu ataque definitivo');
+    }
+  }
+
+  ultName() {
+    const id = this.char.weapon;
+    return ULTS[id] || 'Explosión de ki';
+  }
+
+  ultimate() {
+    if (this.ki < 100 || this.state !== 'play' || this.cutin || this.ult) return;
+    this.ki = 0;
+    this.ults++;
+    this.cutin = { t: 0, dur: 1.05, name: this.ultName(), card: heroCard(this.sprite, 96, 120, null, 0, this.prog.shiny) };
+    sfx('ult');
+  }
+
+  startUlt() {
+    const p = this.player;
+    const def = WEAPONS[this.char.weapon];
+    const kind = def.kind === 'beam' ? 'beam' : def.kind === 'bomb' ? 'bomb' : 'nova';
+    const pow = 1 + 0.05 * this.level;
+    this.shake = 0.6;
+    this.flashScreen = 0.5;
+    if (kind === 'beam') {
+      this.ult = { kind, t: 0, dur: 2.6, ang: this.aimAngle(true), len: 640, width: 64, tick: 0, dmg: 22 * pow, art: def.art || 'beam_cyan', tint: def.tint };
+    } else if (kind === 'bomb') {
+      this.ult = { kind, t: 0, dur: 2.2, x: p.x, y: p.y - 60, tx: 0, ty: 0, dmg: 650 * pow, r: 240, art: def.art, tint: def.tint, boomed: false };
+    } else {
+      this.ult = { kind, t: 0, dur: 0.9, r: 0, maxR: 300, dmg: 240 * pow, hit: new Set(), color: def.color };
+      this.eprojs = [];
+      sfx('boom', 0);
+    }
+  }
+
+  updateUlt(dt) {
+    const u = this.ult;
+    const p = this.player;
+    u.t += dt;
+    if (u.kind === 'beam') {
+      const tg = this.nearestEnemies(1, 500)[0];
+      if (tg) {
+        const want = Math.atan2(tg.y - p.y, tg.x - p.x);
+        let d = want - u.ang;
+        while (d > Math.PI) d -= TAU;
+        while (d < -Math.PI) d += TAU;
+        u.ang += clamp(d, -1.3 * dt, 1.3 * dt);
+      }
+      u.tick -= dt;
+      if (u.tick <= 0) {
+        u.tick = 0.1;
+        const x1 = p.x;
+        const y1 = p.y - 4;
+        const x2 = x1 + Math.cos(u.ang) * u.len;
+        const y2 = y1 + Math.sin(u.ang) * u.len;
+        for (const e of this.enemies) {
+          if (!e.dead && distToSegment(e.x, e.y, x1, y1, x2, y2) < u.width / 2 + e.r) this.hit(e, u.dmg, x1, y1, 60, true);
+        }
+        this.shake = Math.max(this.shake, 0.12);
+      }
+    } else if (u.kind === 'bomb') {
+      if (u.t < 1.1) {
+        u.x = p.x;
+        u.y = p.y - 60;
+        const tg = this.boss && !this.boss.dead ? this.boss : this.nearestEnemies(1, 400)[0];
+        u.tx = tg ? tg.x : p.x + p.face * 120;
+        u.ty = tg ? tg.y : p.y;
+      } else if (!u.boomed) {
+        const k = Math.min(1, (u.t - 1.1) / 0.45);
+        u.x = p.x + (u.tx - p.x) * k;
+        u.y = p.y - 60 + (u.ty - p.y + 60) * k;
+        if (k >= 1) {
+          u.boomed = true;
+          this.shake = 1;
+          this.flashScreen = 0.7;
+          sfx('boom', 0);
+          this.effects.push({ kind: 'boom', x: u.tx, y: u.ty, t: 0, dur: 0.8, r: u.r * 0.8, big: true });
+          for (const e of this.enemies) {
+            if (!e.dead && Math.hypot(e.x - u.tx, e.y - u.ty) < u.r + e.r) this.hit(e, u.dmg, u.tx, u.ty, 300, true);
+          }
+        }
+      }
+    } else {
+      u.r = (u.t / 0.6) * u.maxR;
+      for (const e of this.enemies) {
+        if (e.dead || u.hit.has(e.id)) continue;
+        if (Math.hypot(e.x - p.x, e.y - p.y) < u.r + e.r) {
+          u.hit.add(e.id);
+          e.stun = Math.max(e.stun, e.boss ? 0.4 : 1.4);
+          this.hit(e, u.dmg, p.x, p.y, 260, true);
+        }
+      }
+    }
+    if (u.t >= u.dur) this.ult = null;
   }
 
   mod(k) {
@@ -175,6 +362,7 @@ export class Game {
   }
 
   recalc() {
+    const bf = this.buffs || {};
     const b = this.char.stats;
     const m = this.save.upgrades;
     const p = this.passives;
@@ -187,11 +375,11 @@ export class Game {
     const prevMax = this.player.maxHp;
     this.stats = {
       might: b.might * rar.mult * stars * shiny * (1 + 0.05 * lv(m, 'poder')) * (1 + 0.06 * lv(cu, 'poder')) *
-        (1 + 0.1 * lv(p, 'poder')) * (1 + (f.might || 0)) * (1 + this.mod('might')) * this.bonusMight,
+        (1 + 0.1 * lv(p, 'poder')) * (1 + (f.might || 0)) * (1 + this.mod('might')) * this.bonusMight * (bf.fury > 0 ? 1.5 : 1),
       speed: 80 * b.speed * (1 + 0.04 * lv(m, 'velocidad')) * (1 + 0.04 * lv(cu, 'velocidad')) *
-        (1 + 0.07 * lv(p, 'velocidad')) * (1 + (f.speed || 0)) * (1 + this.mod('speed')),
+        (1 + 0.07 * lv(p, 'velocidad')) * (1 + (f.speed || 0)) * (1 + this.mod('speed')) * (bf.speed > 0 ? 1.35 : 1),
       armor: lv(m, 'armadura') + lv(p, 'armadura') + (b.armor || 0),
-      haste: Math.max(0.35, (1 - 0.07 * lv(p, 'concentracion')) * (1 - 0.04 * lv(cu, 'recarga')) * (1 - this.mod('haste'))),
+      haste: Math.max(0.3, (1 - 0.07 * lv(p, 'concentracion')) * (1 - 0.04 * lv(cu, 'recarga')) * (1 - this.mod('haste')) * (bf.haste > 0 ? 0.6 : 1)),
       area: (1 + 0.1 * lv(p, 'control')) * (1 + this.mod('area')),
       regen: (b.regen || 0) + 0.15 * lv(m, 'regen') + 0.3 * lv(p, 'meditacion') + (f.regen || 0) + this.mod('regen'),
       magnet: 55 * (1 + 0.1 * lv(m, 'iman')) * (1 + 0.25 * lv(p, 'radar')) * (1 + (b.magnet || 0)) * (1 + this.mod('magnet')),
@@ -208,16 +396,18 @@ export class Game {
   }
 
   xpFor(level) {
-    return Math.floor(5 + level * 7 + Math.max(0, level - 10) * 8 + Math.max(0, level - 25) * 15);
+    return Math.floor(5 + level * 7 + Math.max(0, level - 10) * 10 + Math.max(0, level - 25) * 20 + Math.max(0, level - 40) * 30);
   }
 
   // -------------------------------------------------------------------------
   // Armas y pasivas
   // -------------------------------------------------------------------------
+  // Cada técnica nueva ocupa una ranura nueva (los vínculos las juntan después).
   addWeapon(id) {
     const w = { id, def: WEAPONS[id], level: 1, timer: 0.3, angle: 0 };
     this.weapons.push(w);
-    if (w.def.kind === 'orbit') this.rebuildOrbs();
+    this.slots.push({ ws: [w] });
+    this.rebuildOrbs();
     return w;
   }
 
@@ -226,7 +416,7 @@ export class Game {
   }
 
   rebuildOrbs() {
-    const w = this.weapons.find((x) => x.def.kind === 'orbit');
+    const w = this.activeSlot && this.activeSlot.ws.find((x) => x.def.kind === 'orbit');
     this.orbs = [];
     if (!w) return;
     const s = this.weaponStats(w);
@@ -251,11 +441,11 @@ export class Game {
         });
       }
     }
-    if (this.weapons.length < MAX_WEAPONS) {
+    if (this.slots.length < MAX_SLOTS) {
       for (const id of COMMON_WEAPONS) {
         if (this.weapons.some((w) => w.id === id || (EVOLUTIONS[id] && EVOLUTIONS[id].into === w.id))) continue;
         const d = WEAPONS[id];
-        opts.push({ type: 'weapon', id, level: 1, name: d.name, color: d.color, desc: d.desc, isNew: true });
+        opts.push({ type: 'weapon', id, level: 1, name: d.name, color: d.color, desc: d.desc, isNew: true, slot: this.slots.length + 1 });
       }
     }
     const owned = Object.keys(this.passives);
@@ -294,8 +484,12 @@ export class Game {
     } else if (o.type === 'weapon') {
       const w = this.weapons.find((x) => x.id === o.id);
       if (w) w.level = o.level;
-      else this.addWeapon(o.id);
-      if (WEAPONS[o.id].kind === 'orbit') this.rebuildOrbs();
+      else {
+        this.addWeapon(o.id);
+        this.ui.toast(`${WEAPONS[o.id].name} en la ranura ${this.slots.length}: pulsa ${this.slots.length} (o tócala) para usarla`);
+        if (this.bonds > 0) this.pendingBond = true;
+      }
+      this.rebuildOrbs();
     } else if (o.type === 'passive') {
       this.passives[o.id] = o.level;
       this.recalc();
@@ -357,8 +551,26 @@ export class Game {
 
   update(dt) {
     if (this.state !== 'play') return;
+    // Corte de anime antes del ataque definitivo: el tiempo se detiene.
+    if (this.cutin) {
+      this.cutin.t += dt;
+      if (this.cutin.t >= this.cutin.dur) {
+        this.cutin = null;
+        this.startUlt();
+      }
+      return;
+    }
     this.t += dt;
     const p = this.player;
+    this.gainKi(0.4 * dt);
+    let buffEnded = false;
+    for (const k of Object.keys(this.buffs)) {
+      if (this.buffs[k] > 0) {
+        this.buffs[k] -= dt;
+        if (this.buffs[k] <= 0) buffEnded = true;
+      }
+    }
+    if (buffEnded) this.recalc();
 
     // Movimiento
     const ax = this.input.axis();
@@ -395,6 +607,7 @@ export class Game {
     this.updateEnemyProjectiles(dt);
     this.updatePickups(dt);
     this.updateEffects(dt);
+    if (this.ult) this.updateUlt(dt);
 
     if (this.enemies.some((e) => e.dead)) this.enemies = this.enemies.filter((e) => !e.dead);
 
@@ -405,6 +618,18 @@ export class Game {
       this.state = 'levelup';
       sfx('level');
       this.ui.showLevelUp(this.levelUpOptions(), this);
+    }
+
+    if (this.pendingBond && this.state === 'play') {
+      this.pendingBond = false;
+      const opts = this.bondOptions();
+      if (this.bonds > 0 && opts.length) {
+        this.state = 'bond';
+        sfx('bond');
+        this.ui.showBond(opts, this);
+      } else if (this.bonds > 0) {
+        this.ui.toast('Guardas el vínculo: úsalo cuando tengas otra técnica');
+      }
     }
 
     if (this.t >= WIN_TIME && this.state === 'play') this.end(true);
@@ -427,14 +652,14 @@ export class Game {
 
   spawnEnemy(type, x, y) {
     const def = ENEMIES[type];
-    const hpScale = 1 + this.t / 100 + (this.t / 230) ** 2;
+    const hpScale = 1 + this.t / 90 + (this.t / 200) ** 2;
     const e = {
       id: this.nextId++, type, def, x, y, r: def.r,
       hp: def.hp * hpScale, speed: def.speed * rand(0.9, 1.1),
-      dmg: def.dmg * (1 + this.t / 450), xp: def.xp,
+      dmg: def.dmg * (1 + this.t / 330), xp: def.xp,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: false, boss: false,
       scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: def.hue ? 'hue' + def.hue : null,
-      shot: def.ranged ? rand(0.5, def.ranged.cd) : 0,
+      shot: def.ranged ? rand(0.5, def.ranged.cd) : 0, arm: 0,
     };
     e.maxHp = e.hp;
     this.enemies.push(e);
@@ -444,7 +669,7 @@ export class Game {
   // Élite: un villano de la serie con contorno dorado. Suelta una Cápsula Corp.
   spawnElite(x, y) {
     const sprite = pick(ELITES);
-    const hpScale = 1 + this.t / 100 + (this.t / 230) ** 2;
+    const hpScale = 1 + this.t / 90 + (this.t / 200) ** 2;
     const e = {
       id: this.nextId++, type: 'elite', def: { name: 'Élite', dmg: 12 }, x, y, r: 11,
       hp: 110 * hpScale, speed: 46 * rand(0.9, 1.1), dmg: 11 * (1 + this.t / 500), xp: 30,
@@ -456,12 +681,26 @@ export class Game {
     return e;
   }
 
+  // Cápsula Corp rompible con premio (senzu, potenciador, Zeni o cristales).
+  spawnPod() {
+    if (this.enemies.filter((e) => e.pod).length >= 4) return;
+    const a = Math.random() * TAU;
+    const d = rand(140, 260);
+    const e = {
+      id: this.nextId++, type: 'pod', def: { name: 'Cápsula' }, x: this.player.x + Math.cos(a) * d, y: this.player.y + Math.sin(a) * d,
+      r: 8, hp: 20 + this.t / 12, speed: 0, dmg: 0, xp: 0, vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0,
+      elite: false, boss: false, pod: true, scale: 1, dead: false, orbCd: 0, sprite: null, mode: null,
+    };
+    e.maxHp = e.hp;
+    this.enemies.push(e);
+  }
+
   spawnBoss(id) {
     const def = BOSSES[id];
     const pt = this.spawnPoint(20);
     const e = {
       id: this.nextId++, type: id, def, x: pt.x, y: pt.y, r: def.r,
-      hp: def.hp * 1.6, maxHp: def.hp * 1.6, speed: def.speed, dmg: def.dmg, xp: def.xp,
+      hp: def.hp * (this.bossIdx <= 1 ? 1.4 : 2), maxHp: def.hp * (this.bossIdx <= 1 ? 1.4 : 2), speed: def.speed, dmg: def.dmg, xp: def.xp,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0, elite: false, boss: true,
       scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: null,
       ai: { t: 2 + Math.random(), mode: 'walk', dash: 0, wx: 0, wy: 0, shots: 0 },
@@ -482,6 +721,11 @@ export class Game {
       if (this.enemies.length >= MAX_ENEMIES) break;
       const pt = this.spawnPoint();
       this.spawnEnemy(pick(wave.types), pt.x, pt.y);
+    }
+
+    if (this.t >= this.nextPodT) {
+      this.nextPodT += rand(16, 26);
+      this.spawnPod();
     }
 
     if (this.t >= this.nextEliteT) {
@@ -527,11 +771,23 @@ export class Game {
     const p = this.player;
     const list = [];
     for (const e of this.enemies) {
+      if (e.pod) continue;
       const d = (e.x - p.x) ** 2 + (e.y - p.y) ** 2;
       if (d < maxDist * maxDist) list.push([d, e]);
     }
     list.sort((a, b) => a[0] - b[0]);
     return list.slice(0, n).map((x) => x[1]);
+  }
+
+  nearestEnemiesFrom(x, y, n, maxDist) {
+    const list = [];
+    for (const e of this.enemies) {
+      if (e.dead || e.pod) continue;
+      const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+      if (d < maxDist * maxDist) list.push([d, e]);
+    }
+    list.sort((a, b) => a[0] - b[0]);
+    return list.slice(0, n).map((v) => v[1]);
   }
 
   aimAngle(useNearest) {
@@ -546,8 +802,13 @@ export class Game {
   updateWeapons(dt) {
     const p = this.player;
     const st = this.stats;
-    for (const w of this.weapons) {
-      const s = this.weaponStats(w);
+    const slot = this.activeSlot;
+    if (!slot) return;
+    // Bonus de vínculo: +12% de daño por cada técnica extra en la ranura
+    const bondMul = 1 + 0.12 * (slot.ws.length - 1);
+    for (const w of slot.ws) {
+      const base = this.weaponStats(w);
+      const s = bondMul === 1 ? base : { ...base, dmg: base.dmg * bondMul };
       const kind = w.def.kind;
       if (kind === 'orbit') {
         w.angle += s.spin * dt;
@@ -578,6 +839,8 @@ export class Game {
     const p = this.player;
     const st = this.stats;
     const color = w.def.color;
+    const art = w.def.art;
+    const tint = w.def.tint;
     switch (w.def.kind) {
       case 'projectile': {
         const n = s.count + st.amount;
@@ -588,7 +851,7 @@ export class Game {
           if (t && i >= targets.length) a += rand(-0.3, 0.3);
           this.projs.push({
             kind: 'ki', x: p.x, y: p.y - 4, vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-            r: s.size * st.area, dmg: s.dmg, pierce: s.pierce, life: 1.4, color, hit: new Set(),
+            r: s.size * st.area, dmg: s.dmg, pierce: s.pierce, life: 1.4, color, hit: new Set(), art, tint,
           });
         }
         sfx('shot');
@@ -601,7 +864,7 @@ export class Game {
           const a = base + (i - (n - 1) / 2) * 0.28;
           this.projs.push({
             kind: 'wave', x: p.x, y: p.y - 4, vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-            r: s.size * st.area, dmg: s.dmg, pierce: s.pierce, life: 1.6, color, hit: new Set(), ang: a,
+            r: s.size * st.area, dmg: s.dmg, pierce: s.pierce, life: 1.6, color, hit: new Set(), ang: a, art, tint,
           });
         }
         sfx('shot');
@@ -615,7 +878,7 @@ export class Game {
         for (const a of angles) {
           this.beams.push({
             ang: a, len: s.len * st.area, width: s.width * st.area, dur: s.dur, t: 0, dmg: s.dmg,
-            color, once: !!s.once, spiral: w.id === 'makanko', hue: w.def.hue !== undefined ? w.def.hue : w.id === 'galick' ? 90 : 0, hit: new Set(), tick: 0,
+            color, once: !!s.once, art, tint, hit: new Set(), tick: 0,
           });
         }
         sfx('beam', 0.2);
@@ -637,7 +900,7 @@ export class Game {
       }
       case 'flash': {
         const R = s.radius * st.area;
-        this.effects.push({ kind: 'flash', x: p.x, y: p.y, t: 0, dur: 0.5, r: R, color });
+        this.effects.push({ kind: 'flash', x: p.x, y: p.y, t: 0, dur: 0.5, r: R, color, art, tint });
         this.flashScreen = Math.max(this.flashScreen, 0.25);
         this.grid.query(p.x, p.y, R, this.tmp);
         for (const e of this.tmp) {
@@ -658,17 +921,35 @@ export class Game {
         break;
       }
       case 'ring': {
-        this.effects.push({ kind: 'ring', x: p.x, y: p.y, t: 0, dur: 0.45, r: 0, maxR: s.maxR * st.area, dmg: s.dmg, color, hit: new Set() });
+        this.effects.push({ kind: 'ring', x: p.x, y: p.y, t: 0, dur: 0.45, r: 0, maxR: s.maxR * st.area, dmg: s.dmg, color, hit: new Set(), art, tint });
         sfx('boom', 0.2);
         break;
       }
       case 'bomb': {
-        const a = this.aimAngle(true);
-        this.projs.push({
-          kind: 'bomb', x: p.x, y: p.y - 30, vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
-          r: s.size * st.area, dmg: s.dmg, blast: s.blast * st.area, life: 3.5, color, grow: 0, hue: w.def.hue || 0,
-        });
+        const n = (s.count || 1) + (s.count ? st.amount : 0);
+        const targets = this.nearestEnemies(n, 320);
+        for (let i = 0; i < n; i++) {
+          const t = targets[i % Math.max(1, targets.length)];
+          const a = t ? Math.atan2(t.y - p.y, t.x - p.x) + (i >= targets.length ? rand(-0.4, 0.4) : 0) : this.aimAngle(false) + (i - (n - 1) / 2) * 0.4;
+          this.projs.push({
+            kind: 'bomb', x: p.x, y: p.y - 4, vx: Math.cos(a) * s.speed, vy: Math.sin(a) * s.speed,
+            r: s.size * st.area, dmg: s.dmg, blast: s.blast * st.area, life: 3.5, color, grow: 0, art, tint,
+          });
+        }
         sfx('beam', 0.2);
+        break;
+      }
+      case 'homing': {
+        // Fantasmas kamikaze: salen en abanico y persiguen al enemigo más cercano
+        const n = s.count + st.amount;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * TAU + rand(-0.3, 0.3);
+          this.projs.push({
+            kind: 'ghost', x: p.x, y: p.y - 4, vx: Math.cos(a) * 60, vy: Math.sin(a) * 60, speed: s.speed * rand(0.9, 1.1),
+            r: 6, dmg: s.dmg, blast: s.blast * st.area, life: 5, color, art, tint, target: null, retarget: 0, wob: Math.random() * TAU,
+          });
+        }
+        sfx('capsule', 0.2);
         break;
       }
       case 'slash': {
@@ -677,7 +958,7 @@ export class Game {
         if (s.back) dirs.push(dirs[0] + Math.PI);
         const R = s.range * st.area;
         for (const a of dirs) {
-          this.effects.push({ kind: 'slash', x: p.x, y: p.y, t: 0, dur: 0.18, r: R, ang: a, arc: s.arc, color });
+          this.effects.push({ kind: 'slash', x: p.x, y: p.y, t: 0, dur: 0.2, r: R, ang: a, arc: s.arc, color, art, tint });
           this.grid.query(p.x, p.y, R + 20, this.tmp);
           for (const e of this.tmp) {
             const d = Math.hypot(e.x - p.x, e.y - p.y);
@@ -709,17 +990,31 @@ export class Game {
         }
       }
       if (pr.kind === 'bomb') pr.grow = Math.min(1, pr.grow + dt * 2);
+      if (pr.kind === 'ghost') {
+        pr.retarget -= dt;
+        if (!pr.target || pr.target.dead || pr.retarget <= 0) {
+          pr.target = this.nearestEnemiesFrom(pr.x, pr.y, 1, 260)[0] || null;
+          pr.retarget = 0.4;
+        }
+        pr.wob += dt * 6;
+        const tx = pr.target ? pr.target.x : pr.x + pr.vx;
+        const ty = pr.target ? pr.target.y : pr.y + pr.vy;
+        const a = Math.atan2(ty - pr.y, tx - pr.x) + Math.sin(pr.wob) * 0.35;
+        const k = Math.min(1, dt * 4);
+        pr.vx += (Math.cos(a) * pr.speed - pr.vx) * k;
+        pr.vy += (Math.sin(a) * pr.speed - pr.vy) * k;
+      }
       pr.x += pr.vx * dt;
       pr.y += pr.vy * dt;
       if (pr.life <= 0) {
-        if (pr.kind === 'bomb') this.explode(pr);
+        if (pr.kind === 'bomb' || pr.kind === 'ghost') this.explode(pr);
         continue;
       }
       this.grid.query(pr.x, pr.y, pr.r + 24, this.tmp);
       for (const e of this.tmp) {
         if (e.dead) continue;
         if (Math.hypot(e.x - pr.x, e.y - pr.y) > e.r + pr.r) continue;
-        if (pr.kind === 'bomb') {
+        if (pr.kind === 'bomb' || pr.kind === 'ghost') {
           this.explode(pr);
           pr.life = 0;
           break;
@@ -769,7 +1064,7 @@ export class Game {
   }
 
   explode(pr) {
-    this.effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: 0.5, r: pr.blast, color: pr.color });
+    this.effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: 0.5, r: pr.blast, color: pr.color, big: pr.kind === 'bomb' && pr.blast > 60 });
     this.shake = Math.max(this.shake, 0.3);
     sfx('boom', 0.1);
     this.grid.query(pr.x, pr.y, pr.blast + 20, this.tmp);
@@ -784,7 +1079,7 @@ export class Game {
     const dmg = base * this.stats.might * (crit ? 2 : 1) * rand(0.9, 1.1);
     e.hp -= dmg;
     e.flash = 0.08;
-    if (knock && !e.boss) {
+    if (knock && !e.boss && !e.pod) {
       const a = Math.atan2(e.y - fy, e.x - fx);
       const k = knock / (e.elite ? 4 : 1);
       e.vx += Math.cos(a) * k;
@@ -804,21 +1099,30 @@ export class Game {
 
   kill(e) {
     e.dead = true;
+    if (e.pod) return this.podLoot(e);
     this.kills++;
+    this.gainKi(e.boss ? 25 : e.elite ? 5 : 0.12);
+    // Cristales de Ki para invocar: a veces los suelta cualquier enemigo
+    if (Math.random() < 1 / 300) this.pickups.push({ type: 'crystal', x: e.x, y: e.y, value: 1 + ((Math.random() * 3) | 0) });
     this.spark(e.x, e.y, e.boss ? e.def.color : '#ffffff', e.boss ? 30 : 5);
     this.dropXp(e.x, e.y, e.xp);
     if (Math.random() < 0.03) this.pickups.push({ type: 'zeni', x: e.x + rand(-4, 4), y: e.y, value: 1 + ((Math.random() * 3) | 0) });
     if (Math.random() < 0.0012) this.pickups.push({ type: 'senzu', x: e.x, y: e.y });
     if (e.elite) {
       this.pickups.push({ type: 'capsule', x: e.x, y: e.y });
+      this.pickups.push({ type: 'crystal', x: e.x + 8, y: e.y + 4, value: 3 });
       sfx('boom', 0.1);
     }
     if (e.boss) {
       this.bossKills++;
       this.bossesBeaten.push(e.type);
       this.coins += 40;
-      // a veces sueltan un objeto equipable nuevo
-      if (Math.random() < 0.4) this.pickups.push({ type: 'itembox', x: e.x, y: e.y - 14 });
+      // Vínculo para fusionar técnicas, objeto para la partida, cristales y ticket de invocación
+      this.bonds++;
+      this.pendingBond = true;
+      this.pickups.push({ type: 'itembox', x: e.x, y: e.y - 14 });
+      this.pickups.push({ type: 'crystal', x: e.x - 14, y: e.y + 6, value: 10 });
+      this.pickups.push({ type: this.bossKills >= 5 ? 'ticket10' : 'ticket', x: e.x + 14, y: e.y + 6 });
       this.shake = 0.8;
       sfx('boom', 0);
       this.effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: 0.9, r: 90, color: e.def.color, fx: 'ki' });
@@ -829,6 +1133,20 @@ export class Game {
       if (this.boss === e) this.boss = null;
       this.ui.banner('¡' + e.def.name.toUpperCase() + ' DERROTADO!', e.def.color);
     }
+  }
+
+  podLoot(e) {
+    this.podsBroken++;
+    sfx('capsule', 0.1);
+    this.effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: 0.4, r: 14 });
+    const r = Math.random();
+    if (r < 0.4) this.pickups.push({ type: 'buff', x: e.x, y: e.y, buff: pick(['fury', 'speed', 'haste', 'magnet']) });
+    else if (r < 0.58) this.pickups.push({ type: 'senzu', x: e.x, y: e.y });
+    else if (r < 0.72) this.pickups.push({ type: 'crystal', x: e.x, y: e.y, value: 3 + ((Math.random() * 4) | 0) });
+    else {
+      for (let i = 0; i < 4; i++) this.pickups.push({ type: 'zeni', x: e.x + rand(-8, 8), y: e.y + rand(-6, 6), value: 2 + ((Math.random() * 3) | 0) });
+    }
+    this.dropXp(e.x, e.y, 6);
   }
 
   dropXp(x, y, value) {
@@ -857,10 +1175,29 @@ export class Game {
       const dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
 
+      if (e.pod) {
+        if (d > farR * 1.6) e.dead = true;
+        continue;
+      }
       if (!e.boss && d > farR) {
         // Reaparece al otro lado (como en Vampire Survivors).
         e.x = p.x + dx * 0.9;
         e.y = p.y + dy * 0.9;
+        continue;
+      }
+      // Saibaman kamikaze: se para, avisa con un círculo y explota
+      const bomb = e.def.bomb;
+      if (bomb && (e.arm > 0 || (d < bomb.range && e.stun <= 0))) {
+        if (e.arm <= 0) e.arm = bomb.fuse;
+        e.arm -= dt;
+        e.flash = Math.floor(e.arm * 12) % 2 ? 0.05 : 0;
+        if (e.arm <= 0) {
+          e.dead = true;
+          this.effects.push({ kind: 'boom', x: e.x, y: e.y, t: 0, dur: 0.5, r: bomb.radius });
+          sfx('boom', 0.1);
+          if (Math.hypot(p.x - e.x, p.y - e.y) < bomb.radius + p.r && p.inv <= 0) this.hurt(bomb.dmg * (1 + this.t / 600));
+          this.dropXp(e.x, e.y, e.xp);
+        }
         continue;
       }
 
@@ -931,14 +1268,19 @@ export class Game {
     if (ai.mode === 'walk') {
       if (ai.t <= 0) {
         const r = Math.random();
-        if (r < 0.4) {
+        if (r < 0.3) {
           ai.mode = 'windup';
           ai.t = 0.6;
           ai.wx = dx / d;
           ai.wy = dy / d;
-        } else if (r < 0.7) {
+        } else if (r < 0.55) {
           this.bossRing(e);
           ai.t = rand(2, 3);
+        } else if (r < 0.78) {
+          // Rayo con aviso: una franja roja en el suelo y, después, el rayo
+          ai.mode = 'beam';
+          ai.t = 1.4;
+          this.ebeams.push({ x: e.x, y: e.y, ang: Math.atan2(dy, dx), len: 420, w: 26, t: 0, warn: 0.85, dur: 1.3, dmg: e.dmg * 1.1, hit: false, color: e.def.color, src: e });
         } else {
           ai.mode = 'aim';
           ai.shots = 3 + (this.bossIdx > 2 ? 2 : 0);
@@ -946,6 +1288,13 @@ export class Game {
         }
       }
       return { x: (dx / d) * e.speed, y: (dy / d) * e.speed };
+    }
+    if (ai.mode === 'beam') {
+      if (ai.t <= 0) {
+        ai.mode = 'walk';
+        ai.t = rand(1.5, 2.5);
+      }
+      return { x: 0, y: 0 };
     }
     if (ai.mode === 'windup') {
       e.flash = 0.05;
@@ -1002,6 +1351,27 @@ export class Game {
       }
     }
     this.eprojs = this.eprojs.filter((b) => b.life > 0);
+    for (const b of this.ebeams) {
+      b.t += dt;
+      if (b.src && !b.src.dead && b.t < b.warn) {
+        b.x = b.src.x;
+        b.y = b.src.y;
+      }
+      if (b.t >= b.warn && !b.hit && p.inv <= 0) {
+        const x2 = b.x + Math.cos(b.ang) * b.len;
+        const y2 = b.y + Math.sin(b.ang) * b.len;
+        if (distToSegment(p.x, p.y, b.x, b.y, x2, y2) < b.w / 2 + p.r) {
+          b.hit = true;
+          this.hurt(b.dmg);
+        }
+      }
+      if (b.t >= b.warn && !b.fired) {
+        b.fired = true;
+        sfx('beam', 0.1);
+        this.shake = Math.max(this.shake, 0.25);
+      }
+    }
+    this.ebeams = this.ebeams.filter((b) => b.t < b.dur && !(b.src && b.src.dead && b.t < b.warn));
     this.minionShots = 0;
     for (const b of this.eprojs) if (b.minion) this.minionShots++;
   }
@@ -1011,6 +1381,7 @@ export class Game {
     const dmg = Math.max(1, amount - this.stats.armor);
     p.hp -= dmg;
     p.inv = 0.45;
+    this.gainKi(3);
     this.shake = Math.max(this.shake, 0.15);
     sfx('hurt', 0.1);
     if (p.hp <= 0) {
@@ -1053,11 +1424,34 @@ export class Game {
   updatePickups(dt) {
     const p = this.player;
     const mag = this.stats.magnet;
+    // Las gemas que se quedan muy lejos se juntan en una gema roja cerca de ti (como en Vampire Survivors)
+    this.gemSweep = (this.gemSweep || 0) - dt;
+    if (this.gemSweep <= 0) {
+      this.gemSweep = 1;
+      const far = Math.hypot(this.W, this.H) / 2 + 120;
+      let sum = 0;
+      for (const k of this.pickups) {
+        if (k.type === 'xp' && !k.pull && Math.hypot(k.x - p.x, k.y - p.y) > far) {
+          sum += k.value;
+          k.taken = true;
+        }
+      }
+      if (sum) {
+        this.pickups = this.pickups.filter((k) => !k.taken);
+        let big = this.pickups.find((k) => k.big && Math.hypot(k.x - p.x, k.y - p.y) < far);
+        if (!big) {
+          const a = Math.random() * TAU;
+          big = { type: 'xp', big: true, x: p.x + Math.cos(a) * 110, y: p.y + Math.sin(a) * 80, value: 0 };
+          this.pickups.push(big);
+        }
+        big.value += sum;
+      }
+    }
     for (const k of this.pickups) {
       const dx = p.x - k.x;
       const dy = p.y - k.y;
       const d = Math.hypot(dx, dy);
-      const radius = k.type === 'dragonball' ? mag * 0.6 : mag;
+      const radius = k.type === 'dragonball' || k.type === 'itembox' || k.type === 'buff' ? mag * 0.6 : mag;
       if (k.pull || d < radius) {
         k.pull = true;
         k.sp = Math.min(500, (k.sp || 60) + 900 * dt);
@@ -1102,17 +1496,39 @@ export class Game {
         break;
       }
       case 'itembox': {
+        // Objeto para esta partida: te quedas el que llevas o lo cambias (y queda desbloqueado para siempre)
         const owned = new Set([...(this.save.items || []), ...this.itemsFound]);
-        const left = Object.keys(ITEMS).filter((id) => !owned.has(id));
-        if (left.length) {
-          const id = pick(left);
-          this.itemsFound.push(id);
-          this.ui.toast(`¡Objeto nuevo: ${ITEMS[id].name}!`);
-        } else {
-          this.coins += 100;
-          this.ui.toast('Cápsula de objeto: +100 Zeni');
-        }
+        const ids = Object.keys(ITEMS).filter((id) => id !== this.itemId);
+        const fresh = ids.filter((id) => !owned.has(id));
+        const id = pick(fresh.length && Math.random() < 0.7 ? fresh : ids);
+        if (!owned.has(id)) this.itemsFound.push(id);
         sfx('dragonball');
+        this.state = 'item';
+        this.ui.showItemChoice(this.itemId, id, this);
+        break;
+      }
+      case 'crystal':
+        this.crystals += k.value;
+        sfx('coin', 0.05);
+        if (k.value >= 3) this.ui.toast(`+${k.value} Cristales de Ki`);
+        break;
+      case 'ticket':
+      case 'ticket10':
+        if (k.type === 'ticket') this.tickets++;
+        else this.ticket10++;
+        sfx('dragonball');
+        this.ui.toast(k.type === 'ticket' ? '¡Ticket de invocación!' : '¡Ticket de invocación x10!');
+        break;
+      case 'buff': {
+        const names = { fury: '¡Furia Saiyajin! +50% de daño', speed: '¡Nube Kinton! +35% de velocidad', haste: '¡Concentración! Recarga mucho más rápida', magnet: '¡Radar! Atraes todas las esferas de ki' };
+        if (k.buff === 'magnet') {
+          for (const q of this.pickups) if (q.type === 'xp' || q.type === 'zeni') q.pull = true;
+        } else {
+          this.buffs[k.buff] = 20;
+          this.recalc();
+        }
+        this.ui.banner(names[k.buff], BUFF_COLORS[k.buff]);
+        sfx('level');
         break;
       }
       case 'dragonball':
@@ -1126,6 +1542,20 @@ export class Game {
         }
         break;
     }
+  }
+
+  takeItem(id) {
+    if (id && id !== this.itemId) {
+      const before = this.mod('revive');
+      this.item = ITEMS[id];
+      this.itemId = id;
+      this.revives = Math.max(0, this.revives + this.mod('revive') - before);
+      this.recalc();
+      this.rebuildOrbs();
+      this.ui.banner('¡' + ITEMS[id].name.toUpperCase() + '!', '#d07aff');
+    }
+    this.state = 'play';
+    this.ui.hideModal();
   }
 
   gainXp(v) {
@@ -1145,6 +1575,8 @@ export class Game {
       { id: 'revive', name: 'Una segunda oportunidad', desc: 'Si caes, revives con el 60% de vida.' },
       { id: 'levels', name: 'Poder ilimitado', desc: 'Subes 3 niveles al instante.' },
       { id: 'zeni', name: 'Riquezas sin fin', desc: '+300 Zeni.' },
+      { id: 'bond', name: 'Técnicas unidas', desc: 'Consigues un vínculo para fusionar dos ranuras de técnicas.' },
+      { id: 'crystals', name: 'Un tesoro de ki', desc: '+60 Cristales de Ki para invocar.' },
     ];
     for (const o of all) o.w = Math.random();
     return all.sort((a, b) => a.w - b.w).slice(0, 3);
@@ -1167,6 +1599,13 @@ export class Game {
         break;
       case 'zeni':
         this.coins += 300;
+        break;
+      case 'bond':
+        this.bonds++;
+        this.pendingBond = true;
+        break;
+      case 'crystals':
+        this.crystals += 60;
         break;
     }
     this.recalc();
@@ -1225,6 +1664,8 @@ export class Game {
       win, time: this.t, kills: this.kills, level: this.level, zeni, char: this.char,
       bosses: this.bossKills, bossesBeaten: this.bossesBeaten, wishes: this.wishes,
       evolutions: this.evolutions, maxForm: !!this.maxForm, itemsFound: this.itemsFound,
+      crystals: this.crystals + Math.floor(this.t / 60) * 3 + this.bossKills * 5 + (win ? 40 : 0),
+      tickets: this.tickets, ticket10: this.ticket10, bonds: this.bondsUsed, ults: this.ults, pods: this.podsBroken,
     });
   }
 
@@ -1253,20 +1694,9 @@ export class Game {
     ctx.fillStyle = this.grounds[BIOMES[this.biome].tile];
     ctx.fillRect(camX, camY, W, H);
 
-    // Aura de ki (técnica)
-    const auraW = this.weapons.find((w) => w.def.kind === 'aura');
-    if (auraW) {
-      const R = this.weaponStats(auraW).radius * this.stats.area;
-      ctx.globalAlpha = 0.18 + Math.sin(this.t * 8) * 0.04;
-      ctx.fillStyle = auraW.def.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y - 8, R, 0, TAU);
-      ctx.fill();
-      ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = auraW.def.color;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
+    // Aura de ki (técnica): llamas de energía en círculo
+    const auraW = this.activeSlot && this.activeSlot.ws.find((w) => w.def.kind === 'aura');
+    if (auraW) this.drawFlameAura(ctx, p.x, p.y - 8, this.weaponStats(auraW).radius * this.stats.area, auraW.def.color);
 
     // Decorado plano (parches de tierra, arena...) y objetos del suelo
     const decor = this.visibleDecor(camX, camY);
@@ -1275,6 +1705,7 @@ export class Game {
       ctx.drawImage(im, Math.round(o.x - im.width / 2), Math.round(o.y - im.height / 2));
     }
     for (const k of this.pickups) this.drawPickup(ctx, k);
+    this.drawGroundWarnings(ctx);
 
     // Decorado + entidades ordenados por Y
     const list = decor.items;
@@ -1290,11 +1721,14 @@ export class Game {
     // Proyectiles
     for (const pr of this.projs) this.drawProj(ctx, pr);
     for (const b of this.beams) this.drawBeam(ctx, b);
-    for (const o of this.orbs) {
-      const s = 10;
-      drawStrip(ctx, 'fx', 'masenko', 2, Math.round(o.x - s / 2), Math.round(o.y - 8 - s / 2), s, s, 16, 16, 0, 'hue110');
-    }
+    const orbW = this.activeSlot && this.activeSlot.ws.find((w) => w.def.kind === 'orbit');
+    this.orbs.forEach((o, i) => {
+      const a = (orbW ? orbW.angle : 0) + (i / this.orbs.length) * TAU + Math.PI / 2;
+      this.drawArt(ctx, 'comet', 0, o.x, o.y - 8, 20, 0, a + Math.PI);
+    });
     for (const b of this.eprojs) this.drawEnemyProj(ctx, b);
+    this.drawBossBeams(ctx);
+    if (this.ult) this.drawUlt(ctx);
 
     for (const f of this.effects) this.drawEffect(ctx, f);
     for (const q of this.particles) {
@@ -1320,7 +1754,9 @@ export class Game {
     const tt = Math.min(this.t, WIN_TIME);
     const mm = String(Math.floor(tt / 60)).padStart(2, '0');
     const ss = String(Math.floor(tt % 60)).padStart(2, '0');
-    drawNumber(ctx, 'timer', mm + ':' + ss, W / 2, 18);
+    drawNumber(ctx, 'timer', mm + ':' + ss, W / 2, W < 520 ? 66 : 18);
+
+    if (this.cutin) this.drawCutin(ctx);
 
     if (this.flashScreen > 0) {
       ctx.fillStyle = '#ffffff';
@@ -1477,6 +1913,17 @@ export class Game {
   }
 
   drawEnemy(ctx, e) {
+    if (e.pod) {
+      const im = e.flash > 0 ? recolor('items', 'pod', 'white') : img('items', 'pod');
+      ctx.drawImage(im, Math.round(e.x - im.width / 2), Math.round(e.y - im.height + 2));
+      if (e.hp < e.maxHp) {
+        ctx.fillStyle = '#1a1020';
+        ctx.fillRect(Math.round(e.x - 9), Math.round(e.y - 17), 18, 3);
+        ctx.fillStyle = '#9fe0ff';
+        ctx.fillRect(Math.round(e.x - 8), Math.round(e.y - 16), Math.max(0, (e.hp / e.maxHp) * 16), 1);
+      }
+      return;
+    }
     const { w, h } = heroSize(e.sprite);
     const frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 6);
     const flip = e.face < 0;
@@ -1513,26 +1960,289 @@ export class Game {
     }
   }
 
+  // Sprite de efecto centrado en (x, y): `size` es el lado mayor en píxeles; rot en radianes.
+  drawArt(ctx, key, frame, x, y, size, alpha = 1, rot = 0, tint = null, flip = false) {
+    const m = meta('fx', key);
+    if (!m) return;
+    const src = tint ? recolor('fx', key, tint) : img('fx', key);
+    const fw = m.fw || m.w;
+    const fh = m.fh || m.h;
+    const n = m.frames || Math.max(1, Math.floor(src.width / fw));
+    const k = size / Math.max(fw, fh);
+    const w = fw * k;
+    const h = fh * k;
+    ctx.save();
+    ctx.translate(Math.round(x), Math.round(y));
+    if (rot) ctx.rotate(rot);
+    if (flip) ctx.scale(-1, 1);
+    if (alpha < 1) ctx.globalAlpha = alpha;
+    ctx.drawImage(src, (((frame % n) + n) % n) * fw, 0, fw, fh, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+
+  // Rayo con arte: destello en el origen, cuerpo estirado y cabeza al final. El contexto ya está
+  // trasladado a las manos del guerrero y girado hacia el objetivo.
+  drawBeamArt(ctx, key, tint, len, width, t) {
+    const m = meta('fx', key);
+    const src = tint ? recolor('fx', key, tint) : img('fx', key);
+    const fw = m.fw;
+    const fh = m.fh;
+    const wob = 1 + Math.sin(t * 45) * 0.06;
+    const k = ((width * 2.3) / fh) * wob;
+    const H = fh * k;
+    if (key === 'kikoho') {
+      // Rayo en espiral: se repite el sprite a lo largo del rayo
+      const seg = fw * k * 0.5;
+      const off = (t * 220) % seg;
+      for (let x = -off; x < len; x += seg) ctx.drawImage(src, fw * 0.25, 0, fw * 0.5, fh, Math.round(x), -H / 2, seg + 1, H);
+      return;
+    }
+    const c0 = m.cap0;
+    const c1 = m.cap1;
+    const headW = (fw - c1) * k;
+    const flareW = c0 * k;
+    const bodyLen = Math.max(4, len - headW * 0.6);
+    ctx.drawImage(src, c0, 0, Math.max(1, c1 - c0), fh, 0, -H / 2, bodyLen, H);
+    ctx.drawImage(src, c1, 0, fw - c1, fh, bodyLen - 1, -H / 2, headW, H);
+    ctx.drawImage(src, 0, 0, c0, fh, -flareW * 0.55, -H / 2, flareW, H);
+  }
+
+  drawFlameAura(ctx, x, y, R, color) {
+    ctx.save();
+    ctx.globalAlpha = 0.14 + Math.sin(this.t * 8) * 0.04;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, R, 0, TAU);
+    ctx.fill();
+    const n = 18;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU + this.t * 0.8;
+      const fl = 6 + Math.abs(Math.sin(this.t * 9 + i * 1.7)) * 9;
+      const bx = x + Math.cos(a) * R;
+      const by = y + Math.sin(a) * R * 0.9;
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(bx + Math.cos(a + 1.6) * 4, by + Math.sin(a + 1.6) * 4);
+      ctx.lineTo(bx + Math.cos(a) * fl, by + Math.sin(a) * fl - fl * 0.4);
+      ctx.lineTo(bx + Math.cos(a - 1.6) * 4, by + Math.sin(a - 1.6) * 4);
+      ctx.fill();
+      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(Math.round(bx), Math.round(by), 1, 1);
+    }
+    ctx.restore();
+  }
+
+  // Avisos en el suelo: saibaman a punto de explotar y rayos de jefe
+  drawGroundWarnings(ctx) {
+    for (const e of this.enemies) {
+      if (!(e.arm > 0) || e.dead) continue;
+      const R = e.def.bomb.radius;
+      const k = 1 - e.arm / e.def.bomb.fuse;
+      ctx.globalAlpha = 0.25 + k * 0.3;
+      ctx.fillStyle = '#ff2a2a';
+      ctx.beginPath();
+      ctx.ellipse(e.x, e.y, R * k, R * k * 0.6, 0, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 0.8;
+      ctx.strokeStyle = '#ff6a4a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(e.x, e.y, R, R * 0.6, 0, 0, TAU);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    for (const b of this.ebeams) {
+      if (b.t >= b.warn) continue;
+      const k = b.t / b.warn;
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.ang);
+      ctx.globalAlpha = 0.18 + 0.25 * k + (Math.floor(b.t * 12) % 2) * 0.08;
+      ctx.fillStyle = '#ff2a2a';
+      ctx.fillRect(0, -b.w / 2, b.len, b.w);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#ff7a5a';
+      ctx.fillRect(0, -b.w / 2, b.len * k, 1);
+      ctx.fillRect(0, b.w / 2 - 1, b.len * k, 1);
+      ctx.restore();
+    }
+  }
+
+  drawBossBeams(ctx) {
+    for (const b of this.ebeams) {
+      if (b.t < b.warn) continue;
+      const k = Math.min(1, (b.t - b.warn) / 0.08) * Math.min(1, (b.dur - b.t) / 0.15);
+      ctx.save();
+      ctx.translate(b.x, b.y - 14);
+      ctx.rotate(b.ang);
+      this.drawBeamArt(ctx, 'beam_magenta', null, b.len, b.w * k, b.t);
+      ctx.restore();
+    }
+  }
+
+  drawUlt(ctx) {
+    const u = this.ult;
+    const p = this.player;
+    if (u.kind === 'beam') {
+      const k = Math.min(1, u.t / 0.15) * Math.min(1, (u.dur - u.t) / 0.25);
+      ctx.save();
+      ctx.translate(p.x + Math.cos(u.ang) * 8, p.y - 22 + Math.sin(u.ang) * 6);
+      ctx.rotate(u.ang);
+      this.drawBeamArt(ctx, u.art === 'kikoho' ? 'kikoho' : (meta('fx', u.art) && meta('fx', u.art).cap1 ? u.art : 'beam_cyan'), u.tint, u.len, u.width * k, u.t);
+      ctx.restore();
+      if (Math.random() < 0.5) this.spark(p.x + Math.cos(u.ang) * rand(20, 300), p.y - 20 + Math.sin(u.ang) * rand(20, 300), '#ffffff', 2);
+    } else if (u.kind === 'bomb') {
+      if (!u.boomed) {
+        const grow = Math.min(1, u.t / 1.1);
+        const size = 30 + grow * 90;
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#bfe8ff';
+        ctx.beginPath();
+        ctx.arc(u.x, u.y, size * 0.62, 0, TAU);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        const art = u.art === 'sun' || u.art === 'genkidama' ? u.art : 'sphere';
+        if (art === 'genkidama') {
+          const gi = img('fx', 'genkidama');
+          ctx.drawImage(gi, Math.round(u.x - size / 2), Math.round(u.y - size / 2), size, size);
+        } else this.drawArt(ctx, art, 0, u.x, u.y, size, 1, this.t * 2, u.tint);
+        // partículas que se concentran en la esfera
+        if (u.t < 1.1 && Math.random() < 0.8) {
+          const a = Math.random() * TAU;
+          this.particles.push({ x: u.x + Math.cos(a) * 120, y: u.y + Math.sin(a) * 120, vx: -Math.cos(a) * 240, vy: -Math.sin(a) * 240, t: 0, dur: 0.45, color: '#dff4ff', s: 2 });
+        }
+      }
+    } else {
+      const k = u.t / u.dur;
+      this.drawArt(ctx, 'burst', 0, p.x, p.y - 10, u.r * 1.6, 1 - k, this.t);
+      ctx.strokeStyle = u.color;
+      ctx.globalAlpha = 1 - k;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y - 8, u.r, 0, TAU);
+      ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // Corte de anime: franja con el guerrero y el nombre del ataque definitivo
+  drawCutin(ctx) {
+    const c = this.cutin;
+    const { W, H } = this;
+    const k = c.t / c.dur;
+    const inK = Math.min(1, c.t / 0.18);
+    const outK = Math.min(1, (c.dur - c.t) / 0.15);
+    const bh = Math.round(76 * inK * outK);
+    const cy = Math.round(H / 2);
+    ctx.fillStyle = 'rgba(8,6,20,0.55)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#1a0f30';
+    ctx.fillRect(0, cy - bh / 2, W, bh);
+    // líneas de velocidad
+    ctx.fillStyle = '#ffd23a';
+    for (let i = 0; i < 14; i++) {
+      const y = cy - bh / 2 + ((i * 37) % Math.max(1, bh));
+      const x = ((i * 113 + c.t * 900) % (W + 80)) - 80;
+      ctx.globalAlpha = 0.35;
+      ctx.fillRect(Math.round(W - x), Math.round(y), 40 + (i % 3) * 20, 1);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ffd23a';
+    ctx.fillRect(0, cy - bh / 2, W, 2);
+    ctx.fillRect(0, cy + bh / 2 - 2, W, 2);
+    if (bh > 20) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, cy - bh / 2 + 2, W, bh - 4);
+      ctx.clip();
+      const x = Math.round(-100 + Math.min(1, k * 4) * (W * 0.22 + 100));
+      ctx.drawImage(c.card, x, cy - 70, 112, 140);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px "Pixelify Sans", monospace';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      const tx = Math.round(W * 0.22 + 120 - (1 - Math.min(1, k * 3)) * 60);
+      ctx.fillStyle = '#000';
+      ctx.fillText(c.name.toUpperCase(), tx + 1, cy + 1);
+      ctx.fillStyle = '#ffe14a';
+      ctx.fillText(c.name.toUpperCase(), tx, cy);
+      ctx.font = '9px "Pixelify Sans", monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(this.char.name, tx, cy - 16);
+      ctx.restore();
+    }
+  }
+
   drawPickup(ctx, k) {
     const bob = Math.round(Math.sin(this.t * 4 + k.x) * 1.5);
     if (k.type === 'xp') {
-      // Esferas de ki: azul, verde o roja según su valor
+      // Gemas de ki: azul, verde o roja según su valor
       const v = k.value;
-      const [f, mode, s] = v >= 20 ? [2, 'hue-60', 12] : v >= 5 ? [1, 'hue100', 10] : [0, 'hue170', 10];
-      drawStrip(ctx, 'fx', 'masenko', f, Math.round(k.x - s / 2), Math.round(k.y - s / 2 + bob), s, s, 16, 16, 0, mode);
+      const key = v >= 20 ? 'gem_l' : v >= 5 ? 'gem_m' : 'gem_s';
+      const m = meta('items', key);
+      drawStrip(ctx, 'items', key, Math.floor(this.t * 6 + k.x * 0.1), Math.round(k.x - m.fw / 2), Math.round(k.y - m.fh / 2 + bob), m.fw, m.fh, m.fw, m.fh);
       return;
     }
     if (k.type === 'zeni') {
       drawStrip(ctx, 'items', 'zeni', Math.floor(this.t * 8 + k.x), Math.round(k.x - 4), Math.round(k.y - 4 + bob), 8, 8);
       return;
     }
-    const key = k.type === 'dragonball' ? 'db' + Math.min(7, Math.max(1, k.stars || 1)) : k.type === 'itembox' ? 'capsule' : k.type;
-    const im = img('items', key);
-    if (k.type === 'dragonball' || k.type === 'capsule' || k.type === 'itembox') {
-      ctx.globalAlpha = 0.25 + Math.sin(this.t * 5) * 0.12;
-      ctx.fillStyle = k.type === 'dragonball' ? '#ffa31a' : k.type === 'itembox' ? '#d07aff' : '#9fd8ff';
+    if (k.type === 'dragonball') {
+      // Columna de luz para verla de lejos
+      const pulse = 0.18 + Math.sin(this.t * 4) * 0.06;
+      const g = ctx.createLinearGradient(0, k.y - 90, 0, k.y);
+      g.addColorStop(0, 'rgba(255,170,40,0)');
+      g.addColorStop(1, `rgba(255,190,60,${pulse * 2})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(Math.round(k.x - 5), Math.round(k.y - 90), 10, 90);
+      ctx.globalAlpha = 0.3 + Math.sin(this.t * 5) * 0.12;
+      ctx.fillStyle = '#ffa31a';
+      ctx.beginPath();
+      ctx.arc(k.x, k.y + bob, 15, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      this.drawShadow(ctx, k.x, k.y + 11);
+      const im = img('items', 'dball' + Math.min(7, Math.max(1, k.stars || 1)));
+      ctx.drawImage(im, Math.round(k.x - 10), Math.round(k.y - 10 + bob));
+      this.drawArt(ctx, 'star', 0, k.x - 5, k.y - 6 + bob, 9 + Math.sin(this.t * 6) * 3, 0.9, this.t);
+      return;
+    }
+    if (k.type === 'crystal' || k.type === 'ticket' || k.type === 'ticket10') {
+      const key = k.type;
+      ctx.globalAlpha = 0.3 + Math.sin(this.t * 6) * 0.1;
+      ctx.fillStyle = k.type === 'crystal' ? '#5ad8ff' : '#ffb03a';
+      ctx.beginPath();
+      ctx.arc(k.x, k.y + bob, 9, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      const im = img('ui', key);
+      ctx.drawImage(im, Math.round(k.x - im.width / 2), Math.round(k.y - im.height / 2 + bob));
+      return;
+    }
+    if (k.type === 'buff') {
+      const c = BUFF_COLORS[k.buff];
+      ctx.globalAlpha = 0.35 + Math.sin(this.t * 6) * 0.12;
+      ctx.fillStyle = c;
       ctx.beginPath();
       ctx.arc(k.x, k.y + bob, 10, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      const tint = { fury: 'hue-50', speed: 'hue110', haste: 'hue180', magnet: null }[k.buff];
+      this.drawArt(ctx, 'star', 0, k.x, k.y + bob, 22, 1, this.t * 1.5, tint);
+      return;
+    }
+    const key = k.type === 'itembox' ? 'capsule' : k.type;
+    const im = img('items', key);
+    if (k.type === 'capsule' || k.type === 'itembox') {
+      ctx.globalAlpha = 0.25 + Math.sin(this.t * 5) * 0.12;
+      ctx.fillStyle = k.type === 'itembox' ? '#d07aff' : '#9fd8ff';
+      ctx.beginPath();
+      ctx.arc(k.x, k.y + bob, 11, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -1548,37 +2258,62 @@ export class Game {
   }
 
   drawProjInner(ctx, pr) {
+    const ang = Math.atan2(pr.vy, pr.vx);
+    const fr = Math.floor(this.t * 14);
     if (pr.kind === 'ki') {
-      const s = Math.round(10 + pr.r * 2);
-      ctx.save();
-      ctx.translate(Math.round(pr.x), Math.round(pr.y));
-      ctx.rotate(Math.atan2(pr.vy, pr.vx));
-      drawStrip(ctx, 'fx', 'kiblast', 1, -s / 2, -s / 2, s, s, 16, 16, 2);
-      ctx.restore();
+      const s = Math.round(10 + pr.r * 2.6);
+      this.drawArt(ctx, pr.art || 'ki_yellow', fr, pr.x, pr.y, s, 1, ang, pr.tint);
     } else if (pr.kind === 'wave') {
-      const s = Math.round(pr.r * 2.6);
-      drawStrip(ctx, 'fx', 'masenko', 2, Math.round(pr.x - s / 2), Math.round(pr.y - s / 2), s, s, 16, 16);
+      this.drawArt(ctx, pr.art || 'flame', fr, pr.x, pr.y, pr.r * 4.4, 1, ang, pr.tint);
     } else if (pr.kind === 'disc') {
+      // Disco cortante con dientes que giran
       ctx.save();
       ctx.translate(pr.x, pr.y);
+      ctx.scale(1, 0.45);
+      const R = pr.r + 2;
+      ctx.globalAlpha = 0.35;
       ctx.fillStyle = pr.color;
-      ctx.globalAlpha = 0.5;
       ctx.beginPath();
-      ctx.ellipse(0, 0, pr.r + 2, (pr.r + 2) * 0.45, 0, 0, TAU);
+      ctx.arc(0, 0, R + 3, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
+      ctx.fillStyle = '#fff6c8';
+      for (let i = 0; i < 10; i++) {
+        const a = pr.spin + (i / 10) * TAU;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * (R - 2), Math.sin(a) * (R - 2));
+        ctx.lineTo(Math.cos(a + 0.22) * (R + 3), Math.sin(a + 0.22) * (R + 3));
+        ctx.lineTo(Math.cos(a + 0.45) * (R - 2), Math.sin(a + 0.45) * (R - 2));
+        ctx.fill();
+      }
+      ctx.fillStyle = pr.color;
       ctx.beginPath();
-      ctx.ellipse(0, 0, pr.r, pr.r * 0.3, 0, 0, TAU);
+      ctx.arc(0, 0, R - 1, 0, TAU);
       ctx.fill();
-      ctx.fillStyle = '#fff';
-      const w = Math.abs(Math.cos(pr.spin)) * pr.r;
-      ctx.fillRect(Math.round(-w), -1, Math.round(w * 2), 1);
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 0.45, 0, TAU);
+      ctx.fill();
       ctx.restore();
     } else if (pr.kind === 'bomb') {
-      const r = pr.r * (0.4 + pr.grow * 0.6);
-      const s = Math.round(r * 2.4);
-      const gi = pr.hue ? recolor('fx', 'genkidama', 'hue' + pr.hue) : img('fx', 'genkidama');
-      ctx.drawImage(gi, Math.round(pr.x - s / 2), Math.round(pr.y - s / 2), s, s);
+      const r = pr.r * (0.5 + pr.grow * 0.5);
+      const art = pr.art || 'genkidama';
+      if (art === 'genkidama') {
+        const s = Math.round(r * 2.6);
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = '#bfe8ff';
+        ctx.beginPath();
+        ctx.arc(pr.x, pr.y, s * 0.6, 0, TAU);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.drawImage(pr.tint ? recolor('fx', 'genkidama', pr.tint) : img('fx', 'genkidama'), Math.round(pr.x - s / 2), Math.round(pr.y - s / 2), s, s);
+      } else if (art === 'comet' || art === 'comet_cyan') {
+        this.drawArt(ctx, art, 0, pr.x, pr.y, r * (art === 'comet' ? 4.2 : 6), 1, ang, pr.tint);
+      } else {
+        this.drawArt(ctx, art, fr, pr.x, pr.y, r * 2.8, 1, art === 'sun' ? this.t * 3 : 0, pr.tint);
+      }
+    } else if (pr.kind === 'ghost') {
+      this.drawArt(ctx, pr.art || 'ghost', Math.floor(this.t * 10 + pr.wob), pr.x, pr.y, 18, 0.9, 0, pr.tint, pr.vx < 0);
     }
   }
 
@@ -1593,7 +2328,9 @@ export class Game {
       const im = img('fx', 'rocket');
       ctx.drawImage(im, -im.width / 2, -im.height / 2);
     } else {
-      drawStrip(ctx, 'fx', 'masenko', 1, -7, -7, 14, 14, 16, 16, 0, 'hue-50');
+      ctx.restore();
+      this.drawArt(ctx, b.minion ? 'ki_pink' : 'ki_purple', Math.floor(this.t * 12), b.x, b.y - 16, b.minion ? 14 : 18, 1, Math.atan2(b.vy, b.vx));
+      return;
     }
     ctx.restore();
   }
@@ -1602,94 +2339,71 @@ export class Game {
     const p = this.player;
     const k = Math.min(1, b.t / 0.08) * (b.t > b.dur - 0.1 ? (b.dur - b.t) / 0.1 : 1);
     const w = Math.max(2, b.width * k);
-    const mode = b.hue ? 'hue' + b.hue : null;
     ctx.save();
     ctx.translate(p.x + Math.cos(b.ang) * 8, p.y - 22 + Math.sin(b.ang) * 6);
     ctx.rotate(b.ang);
-    if (b.spiral) {
-      ctx.fillStyle = b.color;
-      ctx.globalAlpha = 0.5;
-      ctx.fillRect(0, -w / 2 - 1, b.len, w + 2);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#fff6c8';
-      ctx.fillRect(0, -w * 0.25, b.len, w * 0.5);
-      ctx.strokeStyle = b.color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let x = 0; x <= b.len; x += 3) {
-        const yy = Math.sin(x * 0.25 - b.t * 40) * (w + 3);
-        if (x === 0) ctx.moveTo(x, yy);
-        else ctx.lineTo(x, yy);
-      }
-      ctx.stroke();
-    } else {
-      // Cuerpo: franja horizontal del sprite del Kamehameha estirada
-      const mid = mode ? recolor('fx', 'kame_mid', mode) : img('fx', 'kame_mid');
-      ctx.drawImage(mid, 0, 4, 24, 8, 4, -w / 2, b.len - 4, w);
-      const cap = w * 1.6;
-      drawStrip(ctx, 'fx', 'kame_end', Math.floor(b.t * 12), b.len - cap * 0.4, -cap / 2, cap, cap, 16, 16, 2, mode);
-      drawStrip(ctx, 'fx', 'kame_begin', Math.floor(b.t * 12), -cap * 0.3, -cap / 2, cap, cap, 16, 16, 2, mode);
-    }
+    this.drawBeamArt(ctx, b.art || 'beam_cyan', b.tint, b.len, w, b.t);
     ctx.restore();
   }
 
   drawEffect(ctx, f) {
     const k = f.t / f.dur;
     if (f.kind === 'ring') {
+      // Onda expansiva: conos de energía hacia fuera
+      const n = 12;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * TAU;
+        this.drawArt(ctx, f.art || 'cone', Math.floor(k * 3), f.x + Math.cos(a) * f.r * 0.8, f.y - 8 + Math.sin(a) * f.r * 0.8, 26 + f.r * 0.25, 1 - k * 0.8, a, f.tint);
+      }
       ctx.strokeStyle = f.color;
-      ctx.globalAlpha = 1 - k;
-      ctx.lineWidth = 4;
+      ctx.globalAlpha = (1 - k) * 0.6;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r, 0, TAU);
-      ctx.stroke();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#fff';
+      ctx.arc(f.x, f.y - 8, f.r, 0, TAU);
       ctx.stroke();
     } else if (f.kind === 'flash') {
-      ctx.fillStyle = f.color || '#ffffff';
-      ctx.globalAlpha = (1 - k) * 0.6;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r * (0.6 + k * 0.4), 0, TAU);
-      ctx.fill();
+      if (f.art === 'timeburst') {
+        const n = 8;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * TAU + f.t * 2;
+          this.drawArt(ctx, 'timeburst', i + Math.floor(k * 6), f.x + Math.cos(a) * f.r * (0.2 + 0.6 * k), f.y - 10 + Math.sin(a) * f.r * (0.2 + 0.6 * k), 30 + f.r * 0.3, 1 - k, a, f.tint);
+        }
+      } else {
+        ctx.fillStyle = f.color || '#ffffff';
+        ctx.globalAlpha = (1 - k) * 0.5;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r * (0.6 + k * 0.4), 0, TAU);
+        ctx.fill();
+        this.drawArt(ctx, 'star', 0, f.x, f.y - 14, f.r * (0.8 + k), 1 - k, f.t * 3, f.tint);
+      }
     } else if (f.kind === 'slash') {
       ctx.save();
       ctx.translate(f.x, f.y - 10);
       ctx.strokeStyle = f.color;
       ctx.globalAlpha = 1 - k;
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(0, 0, f.r * (0.7 + k * 0.3), f.ang - f.arc / 2, f.ang + f.arc / 2);
       ctx.stroke();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      // la espada de energía recorre el arco
-      const a = f.ang - f.arc / 2 + f.arc * k;
-      ctx.rotate(a + Math.PI / 2);
-      ctx.globalAlpha = 1;
-      const sw = img('fx', 'sword');
-      ctx.drawImage(sw, 0, 0, 12, 32, -6, -f.r, 12, f.r * 0.9);
       ctx.restore();
+      // la hoja de energía recorre el arco
+      const a = f.ang - f.arc / 2 + f.arc * Math.min(1, k * 1.4);
+      const R = f.r * 0.75;
+      this.drawArt(ctx, f.art || 'slash_green', 0, f.x + Math.cos(a) * R, f.y - 10 + Math.sin(a) * R, f.r * 1.1, 1 - k * 0.6, a, f.tint);
     } else if (f.kind === 'boom') {
       const s = Math.round(f.r * 2.2);
-      drawStrip(ctx, 'fx', 'boom', Math.floor(k * 18), Math.round(f.x - s / 2), Math.round(f.y - s / 2), s, s, 32, 32);
+      if (f.big || f.r > 26) this.drawArt(ctx, 'bigboom', Math.floor(k * 5), f.x, f.y - 6, s * (f.big ? 1.15 : 0.95), k > 0.8 ? (1 - k) * 5 : 1);
+      else if (f.r > 16) this.drawArt(ctx, 'boom_orange', 0, f.x, f.y - 6, s * (0.7 + k * 0.5), 1 - k);
+      else drawStrip(ctx, 'fx', 'boom', Math.floor(k * 18), Math.round(f.x - s / 2), Math.round(f.y - s / 2), s, s, 32, 32);
     } else if (f.kind === 'hitfx') {
       const im = img('fx', 'kihit');
       ctx.globalAlpha = 1 - k;
       ctx.drawImage(im, Math.round(f.x - 7), Math.round(f.y - 7));
     } else if (f.kind === 'burst') {
+      this.drawArt(ctx, 'burst', 0, f.x, f.y - 20, 60 + k * 120, 1 - k, f.t * 2);
       ctx.strokeStyle = f.color;
       ctx.globalAlpha = 1 - k;
       ctx.lineWidth = 2;
-      for (let i = 0; i < 16; i++) {
-        const a = (i / 16) * TAU + f.t;
-        const r0 = 10 + k * 60;
-        const r1 = r0 + 20;
-        ctx.beginPath();
-        ctx.moveTo(f.x + Math.cos(a) * r0, f.y - 10 + Math.sin(a) * r0);
-        ctx.lineTo(f.x + Math.cos(a) * r1, f.y - 10 + Math.sin(a) * r1);
-        ctx.stroke();
-      }
       ctx.beginPath();
       ctx.arc(f.x, f.y - 10, k * 140, 0, TAU);
       ctx.stroke();

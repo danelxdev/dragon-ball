@@ -76,6 +76,268 @@
    "file": "fx/rocket.png",
    "w": 22,
    "h": 8
+  },
+  "ki_blue": {
+   "file": "fx/ki_blue.png",
+   "w": 56,
+   "h": 11,
+   "fw": 28,
+   "fh": 11,
+   "frames": 2
+  },
+  "ki_yellow": {
+   "file": "fx/ki_yellow.png",
+   "w": 57,
+   "h": 19,
+   "fw": 19,
+   "fh": 19,
+   "frames": 3
+  },
+  "ki_purple": {
+   "file": "fx/ki_purple.png",
+   "w": 236,
+   "h": 48,
+   "fw": 59,
+   "fh": 48,
+   "frames": 4
+  },
+  "ki_pink": {
+   "file": "fx/ki_pink.png",
+   "w": 76,
+   "h": 16,
+   "fw": 38,
+   "fh": 16,
+   "frames": 2
+  },
+  "comet": {
+   "file": "fx/comet.png",
+   "w": 51,
+   "h": 39,
+   "fw": 51,
+   "fh": 39,
+   "frames": 1
+  },
+  "comet_cyan": {
+   "file": "fx/comet_cyan.png",
+   "w": 183,
+   "h": 75,
+   "fw": 183,
+   "fh": 75,
+   "frames": 1
+  },
+  "flame": {
+   "file": "fx/flame.png",
+   "w": 64,
+   "h": 45,
+   "fw": 64,
+   "fh": 45,
+   "frames": 1
+  },
+  "burst": {
+   "file": "fx/burst.png",
+   "w": 106,
+   "h": 107,
+   "fw": 106,
+   "fh": 107,
+   "frames": 1
+  },
+  "kikoho": {
+   "file": "fx/kikoho.png",
+   "w": 136,
+   "h": 55,
+   "fw": 136,
+   "fh": 55,
+   "frames": 1,
+   "cap0": 68,
+   "cap1": 68
+  },
+  "boom_orange": {
+   "file": "fx/boom_orange.png",
+   "w": 67,
+   "h": 44,
+   "fw": 67,
+   "fh": 44,
+   "frames": 1
+  },
+  "sphere": {
+   "file": "fx/sphere.png",
+   "w": 44,
+   "h": 44,
+   "fw": 44,
+   "fh": 44,
+   "frames": 1
+  },
+  "impact": {
+   "file": "fx/impact.png",
+   "w": 45,
+   "h": 67,
+   "fw": 45,
+   "fh": 67,
+   "frames": 1
+  },
+  "kame_big": {
+   "file": "fx/kame_big.png",
+   "w": 107,
+   "h": 39,
+   "fw": 107,
+   "fh": 39,
+   "frames": 1,
+   "cap0": 40,
+   "cap1": 73
+  },
+  "nimbus": {
+   "file": "fx/nimbus.png",
+   "w": 183,
+   "h": 56,
+   "fw": 61,
+   "fh": 56,
+   "frames": 3
+  },
+  "cone": {
+   "file": "fx/cone.png",
+   "w": 312,
+   "h": 64,
+   "fw": 104,
+   "fh": 64,
+   "frames": 3
+  },
+  "star": {
+   "file": "fx/star.png",
+   "w": 49,
+   "h": 51,
+   "fw": 49,
+   "fh": 51,
+   "frames": 1
+  },
+  "bigboom": {
+   "file": "fx/bigboom.png",
+   "w": 445,
+   "h": 61,
+   "fw": 89,
+   "fh": 61,
+   "frames": 5
+  },
+  "cloud": {
+   "file": "fx/cloud.png",
+   "w": 88,
+   "h": 89,
+   "fw": 88,
+   "fh": 89,
+   "frames": 1
+  },
+  "ghost": {
+   "file": "fx/ghost.png",
+   "w": 138,
+   "h": 35,
+   "fw": 23,
+   "fh": 35,
+   "frames": 6
+  },
+  "timeburst": {
+   "file": "fx/timeburst.png",
+   "w": 231,
+   "h": 51,
+   "fw": 77,
+   "fh": 51,
+   "frames": 3
+  },
+  "beam_pink": {
+   "file": "fx/beam_pink.png",
+   "w": 147,
+   "h": 65,
+   "fw": 147,
+   "fh": 65,
+   "frames": 1,
+   "cap0": 22,
+   "cap1": 103
+  },
+  "sparks": {
+   "file": "fx/sparks.png",
+   "w": 114,
+   "h": 73,
+   "fw": 57,
+   "fh": 73,
+   "frames": 2
+  },
+  "beam_yellow": {
+   "file": "fx/beam_yellow.png",
+   "w": 120,
+   "h": 35,
+   "fw": 120,
+   "fh": 35,
+   "frames": 1,
+   "cap0": 24,
+   "cap1": 93
+  },
+  "slash_green": {
+   "file": "fx/slash_green.png",
+   "w": 32,
+   "h": 70,
+   "fw": 32,
+   "fh": 70,
+   "frames": 1
+  },
+  "cloud_green": {
+   "file": "fx/cloud_green.png",
+   "w": 124,
+   "h": 60,
+   "fw": 62,
+   "fh": 60,
+   "frames": 2
+  },
+  "beam_cyan": {
+   "file": "fx/beam_cyan.png",
+   "w": 170,
+   "h": 80,
+   "fw": 170,
+   "fh": 80,
+   "frames": 1,
+   "cap0": 26,
+   "cap1": 121
+  },
+  "ship": {
+   "file": "fx/ship.png",
+   "w": 93,
+   "h": 77,
+   "fw": 93,
+   "fh": 77,
+   "frames": 1
+  },
+  "sun": {
+   "file": "fx/sun.png",
+   "w": 60,
+   "h": 61,
+   "fw": 60,
+   "fh": 61,
+   "frames": 1
+  },
+  "beam_magenta": {
+   "file": "fx/beam_magenta.png",
+   "w": 175,
+   "h": 83,
+   "fw": 175,
+   "fh": 83,
+   "frames": 1,
+   "cap0": 26,
+   "cap1": 124
+  },
+  "slash_purple": {
+   "file": "fx/slash_purple.png",
+   "w": 66,
+   "h": 32,
+   "fw": 66,
+   "fh": 32,
+   "frames": 1
+  },
+  "beam_white": {
+   "file": "fx/beam_white.png",
+   "w": 198,
+   "h": 66,
+   "fw": 198,
+   "fh": 66,
+   "frames": 1,
+   "cap0": 23,
+   "cap1": 141
   }
  },
  "tiles": {
@@ -274,6 +536,67 @@
    "h": 8,
    "fw": 8,
    "fh": 8
+  },
+  "dball1": {
+   "file": "items/dball1.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball2": {
+   "file": "items/dball2.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball3": {
+   "file": "items/dball3.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball4": {
+   "file": "items/dball4.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball5": {
+   "file": "items/dball5.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball6": {
+   "file": "items/dball6.png",
+   "w": 20,
+   "h": 20
+  },
+  "dball7": {
+   "file": "items/dball7.png",
+   "w": 20,
+   "h": 20
+  },
+  "gem_s": {
+   "file": "items/gem_s.png",
+   "w": 28,
+   "h": 9,
+   "fw": 7,
+   "fh": 9
+  },
+  "gem_m": {
+   "file": "items/gem_m.png",
+   "w": 36,
+   "h": 11,
+   "fw": 9,
+   "fh": 11
+  },
+  "gem_l": {
+   "file": "items/gem_l.png",
+   "w": 44,
+   "h": 13,
+   "fw": 11,
+   "fh": 13
+  },
+  "pod": {
+   "file": "items/pod.png",
+   "w": 20,
+   "h": 15
   }
  },
  "ui": {
@@ -290,6 +613,21 @@
    "h": 15,
    "fw": 11,
    "fh": 15
+  },
+  "crystal": {
+   "file": "ui/crystal.png",
+   "w": 12,
+   "h": 12
+  },
+  "ticket": {
+   "file": "ui/ticket.png",
+   "w": 16,
+   "h": 11
+  },
+  "ticket10": {
+   "file": "ui/ticket10.png",
+   "w": 16,
+   "h": 11
   }
  },
  "heroes": {
@@ -790,6 +1128,96 @@
    "fw": 36,
    "fh": 42,
    "frames": 4
+  },
+  "tien": {
+   "file": "heroes/tien.png",
+   "fw": 24,
+   "fh": 30,
+   "frames": 4
+  },
+  "bioman": {
+   "file": "heroes/bioman.png",
+   "fw": 25,
+   "fh": 35,
+   "frames": 3
+  },
+  "goku_kid": {
+   "file": "heroes/goku_kid.png",
+   "fw": 35,
+   "fh": 39,
+   "frames": 3
+  },
+  "goku_gt_kid": {
+   "file": "heroes/goku_gt_kid.png",
+   "fw": 35,
+   "fh": 42,
+   "frames": 3
+  },
+  "trunks_super": {
+   "file": "heroes/trunks_super.png",
+   "fw": 26,
+   "fh": 38,
+   "frames": 3
+  },
+  "trunks_rage": {
+   "file": "heroes/trunks_rage.png",
+   "fw": 23,
+   "fh": 38,
+   "frames": 4
+  },
+  "copy_vegeta": {
+   "file": "heroes/copy_vegeta.png",
+   "fw": 29,
+   "fh": 49,
+   "frames": 3
+  },
+  "copy_vegeta_blue": {
+   "file": "heroes/copy_vegeta_blue.png",
+   "fw": 24,
+   "fh": 47,
+   "frames": 3
+  },
+  "gohan_rof": {
+   "file": "heroes/gohan_rof.png",
+   "fw": 29,
+   "fh": 42,
+   "frames": 3
+  },
+  "gohan_rof_ssj": {
+   "file": "heroes/gohan_rof_ssj.png",
+   "fw": 30,
+   "fh": 45,
+   "frames": 4
+  },
+  "goten": {
+   "file": "heroes/goten.png",
+   "fw": 29,
+   "fh": 39,
+   "frames": 2
+  },
+  "trunks_kid": {
+   "file": "heroes/trunks_kid.png",
+   "fw": 26,
+   "fh": 42,
+   "frames": 4
+  },
+  "broly_dbs": {
+   "file": "heroes/broly_dbs.png",
+   "fw": 32,
+   "fh": 50,
+   "frames": 2
+  },
+  "janemba_super": {
+   "file": "heroes/janemba_super.png",
+   "fw": 31,
+   "fh": 49,
+   "frames": 3
+  },
+  "jaco": {
+   "file": "heroes/jaco.png",
+   "fw": 18,
+   "fh": 36,
+   "frames": 2
   }
  }
 }

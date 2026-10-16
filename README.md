@@ -5,9 +5,10 @@ Hecho con HTML5 Canvas y JavaScript puro: sin dependencias ni paso de compilaci�
 
 > Proyecto **no oficial y sin ánimo de lucro**. Dragon Ball es propiedad de Akira Toriyama, Bird Studio, Shueisha y Toei Animation.
 >
-> - **Personajes:** sprites hechos por fans (LukasAhl1, qsab101, MV95, thekrillmaster, Manikdx2000, PeculiarDoc y otros; la lista
+> - **Personajes y técnicas:** sprites hechos por fans (LukasAhl1, qsab101, MV95, thekrillmaster, Manikdx2000, PeculiarDoc y otros; la lista
 >   completa está en `assets/credits.json` y en la pantalla de créditos), del pack «Dragon Ball Sagas» publicado en
->   [Internet Archive](https://archive.org/details/04-mangas-dragon-ball).
+>   [Internet Archive](https://archive.org/details/04-mangas-dragon-ball) y de las hojas de sprites de esos artistas en DeviantArt.
+> - **Música:** original, compuesta para el juego.
 > - **Escenarios, efectos, objetos e interfaz:** Dragon Ball Z: The Legacy of Goku y Buu's Fury (Webfoot Technologies / Atari, GBA), vía
 >   [VGMaps](https://www.vgmaps.com/Atlas/GBA/), rips de The Spriters Resource (Mister Man, Omega, ApplePie) y los proyectos fan
 >   [Legacy-of-Goku-Maker-Engine](https://github.com/Arikuvfx/Legacy-of-Goku-Maker-Engine),
@@ -36,7 +37,9 @@ npm run build   # crea dist/assets-data.js y dist/game.js
 | Acción | Teclado | Móvil |
 | --- | --- | --- |
 | Moverse | WASD / flechas | Arrastrar el dedo |
-| Elegir mejora / deseo | 1, 2, 3 o clic | Tocar la carta |
+| Cambiar de ranura de técnicas | 1-4 o Q / E | Tocar la ranura (abajo) |
+| Ataque definitivo (barra de ki llena) | Espacio | Botón KI |
+| Elegir mejora / deseo / vínculo | 1, 2, 3 o clic | Tocar la carta |
 | Cambiar opciones | R | Botón |
 | Pausa | Esc / P | Botón II |
 
@@ -44,22 +47,26 @@ npm run build   # crea dist/assets-data.js y dist/game.js
 
 Funciona como PokeSurvivor: coleccionas guerreros con un gacha por sagas y los llevas a sobrevivir a las hordas.
 
-- **46 guerreros en 6 sagas** (Saiyajin, Freezer, Cell, Buu, Películas y GT, Super), con **más de 80 formas**. Cada uno
-  evoluciona durante la partida al subir de nivel: Goku pasa de SSJ Dios a Blue, Blue Kaioken, Ultra Instinto y Ultra Instinto
-  dominado; Freezer de su primera forma a Golden Freezer; Majin Buu a Kid Buu; Broly a Legendario y SSJ4...
-- **Invocación (gacha):** banner por saga o de todas, tiradas x1 y x10 (la x10 garantiza un Épico), rarezas Común, Raro, Épico y
-  Legendario, y variante **brillante** (✦, más fuerte). Los duplicados **despiertan** al personaje (hasta ★★★★★) y dan **fragmentos**.
-- **Mejoras por personaje** con fragmentos (poder, vitalidad, velocidad y concentración) y mejoras globales con Zeni.
-- **35 técnicas**: las comunes (Kamehameha, Masenko, Kienzan, Genkidama...) y las exclusivas de cada guerrero (Rayo Mortal,
-  Big Bang Attack, Supernova, Cañón Borrador, Hakai, Salto Temporal, Puño de Poder...).
-- **Evoluciones de técnicas:** técnica al máximo + la habilidad adecuada = técnica definitiva (Kamehameha x10, Final Flash
-  definitivo, Genkidama Universal, Kienzan Doble, Espada Z...).
-- **12 objetos equipables** (uno por partida): Pesas de Piccolo, Nube Kinton, Radar del Dragón, Rastreador, Pendientes Potara,
-  Agua Ultradivina, Cola de mono... Se compran o los sueltan los jefes.
-- **25 misiones** con recompensas de Zeni.
-- **Hordas** de Saibaman y sus variantes, **élites** (villanos con contorno dorado) y **jefes**: Raditz, Freezer, Cell, Kid Buu y Broly.
-- **Bolas de Dragón** (las 7 reales): reúnelas y pide un deseo a Shenlong.
-- **Zonas:** Monte Paoz, Planeta Namek y Namek en destrucción, con el suelo y los decorados de Legacy of Goku.
+- **Solo empiezas con Goku.** Los demás se consiguen invocando.
+- **56 guerreros en 6 sagas** con **más de 130 formas**, incluidos Goku niño, Goku GT, Ten Shin Han, Goten, Trunks niño,
+  Gohan (La resurrección de F), Vegeta copia, Trunks del Futuro (Super), Broly (Super), Jaco y Super Janemba.
+  Cada uno se transforma durante la partida al subir de nivel.
+- **Ranuras de técnicas (formato PokeSurvivor):** cada técnica nueva ocupa una ranura (hasta 4) y **solo dispara la activa**.
+  Al derrotar a un jefe ganas un **vínculo** para fusionar dos ranuras y lanzar hasta 4 técnicas a la vez (+12% de daño por técnica).
+- **Ki y ataques definitivos:** la barra de ki se llena luchando; llena, lanzas el definitivo de tu guerrero (Super Kamehameha,
+  Final Flash, Genkidama, Súper Kamikaze Fantasma...) con un corte de anime.
+- **Técnicas con arte de verdad:** rayos con destello y cabeza, Kikoho en espiral, ondas de llamas, fantasmas de Gotenks,
+  explosiones, discos y auras, sacados de hojas de sprites de la comunidad. Gemas de ki y Bolas de Dragón dibujadas en píxeles.
+- **26 técnicas y 15 técnicas definitivas por evolución:** técnica al máximo + la habilidad adecuada = carta dorada con la técnica definitiva.
+- **Invocación:** se paga con **Cristales de Ki** o **tickets** (x1 y x10); el **Zeni** es para mejoras y objetos. Rarezas Común,
+  Raro, Épico y Legendario, brillantes (✦), x10 con Épico garantizado y **pity** (Legendario seguro a las 70). Animación de cápsula.
+  Cristales y tickets se consiguen en las partidas (jefes, élites, cápsulas), en las misiones y con el regalo diario.
+- **Objetos:** uno equipado por partida; los jefes sueltan otro y eliges si cambiarlo (queda desbloqueado).
+- **Durante la partida:** cápsulas rompibles con potenciadores (furia, velocidad, recarga, radar), Saibaman kamikaze que avisan
+  con un círculo rojo, Bio-Men, élites y jefes con rayos que avisan con una franja en el suelo: Raditz, Freezer, Cell, Kid Buu y Broly.
+- **Bolas de Dragón:** reúne las 7 y pide un deseo a Shenlong (también puede darte un vínculo o cristales).
+- **Música original** compuesta para el juego (título, menús, cada zona, jefes, invocación, victoria y derrota) y ajustes de volumen.
+- **30 misiones** con Zeni y Cristales de Ki.
 
 ## Estructura
 
@@ -75,6 +82,7 @@ assets/         Sprites normalizados + manifest.json (generados)
 tools/          Scripts que extraen y normalizan los sprites
 src/input.js    Teclado y joystick táctil
 src/audio.js    Efectos de sonido sintetizados con WebAudio
+src/music.js    Música original tocada con WebAudio (secuenciador)
 src/storage.js  Guardado local
 ```
 
@@ -87,6 +95,9 @@ src/storage.js  Guardado local
   Para hojas de Spriters Resource con cajas sobre fondo verde azulado usa `from_boxes` (ver `tools/slice_boxes.py`).
 - **Personajes:** `python3 tools/build_sagas.py "<carpeta Dragon Ball Sagas>" assets` (después de `build_assets.py`). Elige
   automáticamente los fotogramas de pose de cada carpeta (`tools/sagas_extract.py`) y guarda los créditos de cada artista.
+- **Personajes y técnicas de hojas de DeviantArt:** `python3 tools/build_extra.py <carpeta de hojas> assets` recorta los
+  personajes (fila y fotogramas de cada hoja) y `python3 tools/build_fx.py <carpeta de hojas> assets` el arte de las técnicas,
+  las Bolas de Dragón, las gemas y los iconos. Las instrucciones para descargar las hojas están en la cabecera de los scripts.
 - **Nuevo personaje:** añade su carpeta en `HEROES` (`tools/build_sagas.py`) y una entrada en `ROSTER` (`src/data.js`) con su
   saga, rareza, técnica y formas.
 - **Balance:** cada técnica define sus 5 niveles en `WEAPONS`, y la dificultad depende de `WAVES`, `BOSSES` y `BOSS_SCHEDULE`.

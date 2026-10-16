@@ -2,7 +2,7 @@
 // `sprite` es el id de la tira en assets/heroes (ver tools/build_sagas.py).
 
 export const SAGAS = [
-  { id: 'saiyan', name: 'Saga Saiyajin', color: '#ff9a3a' },
+  { id: 'saiyan', name: 'Dragon Ball y Saiyajin', color: '#ff9a3a' },
   { id: 'freezer', name: 'Saga Freezer', color: '#b07aff' },
   { id: 'cell', name: 'Saga Cell', color: '#5fe07a' },
   { id: 'buu', name: 'Saga Buu', color: '#ff7ab8' },
@@ -17,12 +17,26 @@ export const RARITY = {
   L: { name: 'Legendario', color: '#ffd23a', stars: 4, rate: 3, mult: 1.25, shards: 15 },
 };
 
-export const GACHA = { cost1: 150, cost10: 1350, shinyRate: 3, starters: ['goku_s', 'krilin', 'piccolo'], welcome: 1500 };
+// Las invocaciones se pagan con Cristales de Ki o con tickets (x1 y x10). El Zeni es para mejoras y objetos.
+// `pity`: a las N invocaciones sin Legendario, el siguiente lo es seguro.
+export const GACHA = {
+  cost1: 150, cost10: 1350, shinyRate: 3, starters: ['goku_s'], pity: 70,
+  welcome: { crystals: 1500, tickets: 3, ticket10: 1, zeni: 300 },
+  daily: { crystals: 150, tickets: 1 },
+};
 
 // Personajes coleccionables. `forms` son sus evoluciones dentro de la partida: se
 // alcanzan al llegar al nivel indicado. La primera forma es la inicial.
 const f = (lvl, name, sprite, extra = {}) => ({ lvl, name, sprite, ...extra });
 export const ROSTER = [
+  // --- Dragon Ball y Saga Saiyajin ---
+  { id: 'goku_kid', name: 'Goku (niño)', saga: 'saiyan', rarity: 'C', weapon: 'kamehameha', stats: { hp: 90, speed: 1.08, might: 0.98 },
+    desc: 'El niño con cola que busca las Bolas de Dragón.', forms: [f(1, 'Goku niño', 'goku_kid'), f(14, 'Entrenado por el Duende Tortuga', 'goku_kid', { aura: '#ffd27a', might: 0.35, speed: 0.12 })] },
+  { id: 'goku_gt_kid', name: 'Goku (GT)', saga: 'movies', rarity: 'E', weapon: 'kamehameha', stats: { hp: 100, speed: 1.1, might: 1.1 },
+    desc: 'Convertido en niño por las Bolas de Dragón definitivas.', forms: [f(1, 'Goku GT', 'goku_gt_kid'), f(10, 'Super Saiyajin', 'goku_gt_kid', { aura: '#ffe14a', might: 0.3 }),
+      f(24, 'Super Saiyajin 4', 'goku_ssj4', { aura: '#ff4a4a', sparks: true, might: 0.8, speed: 0.15 })] },
+  { id: 'tien', name: 'Ten Shin Han', saga: 'saiyan', rarity: 'R', weapon: 'kikoho', stats: { hp: 105, speed: 1, might: 1.05, armor: 1 },
+    desc: 'El guerrero de los tres ojos y el Kikoho.', forms: [f(1, 'Ten Shin Han', 'tien'), f(16, 'Shin Kikoho', 'tien', { aura: '#ffe36a', might: 0.45, speed: 0.08 })] },
   // --- Saga Saiyajin ---
   { id: 'goku_s', name: 'Goku', saga: 'saiyan', rarity: 'R', weapon: 'kamehameha', stats: { hp: 100, speed: 1, might: 1 },
     desc: 'El Saiyajin criado en la Tierra.', forms: [f(1, 'Goku', 'goku'), f(12, 'Kaioken', 'goku_kaioken', { aura: '#ff5a5a', might: 0.35, speed: 0.12 })] },
@@ -83,7 +97,11 @@ export const ROSTER = [
       f(22, 'Majin Vegeta', 'majin_vegeta', { aura: '#ffe14a', sparks: true, might: 0.8, speed: 0.14 })] },
   { id: 'gohan_b', name: 'Gohan (Saga Buu)', saga: 'buu', rarity: 'R', weapon: 'masenko', stats: { hp: 100, speed: 1.03, might: 1.08, growth: 0.1 },
     desc: 'El poder definitivo de Gohan.', forms: [f(1, 'Gohan', 'gohan_adult'), f(22, 'Gohan Definitivo', 'gohan_mystic', { aura: '#ffffff', big: true, might: 0.9, speed: 0.15 })] },
-  { id: 'gotenks', name: 'Gotenks', saga: 'buu', rarity: 'R', weapon: 'orbit', stats: { hp: 95, speed: 1.1, might: 1.08 },
+  { id: 'goten', name: 'Goten', saga: 'buu', rarity: 'C', weapon: 'kamehameha', stats: { hp: 85, speed: 1.12, might: 1 },
+    desc: 'El hijo pequeño de Goku. Super Saiyajin sin esfuerzo.', forms: [f(1, 'Goten', 'goten'), f(12, 'Super Saiyajin', 'goten', { aura: '#ffe14a', might: 0.4, speed: 0.1 })] },
+  { id: 'trunks_kid', name: 'Trunks (niño)', saga: 'buu', rarity: 'C', weapon: 'burning', stats: { hp: 90, speed: 1.1, might: 1.02 },
+    desc: 'El hijo de Vegeta, travieso y muy fuerte.', forms: [f(1, 'Trunks', 'trunks_kid'), f(12, 'Super Saiyajin', 'trunks_kid', { aura: '#ffe14a', might: 0.4, speed: 0.1 })] },
+  { id: 'gotenks', name: 'Gotenks', saga: 'buu', rarity: 'R', weapon: 'ghosts', stats: { hp: 95, speed: 1.1, might: 1.08 },
     desc: 'La fusión de Goten y Trunks.', forms: [f(1, 'Gotenks', 'gotenks'), f(18, 'Gotenks al máximo', 'gotenks', { aura: '#ffe14a', might: 0.55, speed: 0.12 })] },
   { id: 'buu', name: 'Majin Buu', saga: 'buu', rarity: 'L', weapon: 'candybeam', stats: { hp: 130, speed: 0.95, might: 1.08, regen: 0.6 },
     desc: 'Todas las formas del monstruo rosa.', forms: [f(1, 'Majin Buu', 'buu_fat'), f(10, 'Buu malvado', 'buu_evil', { aura: '#ff7ab8', might: 0.25 }),
@@ -100,7 +118,8 @@ export const ROSTER = [
   { id: 'gogeta', name: 'Gogeta', saga: 'movies', rarity: 'L', weapon: 'bigbangkame', stats: { hp: 110, speed: 1.08, might: 1.2 },
     desc: 'La fusión por la Danza de la Metamorfosis.', forms: [f(1, 'Gogeta SSJ', 'gogeta', { aura: '#ffe14a' }), f(20, 'Gogeta al máximo', 'gogeta', { aura: '#fff07a', sparks: true, might: 0.7 })] },
   { id: 'janemba', name: 'Janemba', saga: 'movies', rarity: 'E', weapon: 'sword', stats: { hp: 120, speed: 1, might: 1.1 },
-    desc: 'El demonio nacido de la maldad pura.', forms: [f(1, 'Janemba', 'janemba'), f(20, 'Janemba definitivo', 'janemba', { aura: '#ff4a4a', might: 0.6 })] },
+    desc: 'El demonio nacido de la maldad pura.', forms: [f(1, 'Janemba', 'janemba'), f(14, 'Super Janemba', 'janemba_super', { aura: '#ff4a4a', might: 0.45, speed: 0.1 }),
+      f(28, 'Janemba definitivo', 'janemba_super', { aura: '#ff2a6a', sparks: true, might: 0.85, speed: 0.14 })] },
   { id: 'goku_gt', name: 'Goku SSJ4', saga: 'movies', rarity: 'L', weapon: 'kamehameha', stats: { hp: 115, speed: 1.06, might: 1.2 },
     desc: 'La transformación definitiva de GT.', forms: [f(1, 'Super Saiyajin 4', 'goku_ssj4', { aura: '#ff4a4a' }), f(25, 'SSJ4 al máximo', 'goku_ssj4', { aura: '#ff7a4a', sparks: true, might: 0.8, speed: 0.12 })] },
   { id: 'vegeta_gt', name: 'Vegeta SSJ4', saga: 'movies', rarity: 'E', weapon: 'finalflash', stats: { hp: 105, speed: 1.04, might: 1.2 },
@@ -136,6 +155,21 @@ export const ROSTER = [
     desc: 'La fusión Potara de Caulifla y Kale.', forms: [f(1, 'Kefla SSJ', 'kefla', { aura: '#7aff6a' }), f(22, 'Kefla SSJ2', 'kefla', { aura: '#b8ff9a', sparks: true, might: 0.75, speed: 0.12 })] },
   { id: 'cabba', name: 'Cabba', saga: 'super', rarity: 'C', weapon: 'galick', stats: { hp: 95, speed: 1.05, might: 1.05 },
     desc: 'Un joven Saiyajin noble del Universo 6.', forms: [f(1, 'Cabba', 'cabba'), f(14, 'Super Saiyajin', 'cabba_ssj', { aura: '#ffe14a', might: 0.45, speed: 0.1 })] },
+  { id: 'gohan_rof', name: 'Gohan (La resurrección de F)', saga: 'super', rarity: 'R', weapon: 'masenko', stats: { hp: 100, speed: 1.04, might: 1.08 },
+    desc: 'Gohan vuelve a luchar con su chándal de entrenamiento.', forms: [f(1, 'Gohan', 'gohan_rof'), f(12, 'Super Saiyajin', 'gohan_rof_ssj', { aura: '#ffe14a', might: 0.4, speed: 0.1 }),
+      f(26, 'Super Saiyajin al máximo', 'gohan_rof_ssj', { aura: '#fff07a', sparks: true, might: 0.8, speed: 0.12 })] },
+  { id: 'copy_vegeta', name: 'Vegeta copia', saga: 'super', rarity: 'E', weapon: 'galick', stats: { hp: 100, speed: 1.05, might: 1.15 },
+    desc: 'La copia de Vegeta creada por Moro.', forms: [f(1, 'Vegeta copia', 'copy_vegeta', { aura: '#c77bff' }),
+      f(15, 'Super Saiyajin Blue', 'copy_vegeta_blue', { aura: '#4ac8ff', sparks: true, might: 0.6, speed: 0.12 })] },
+  { id: 'trunks_super', name: 'Trunks del Futuro (Super)', saga: 'super', rarity: 'L', weapon: 'sword', stats: { hp: 105, speed: 1.08, might: 1.2 },
+    desc: 'La esperanza de un futuro destruido por Goku Black.', forms: [f(1, 'Trunks del Futuro', 'trunks_super'),
+      f(12, 'Super Saiyajin', 'trunks_super', { aura: '#ffe14a', might: 0.3, speed: 0.08 }),
+      f(24, 'Super Saiyajin Ira', 'trunks_rage', { aura: '#7ad8ff', sparks: true, might: 0.8, speed: 0.15 })] },
+  { id: 'broly_dbs', name: 'Broly (Super)', saga: 'super', rarity: 'L', weapon: 'eraser', stats: { hp: 150, speed: 0.98, might: 1.2, armor: 1 },
+    desc: 'El Saiyajin cuyo poder no conoce límites.', forms: [f(1, 'Super Saiyajin', 'broly_dbs', { aura: '#ffe14a' }),
+      f(18, 'Super Saiyajin furioso', 'broly_dbs', { aura: '#7aff6a', sparks: true, big: true, might: 0.9, speed: 0.12 })] },
+  { id: 'jaco', name: 'Jaco', saga: 'super', rarity: 'C', weapon: 'kiblast', stats: { hp: 95, speed: 1.1, might: 0.98, magnet: 0.4 },
+    desc: 'Agente de élite de la Patrulla Galáctica (según él).', forms: [f(1, 'Jaco', 'jaco'), f(15, 'Patrullero de élite', 'jaco', { aura: '#9fd8ff', might: 0.4, speed: 0.12 })] },
   { id: 'frost', name: 'Frost', saga: 'super', rarity: 'R', weapon: 'deathbeam', stats: { hp: 100, speed: 1.02, might: 1.1 },
     desc: 'El tramposo del Universo 6.', forms: [f(1, 'Frost', 'frost_1'), f(15, 'Forma final', 'frost_final', { aura: '#9fd8ff', might: 0.55, speed: 0.1 })] },
 ];
@@ -294,6 +328,8 @@ export const PASSIVES = {
   crecimiento: { name: 'Sala del Tiempo', color: '#ffffff', desc: '+8% de experiencia.', max: 5 },
 };
 
+export const MAX_SLOTS = 4; // ranuras de técnicas (solo dispara la activa)
+export const BOND_MAX = 4; // técnicas máximas vinculadas en una ranura
 export const MAX_WEAPONS = 6;
 export const MAX_PASSIVES = 6;
 
@@ -310,6 +346,8 @@ export const META = {
   reroll: { name: 'Elección', desc: '+1 cambio de opciones por partida', max: 3, cost: 100 },
   crecimiento: { name: 'Crecimiento', desc: '+5% de experiencia', max: 5, cost: 70 },
   avaricia: { name: 'Avaricia', desc: '+10% de Zeni', max: 5, cost: 80 },
+  repertorio: { name: 'Repertorio', desc: 'Empiezas la partida con 2 técnicas', max: 1, cost: 900 },
+  ki: { name: 'Control del ki', desc: '+15% de carga de la barra de ki', max: 3, cost: 150 },
 };
 
 // ---------------------------------------------------------------------------
@@ -442,6 +480,39 @@ Object.assign(WEAPONS, {
       { dmg: 185, cd: 2.2, speed: 160, size: 17, blast: 118 },
     ],
   },
+  kikoho: {
+    name: 'Kikoho', color: '#ffe36a', kind: 'beam',
+    desc: 'Un cañón de energía enorme y lento que lo aplasta todo.',
+    levels: [
+      { dmg: 16, cd: 2.8, len: 150, width: 26, dur: 0.55, aim: true },
+      { dmg: 20, cd: 2.7, len: 165, width: 28, dur: 0.55, aim: true },
+      { dmg: 25, cd: 2.5, len: 180, width: 32, dur: 0.6, aim: true },
+      { dmg: 31, cd: 2.3, len: 195, width: 34, dur: 0.6, aim: true },
+      { dmg: 40, cd: 2.0, len: 220, width: 40, dur: 0.7, aim: true, dual: true },
+    ],
+  },
+  burning: {
+    name: 'Burning Attack', color: '#ffb03a', kind: 'bomb',
+    desc: 'Una bola de fuego de ki que estalla al impactar.',
+    levels: [
+      { dmg: 34, cd: 1.9, speed: 200, size: 6, blast: 42 },
+      { dmg: 44, cd: 1.8, speed: 210, size: 6, blast: 46 },
+      { dmg: 44, cd: 1.7, speed: 220, size: 7, blast: 50, count: 2 },
+      { dmg: 58, cd: 1.6, speed: 230, size: 7, blast: 56, count: 2 },
+      { dmg: 76, cd: 1.4, speed: 240, size: 8, blast: 64, count: 3 },
+    ],
+  },
+  ghosts: {
+    name: 'Ataque Kamikaze Fantasma', color: '#bfe8ff', kind: 'homing',
+    desc: 'Fantasmas de Gotenks que persiguen a los enemigos y explotan.',
+    levels: [
+      { dmg: 30, cd: 2.4, count: 2, speed: 95, blast: 36 },
+      { dmg: 36, cd: 2.3, count: 3, speed: 100, blast: 38 },
+      { dmg: 44, cd: 2.2, count: 3, speed: 105, blast: 42 },
+      { dmg: 52, cd: 2.0, count: 4, speed: 110, blast: 46 },
+      { dmg: 66, cd: 1.8, count: 6, speed: 120, blast: 52 },
+    ],
+  },
   // --- Evoluciones (una sola etapa, ya al máximo) ---
   kame10: { name: 'Kamehameha x10', color: '#9fe8ff', kind: 'beam', evolved: true, desc: 'El Kamehameha definitivo.',
     levels: [{ dmg: 26, cd: 1.6, len: 330, width: 30, dur: 0.9, aim: true, dual: true }] },
@@ -467,6 +538,12 @@ Object.assign(WEAPONS, {
     levels: [{ dmg: 18, cd: 0.22, radius: 85 }] },
   ring_max: { name: 'Explosión Planetaria', color: '#ff7a3a', kind: 'ring', evolved: true, desc: 'Ondas que sacuden el planeta.',
     levels: [{ dmg: 90, cd: 1.8, maxR: 230 }] },
+  kikoho_max: { name: 'Shin Kikoho', color: '#fff27a', kind: 'beam', evolved: true, desc: 'El Kikoho definitivo, a costa de la vida.',
+    levels: [{ dmg: 70, cd: 1.6, len: 280, width: 52, dur: 0.8, aim: true, dual: true }] },
+  burning_max: { name: 'Lluvia de fuego', color: '#ffb03a', kind: 'bomb', evolved: true, desc: 'Bolas de fuego sin parar.',
+    levels: [{ dmg: 110, cd: 0.9, speed: 260, size: 9, blast: 78, count: 4 }] },
+  ghosts_max: { name: 'Súper Ataque Kamikaze Fantasma', color: '#e0f4ff', kind: 'homing', evolved: true, desc: 'Un ejército de fantasmas explosivos.',
+    levels: [{ dmg: 110, cd: 1.3, count: 9, speed: 140, blast: 66 }] },
 });
 
 export const EVOLUTIONS = {
@@ -486,6 +563,44 @@ export const EVOLUTIONS = {
   destruction: { need: 'radar', into: 'aura_max' },
   bakuhatsuha: { need: 'vida', into: 'ring_max' },
   powerfist: { need: 'vida', into: 'ring_max' },
+  kikoho: { need: 'armadura', into: 'kikoho_max' },
+  burning: { need: 'multiplicacion', into: 'burning_max' },
+  ghosts: { need: 'multiplicacion', into: 'ghosts_max' },
+  orbit: { need: 'control', into: 'ghosts_max' },
+};
+
+// Arte de cada técnica (sprites de assets/fx). `tint`: giro de tono del sprite.
+const ART = {
+  kiblast: { art: 'ki_yellow' }, kiblast_inf: { art: 'ki_yellow' },
+  kamehameha: { art: 'beam_cyan' }, kame10: { art: 'beam_cyan' },
+  galick: { art: 'beam_magenta' }, finalflash: { art: 'beam_yellow' }, ffmax: { art: 'beam_yellow' },
+  candybeam: { art: 'beam_pink' }, deathbeam: { art: 'beam_pink' }, deathbeam_max: { art: 'beam_pink' },
+  makanko: { art: 'kikoho' }, makanko_max: { art: 'kikoho' },
+  kikoho: { art: 'beam_white', tint: 'hue45' }, kikoho_max: { art: 'beam_yellow' },
+  masenko: { art: 'flame' }, masenko_max: { art: 'flame' },
+  kienzan: { art: 'disc' }, kienzan_max: { art: 'disc' },
+  taiyoken: { art: 'star' }, hakai: { art: 'timeburst' }, timeskip: { art: 'timeburst', tint: 'hue60' },
+  aura: { art: 'flames' }, destruction: { art: 'flames' }, aura_max: { art: 'flames' },
+  bakuhatsuha: { art: 'cone' }, powerfist: { art: 'cone', tint: 'hue-50' }, ring_max: { art: 'cone', tint: 'hue-25' },
+  orbit: { art: 'comet' },
+  genkidama: { art: 'genkidama' }, genki_max: { art: 'genkidama' },
+  bigbang: { art: 'comet_cyan' }, bigbangkame: { art: 'comet_cyan' }, bigbang_max: { art: 'comet_cyan', tint: 'hue-60' },
+  supernova: { art: 'sun' }, eraser: { art: 'ki_yellow', tint: 'hue70' },
+  burning: { art: 'comet' }, burning_max: { art: 'comet' },
+  ghosts: { art: 'ghost' }, ghosts_max: { art: 'ghost' },
+  sword: { art: 'slash_green' }, sword_max: { art: 'slash_green', tint: 'hue60' },
+};
+for (const [id, a] of Object.entries(ART)) Object.assign(WEAPONS[id], a);
+
+// Ataque definitivo de cada guerrero (se lanza con la barra de ki llena). Depende de su técnica.
+export const ULTS = {
+  kamehameha: 'Super Kamehameha', galick: 'Galick Ho máximo', finalflash: 'Final Flash', masenko: 'Masenko supremo',
+  makanko: 'Makankosappo', kienzan: 'Kienzan gigante', kiblast: 'Lluvia de ki', taiyoken: 'Taiyoken cegador',
+  bigbang: 'Final Explosion', supernova: 'Supernova', eraser: 'Gigantic Meteor', candybeam: 'Grito de furia',
+  hakai: 'Esfera de Destrucción', timeskip: 'Mundo detenido', powerfist: 'Puño del Orgullo', destruction: 'Destrucción total',
+  bigbangkame: 'Big Bang Kamehameha x100', sword: 'Espada de la Esperanza', deathbeam: 'Rayo Mortal supremo',
+  kikoho: 'Shin Kikoho', burning: 'Burning Attack', ghosts: 'Súper Kamikaze Fantasma', genkidama: 'Genkidama',
+  orbit: 'Tormenta de esferas', aura: 'Estallido de ki', bakuhatsuha: 'Explosión de ki',
 };
 
 // Técnicas que pueden salir al subir de nivel (las exclusivas solo las trae su personaje).
@@ -538,7 +653,14 @@ export const MISSIONS = [
   { id: 'g2', name: 'Adicto a las cápsulas', desc: 'Haz 100 invocaciones.', stat: 'pulls', target: 100, reward: 1200 },
   { id: 'sh', name: '¡Brilla!', desc: 'Consigue un personaje brillante.', stat: 'shinies', target: 1, reward: 600 },
   { id: 'w3', name: 'Muchos héroes', desc: 'Gana con 3 personajes distintos.', stat: 'winners', target: 3, reward: 1500 },
+  { id: 'v1', name: 'Fusión de técnicas', desc: 'Vincula técnicas 3 veces.', stat: 'bonds', target: 3, reward: 300 },
+  { id: 'v2', name: 'Maestro de las artes', desc: 'Vincula técnicas 25 veces.', stat: 'bonds', target: 25, reward: 1000 },
+  { id: 'u1', name: '¡Kame... hame... HA!', desc: 'Lanza 10 ataques definitivos.', stat: 'ults', target: 10, reward: 300 },
+  { id: 'u2', name: 'Poder desbordante', desc: 'Lanza 100 ataques definitivos.', stat: 'ults', target: 100, reward: 1200 },
+  { id: 'x1', name: 'Rompecápsulas', desc: 'Rompe 30 cápsulas.', stat: 'pods', target: 30, reward: 300 },
 ];
+// Las misiones también dan Cristales de Ki para invocar (un 40% de su Zeni).
+for (const m of MISSIONS) m.crystals = Math.round((m.reward * 0.4) / 10) * 10;
 
 // ---------------------------------------------------------------------------
 // Enemigos: hordas de Saibaman y variantes de color; élites y jefes son villanos de la serie.
@@ -549,6 +671,10 @@ export const ENEMIES = {
   jinkouman: { name: 'Jinkouman', sprite: 'saibaman', hue: 150, hp: 38, speed: 68, dmg: 10, xp: 4, r: 6 },
   tennenman: { name: 'Tennenman', sprite: 'saibaman', hue: -120, hp: 75, speed: 58, dmg: 14, xp: 6, r: 8,
     ranged: { range: 150, cd: 4.5, speed: 120, dmg: 6, fx: 'ki' } },
+  // Se agarra a ti y se autodestruye (como con Yamcha). Avisa con un círculo rojo en el suelo.
+  kamikaze: { name: 'Saibaman kamikaze', sprite: 'saibaman', hue: -95, hp: 14, speed: 66, dmg: 4, xp: 2, r: 6,
+    bomb: { range: 30, fuse: 0.9, radius: 38, dmg: 16 } },
+  bioman: { name: 'Bio-Man', sprite: 'bioman', hp: 46, speed: 74, dmg: 11, xp: 5, r: 7 },
 };
 
 // Élites (con contorno dorado): villanos que aparecen cada cierto tiempo.
@@ -565,12 +691,12 @@ export const BOSSES = {
 export const WAVES = [
   { t: 0, types: ['saibaman'], rate: 3.5 },
   { t: 60, types: ['saibaman', 'saibaman', 'kyukonman'], rate: 6 },
-  { t: 150, types: ['kyukonman', 'saibaman', 'jinkouman'], rate: 8 },
-  { t: 240, types: ['kyukonman', 'jinkouman'], rate: 10 },
-  { t: 360, types: ['jinkouman', 'kyukonman', 'tennenman'], rate: 12 },
-  { t: 480, types: ['jinkouman', 'tennenman', 'kyukonman'], rate: 14 },
-  { t: 600, types: ['tennenman', 'jinkouman'], rate: 16 },
-  { t: 720, types: ['tennenman', 'jinkouman', 'kyukonman'], rate: 19 },
+  { t: 150, types: ['kyukonman', 'saibaman', 'jinkouman', 'kamikaze'], rate: 8 },
+  { t: 240, types: ['kyukonman', 'jinkouman', 'kamikaze'], rate: 10 },
+  { t: 360, types: ['jinkouman', 'kyukonman', 'tennenman', 'bioman'], rate: 12 },
+  { t: 480, types: ['jinkouman', 'tennenman', 'bioman', 'kamikaze'], rate: 14 },
+  { t: 600, types: ['tennenman', 'bioman', 'jinkouman'], rate: 16 },
+  { t: 720, types: ['tennenman', 'bioman', 'jinkouman', 'kamikaze'], rate: 19 },
 ];
 
 export const BOSS_SCHEDULE = [
