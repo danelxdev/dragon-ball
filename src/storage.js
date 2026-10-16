@@ -21,6 +21,7 @@ const DEFAULT = () => ({
   stats: {},
   claimed: [], // misiones cobradas
   best: {}, // id personaje -> segundos
+  bestPhase: {}, // id personaje -> fase máxima alcanzada
   winners: [], // personajes con los que has ganado
   wins: 0,
   muted: false,

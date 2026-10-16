@@ -1,4 +1,6 @@
-import { ROSTER, SAGAS, RARITY, GACHA, WEAPONS, PASSIVES, META, ITEMS, EVOLUTIONS, BIOMES, ULTS, DECOR_GRADE } from './data.js';
+import {
+  ROSTER, SAGAS, RARITY, GACHA, WEAPONS, PASSIVES, META, ITEMS, EVOLUTIONS, BIOMES, ULTS, DECOR_GRADE, PHASES, TRAIN, recommendedPower,
+} from './data.js';
 import { Game, BUFF_COLORS, groundDetail } from './game.js';
 import { Input } from './input.js';
 import { loadAssets, heroCard, heroPortrait, img, meta, drawHero, recolor, graded, hasHero } from './assets.js';
@@ -7,7 +9,7 @@ import { unlockAudio, setMuted, isMuted, sfx, setVolumes } from './audio.js';
 import { playMusic } from './music.js';
 import {
   byId, ensureStarters, dailyReward, ownedIds, pull, payOptions, missions, claim, claimable, applyRun,
-  CHAR_UPGRADES, upgradeCost, MAX_STARS,
+  CHAR_UPGRADES, upgradeCost, MAX_STARS, power, train,
 } from './meta.js';
 
 const canvas = document.getElementById('game');
@@ -257,9 +259,9 @@ const ui = {
     hud.classList.add('hidden');
     playMusic(r.win ? 'win' : 'lose');
     save.zeni += r.zeni;
-    const prev = save.best[r.char.id] || 0;
-    const record = r.time > prev;
-    if (record) save.best[r.char.id] = Math.floor(r.time);
+    const prevPhase = (save.bestPhase || {})[r.char.id] || 0;
+    const record = r.phase > prevPhase && r.phase > 1;
+    save.best[r.char.id] = Math.max(save.best[r.char.id] || 0, Math.floor(r.time));
     if (r.win) save.wins = (save.wins || 0) + 1;
     applyRun(save, r);
     persist();
@@ -267,10 +269,12 @@ const ui = {
     const pending = claimable(save);
     const tk = [r.tickets ? `${icon('ticket')} ${r.tickets}` : '', r.ticket10 ? `${icon('ticket10')} ${r.ticket10}` : ''].filter(Boolean).join(' ');
     show(`<div class="panel">
-      <h2>${r.win ? '¡Has salvado la Tierra!' : 'Has caído en combate...'}</h2>
-      ${record ? '<div class="zeni">¡Nuevo récord!</div>' : ''}
+      <h2>${r.win ? '¡Has salvado el multiverso!' : 'Has caído en combate...'}</h2>
+      <div class="zeni">Fase ${r.phase}: ${r.phaseName}</div>
+      ${record ? '<div class="zeni">¡Nuevo récord de fase con este guerrero!</div>' : ''}
       <div class="stats">
         <span>Guerrero</span><b>${r.char.name}</b>
+        <span>Fases superadas</span><b>${r.phasesCleared}</b>
         <span>Tiempo</span><b>${fmt(r.time)}</b>
         <span>Nivel</span><b>${r.level}</b>
         <span>Enemigos</span><b>${r.kills}</b>
@@ -281,6 +285,8 @@ const ui = {
         ${items ? `<span>Objetos nuevos</span><b>${items}</b>` : ''}
       </div>
       ${pending ? `<div class="shenlong">Tienes ${pending} ${pending === 1 ? 'misión' : 'misiones'} por cobrar.</div>` : ''}
+      <div class="banner-info" style="text-align:center">Para llegar más lejos: invoca guerreros más fuertes, entrénalos con Zeni y compra mejoras.
+        Siguiente fase: PC recomendado ${recommendedPower(r.phase + (r.win ? 1 : 0)).toLocaleString('es-ES')} · el tuyo: ${power(r.char, save.roster[r.char.id], save).toLocaleString('es-ES')}</div>
       <div class="row">
         <button class="btn" id="again">Otra vez</button>
         <button class="btn alt" id="tomenu">Menú</button>
@@ -372,7 +378,7 @@ function frame(ts) {
     if (game.state !== 'over') {
       updateHud(game);
       const boss = game.boss && !game.boss.dead;
-      playMusic(boss ? 'boss' : { earth: 'paoz', namek: 'namek', namekd: 'namekd' }[BIOMES[game.biome].tile]);
+      playMusic(boss ? 'boss' : BIOMES[game.biome].music);
     }
   } else {
     drawAttract(dt);
@@ -446,9 +452,9 @@ function drawAttract(dt) {
   // Suelo
   ctx.save();
   ctx.translate(-Math.round((t * 40) % 64), 0);
-  ctx.fillStyle = ctx.createPattern(graded('tiles', 'earth', BIOMES[0].grade), 'repeat');
+  ctx.fillStyle = ctx.createPattern(graded('tiles', 'earth', BIOMES.paoz.grade), 'repeat');
   ctx.fillRect(0, Math.round(H * 0.86), W + 64, H);
-  ctx.fillStyle = ctx.createPattern(groundDetail(BIOMES[0]), 'repeat');
+  ctx.fillStyle = ctx.createPattern(groundDetail(BIOMES.paoz), 'repeat');
   ctx.fillRect(0, Math.round(H * 0.86), W + 64, H);
   ctx.restore();
   ctx.fillStyle = 'rgba(40,10,40,0.35)';
@@ -613,7 +619,7 @@ function mainMenu() {
       </div>
       <div class="hero-show" id="heroShow"></div>
     </div>
-    <div class="foot">${ownedIds(save).length}/${ROSTER.length} guerreros · Sprites de fans (LukasAhl1, qsab101, MV95, thekrillmaster y otros) y de Legacy of Goku / Buu's Fury · <a href="#" id="creditsLink">Créditos</a></div>
+    <div class="foot">${save.stats.maxPhase ? `Récord: fase ${save.stats.maxPhase} · ` : ''}${ownedIds(save).length}/${ROSTER.length} guerreros · Sprites de fans (LukasAhl1, qsab101, MV95, thekrillmaster y otros) y de Legacy of Goku / Buu's Fury · <a href="#" id="creditsLink">Créditos</a></div>
   </div>`, 'menu-bg');
   if (sel) {
     const c = unitCanvas(sel, 96, 120, save.roster[sel.id].shiny, 0);
@@ -651,9 +657,12 @@ function unitCard(unit, opts = {}) {
   b.insertAdjacentHTML('beforeend', `
     <div class="u-name">${unit.name}</div>
     <div class="u-rar">${rar.name}</div>
-    ${entry ? starsHtml(entry.stars) : '<div class="u-lock">No conseguido</div>'}`);
+    ${entry ? starsHtml(entry.stars) : '<div class="u-lock">No conseguido</div>'}
+    <div class="u-pc">PC ${power(unit, entry, save).toLocaleString('es-ES')}${entry && entry.lvl ? ` · Nv ${entry.lvl}` : ''}</div>`);
   return b;
 }
+
+const phaseName = (n) => PHASES[(n - 1) % PHASES.length].name + (n > PHASES.length ? ` (ronda ${Math.floor((n - 1) / PHASES.length) + 1})` : '');
 
 // ---------------------------------------------------------------------------
 // Selección de personaje y objeto
@@ -668,6 +677,7 @@ function charSelect(saga = selSaga) {
     .join('');
   show(`<div class="panel wide">
     <h2>Elige tu guerrero</h2>
+    <div class="phase-info">${phaseInfo()}</div>
     ${sagaTabs(saga)}
     <div class="units" id="units"></div>
     <div class="equip">
@@ -683,7 +693,9 @@ function charSelect(saga = selSaga) {
   for (const u of list) {
     const b = unitCard(u, { selected: save.selected === u.id });
     const best = save.best[u.id];
-    if (best) b.insertAdjacentHTML('beforeend', `<div class="u-best">Récord ${fmt(best)}</div>`);
+    const bp = (save.bestPhase || {})[u.id];
+    if (bp) b.insertAdjacentHTML('beforeend', `<div class="u-best">Récord: fase ${bp}</div>`);
+    else if (best) b.insertAdjacentHTML('beforeend', `<div class="u-best">Récord ${fmt(best)}</div>`);
     b.addEventListener('click', () => {
       save.selected = u.id;
       persist();
@@ -860,7 +872,13 @@ function unitDetail(id) {
       ${entry ? `<div><b>Fragmentos:</b> ${entry.shards} · <b>Récord:</b> ${save.best[id] ? fmt(save.best[id]) : '—'}</div>` : '<div class="u-lock">Consíguelo en la invocación de ' + sagaName(u.saga) + '.</div>'}
       <div class="credit">Sprites: ${[...new Set(u.forms.map((f) => credits[f.sprite]).filter(Boolean))].join(', ') || 'autor desconocido'}</div>
     </div>
-    ${entry ? `<h3>Mejoras del personaje</h3><div class="shop">${ups}</div>` : ''}
+    ${entry ? `<h3>Entrenamiento</h3>
+    <div class="train"><div><b>Nivel ${entry.lvl || 0}/${TRAIN.max}</b> · +${Math.round(TRAIN.bonus * 100 * (entry.lvl || 0))}% de daño y de vida ·
+      Poder de combate <b>PC ${power(u, entry, save).toLocaleString('es-ES')}</b></div>
+      ${(entry.lvl || 0) >= TRAIN.max ? '<button class="btn small alt" disabled>Máximo</button>'
+        : `<button class="btn small" id="trainBtn" ${save.zeni < TRAIN.cost(entry.lvl || 0) ? 'disabled' : ''}>Entrenar · Ƶ ${TRAIN.cost(entry.lvl || 0)}</button>`}
+      <span class="muted">Tienes Ƶ ${save.zeni}</span></div>
+    <h3>Mejoras del personaje</h3><div class="shop">${ups}</div>` : ''}
     <div class="row">
       ${entry ? '<button class="btn" id="playThis">Jugar con él</button>' : ''}
       <button class="btn alt small" id="back">Volver</button>
@@ -886,6 +904,13 @@ function unitDetail(id) {
     unitDetail(id);
   }));
   if (entry) $('playThis').addEventListener('click', () => { save.selected = id; persist(); startGame(id); });
+  if ($('trainBtn')) $('trainBtn').addEventListener('click', () => {
+    if (train(save, id)) {
+      persist();
+      sfx('level');
+      unitDetail(id);
+    }
+  });
   $('back').addEventListener('click', () => collectionScreen());
 }
 
@@ -1059,10 +1084,23 @@ function helpScreen() {
       A las ${GACHA.pity} invocaciones sin Legendario, el siguiente es seguro. Con <b>Zeni</b> compras mejoras y objetos.</p>
     <p><b>Durante la partida:</b> rompe las <b>Cápsulas Corp</b> para conseguir potenciadores (furia, velocidad, recarga, radar), semillas y cristales.
       Cuidado con los <b>Saibaman kamikaze</b> (círculo rojo) y con los rayos de los jefes (franja roja en el suelo).</p>
-    <p><b>Bolas de Dragón:</b> reúne las 7 para pedirle un deseo a Shenlong. Aguanta 15 minutos para salvar la Tierra.</p>
+    <p><b>Fases:</b> la partida avanza de saga en saga (Raditz, Nappa, Vegeta, Namek, Ginyu, Freezer, los androides, Cell, Buu,
+      Broly, Golden Freezer, Zamasu, Jiren y Bills). Cada fase termina al derrotar a su jefe y la siguiente es más difícil; tras Bills empieza
+      otra ronda aún más dura. Para llegar lejos consigue guerreros mejores, <b>entrénalos</b> con Zeni (en la Colección) y compra mejoras:
+      compara su <b>Poder de combate (PC)</b> con el recomendado.</p>
+    <p><b>Bolas de Dragón:</b> reúne las 7 para pedirle un deseo a Shenlong.</p>
     <div class="row"><button class="btn alt small" id="back">Volver</button></div>
   </div>`, 'menu-bg');
   $('back').addEventListener('click', mainMenu);
+}
+
+// Récord de fase y poder recomendado para la siguiente meta
+function phaseInfo() {
+  const best = (save.stats.maxPhase || 0);
+  const goal = Math.max(1, best + 1);
+  return `La partida avanza por fases cada vez más difíciles: cada jefe derrotado abre la siguiente.
+    Tu récord: <b>${best ? 'fase ' + best : '—'}</b> · Siguiente meta: <b>fase ${goal}</b> (${phaseName(goal)}),
+    poder recomendado <b>PC ${recommendedPower(goal).toLocaleString('es-ES')}</b>. Mejora a tus guerreros para llegar más lejos.`;
 }
 
 function startGame(id) {

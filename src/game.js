@@ -1,6 +1,6 @@
 import {
-  WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_PASSIVES, BIOMES,
-  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES, MAX_SLOTS, BOND_MAX, ULTS, DECOR_GRADE,
+  WEAPONS, PASSIVES, ENEMIES, BOSSES, MAX_PASSIVES, BIOMES, PHASES, SCALING, TRAIN,
+  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, MAX_SLOTS, BOND_MAX, ULTS, DECOR_GRADE,
 } from './data.js';
 import {
   img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard, graded, gradeColor, hasHero,
@@ -73,13 +73,14 @@ class Grid {
 // sombra suaves, matas de hierba, flores, piedrecitas, grietas y brasas según la zona.
 const detailCache = {};
 export function groundDetail(b) {
-  if (detailCache[b.tile]) return detailCache[b.tile];
+  const key = b.id || b.tile;
+  if (detailCache[key]) return detailCache[key];
   const S = 640;
   const c = document.createElement('canvas');
   c.width = S;
   c.height = S;
   const ctx = c.getContext('2d');
-  const r = rng(b.tile.length * 7919 + 17);
+  const r = rng([...key].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 7) >>> 0);
   const [br, bg, bb] = gradeColor(b.base[0], b.base[1], b.base[2], b.grade);
   const shade = (k, a = 1) => `rgba(${Math.round(br * k)},${Math.round(bg * k)},${Math.round(bb * k)},${a})`;
   const d = b.detail;
@@ -163,7 +164,7 @@ export function groundDetail(b) {
     px(x, y, r() < 0.5 ? '#ff7a3a' : '#ffb84a');
     if (r() < 0.4) px(x + 1, y, '#c0401a');
   }
-  detailCache[b.tile] = c;
+  detailCache[key] = c;
   return c;
 }
 
@@ -201,11 +202,20 @@ export class Game {
 
     this.grounds = {};
     this.details = {};
-    for (const b of BIOMES) {
-      this.grounds[b.tile] = this.ctx.createPattern(graded('tiles', b.tile, b.grade), 'repeat');
-      this.details[b.tile] = this.ctx.createPattern(groundDetail(b), 'repeat');
+    for (const b of Object.values(BIOMES)) {
+      this.grounds[b.id] = this.ctx.createPattern(graded('tiles', b.tile, b.grade), 'repeat');
+      this.details[b.id] = this.ctx.createPattern(groundDetail(b), 'repeat');
     }
-    this.biome = 0;
+    // Fases: cada una con su zona, enemigos, élites y jefe; tras la última empieza otra ronda más difícil
+    this.phase = 0; // índice dentro de PHASES
+    this.loop = 0; // rondas completadas
+    this.phaseT = 0;
+    this.phasesCleared = 0;
+    this.bossSpawned = false;
+    this.phaseHorde = false;
+    this.phaseBreak = 0; // pausa entre fases
+    this.slowmo = 0;
+    this.biome = PHASES[0].biome;
     this.grid = new Grid(32);
     this.tmp = [];
 
@@ -224,9 +234,7 @@ export class Game {
     this.pendingLevels = 0;
     this.dballs = 0;
     this.nextDballT = 40;
-    this.nextEliteT = 85;
-    this.bossIdx = 0;
-    this.hordeIdx = 0;
+    this.nextEliteT = 40;
     this.spawnAcc = 0;
     this.bonusMight = 1;
     this.revives = this.mod('revive');
@@ -256,6 +264,9 @@ export class Game {
     this.orbs = [];
     this.boss = null;
     this.ebeams = []; // rayos de jefe con aviso en el suelo
+    this.rains = []; // lluvia de ki de los jefes (aviso en el suelo)
+    this.prains = []; // lluvia de meteoros del jugador
+    this.corpses = []; // enemigos derrotados saliendo despedidos
 
     // Formato PokeSurvivor: hasta 4 ranuras de técnicas y solo dispara la activa.
     // Los vínculos (al derrotar jefes) juntan ranuras para lanzar varias técnicas a la vez.
@@ -476,7 +487,7 @@ export class Game {
     const lv = (o, k) => o[k] || 0;
     const rar = RARITY[this.char.rarity] || RARITY.C;
     const stars = 1 + 0.06 * ((this.prog.stars || 1) - 1);
-    const shiny = this.prog.shiny ? 1.1 : 1;
+    const shiny = (this.prog.shiny ? 1.1 : 1) * (1 + TRAIN.bonus * (this.prog.lvl || 0));
     const prevMax = this.player.maxHp;
     this.stats = {
       might: b.might * rar.mult * stars * shiny * (1 + 0.05 * lv(m, 'poder')) * (1 + 0.06 * lv(cu, 'poder')) *
@@ -494,7 +505,7 @@ export class Game {
       crit: 0.06 + this.mod('crit'),
     };
     const maxHp = (b.hp * rar.mult * stars + 10 * lv(m, 'vida') + 12 * lv(cu, 'vida') + 20 * lv(p, 'vida') + (this.extraHp || 0)) *
-      (1 + this.mod('hp'));
+      (1 + this.mod('hp')) * (1 + TRAIN.bonus * (this.prog.lvl || 0));
     this.player.maxHp = Math.round(maxHp);
     if (prevMax > 1 && maxHp > prevMax) this.player.hp += maxHp - prevMax;
     this.player.hp = Math.min(this.player.hp, this.player.maxHp);
@@ -660,12 +671,19 @@ export class Game {
     if (this.cutin) {
       this.cutin.t += dt;
       if (this.cutin.t >= this.cutin.dur) {
+        const wasBoss = this.cutin.boss;
         this.cutin = null;
-        this.startUlt();
+        if (!wasBoss) this.startUlt();
       }
       return;
     }
+    // Cámara lenta al derrotar a un jefe
+    if (this.slowmo > 0) {
+      this.slowmo -= dt;
+      dt *= 0.3;
+    }
     this.t += dt;
+    this.phaseT += dt;
     const p = this.player;
     this.gainKi(0.4 * dt);
     let buffEnded = false;
@@ -691,13 +709,6 @@ export class Game {
       p.dir = dirFrom(ax.x, ax.y, p.dir);
     }
 
-    // Cambio de zona
-    let bi = 0;
-    for (let i = 0; i < BIOMES.length; i++) if (this.t >= BIOMES[i].t) bi = i;
-    if (bi !== this.biome) {
-      this.biome = bi;
-      this.ui.banner('ZONA: ' + BIOMES[bi].name.toUpperCase(), '#9fe0ff');
-    }
     if (p.inv > 0) p.inv -= dt;
     if (p.atkT > 0) p.atkT -= dt;
     if (p.hurtT > 0) p.hurtT -= dt;
@@ -749,7 +760,71 @@ export class Game {
       }
     }
 
-    if (this.t >= WIN_TIME && this.state === 'play') this.end(true);
+    if (this.phaseBreak > 0 && this.state === 'play') {
+      this.phaseBreak -= dt;
+      if (this.phaseBreak <= 0) this.nextPhase();
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Fases
+  // -------------------------------------------------------------------------
+  get phaseDef() {
+    return PHASES[this.phase];
+  }
+
+  // Número de fase total (1, 2, 3...) contando las rondas
+  get phaseNum() {
+    return this.loop * PHASES.length + this.phase + 1;
+  }
+
+  // Multiplicadores de dificultad de la fase actual
+  get hpMul() {
+    return Math.pow(SCALING.hp, this.phase) * Math.pow(SCALING.loop, this.loop) * (1 + Math.min(this.phaseT, 200) / 160);
+  }
+
+  get dmgMul() {
+    return Math.pow(SCALING.dmg, this.phase) * Math.pow(1.5, this.loop) * (1 + Math.min(this.phaseT, 200) / 400);
+  }
+
+  get xpMul() {
+    return (1 + SCALING.xp * this.phase) * (1 + this.loop);
+  }
+
+  // Jefe derrotado: premios, cámara lenta y paso a la siguiente fase
+  clearPhase() {
+    this.phasesCleared++;
+    const n = this.phaseNum;
+    const crystals = 8 + 4 * n;
+    this.crystals += crystals;
+    this.coins += 20 * n;
+    if (n % 5 === 0) this.tickets++;
+    if (this.phase === PHASES.length - 1) {
+      this.ticket10++;
+      this.won = true;
+    }
+    this.slowmo = 1.2;
+    this.phaseBreak = 3;
+    this.heal(this.player.maxHp * 0.3);
+    this.ui.banner(`¡FASE ${n} COMPLETADA! +${crystals} cristales`, '#7aff6a');
+    sfx('dragonball');
+  }
+
+  nextPhase() {
+    this.phase++;
+    if (this.phase >= PHASES.length) {
+      this.phase = 0;
+      this.loop++;
+    }
+    this.phaseT = 0;
+    this.bossSpawned = false;
+    this.phaseHorde = false;
+    this.nextEliteT = this.t + 30;
+    const ph = this.phaseDef;
+    if (ph.biome !== this.biome) this.biome = ph.biome;
+    const ronda = this.loop ? ` · RONDA ${this.loop + 1}` : '';
+    this.ui.banner(`FASE ${this.phaseNum}: ${ph.name.toUpperCase()}${ronda}`, '#9fe0ff');
+    this.ui.toast(BIOMES[ph.biome].name + (this.loop ? ' · ¡los enemigos son mucho más fuertes!' : ''));
   }
 
   // -------------------------------------------------------------------------
@@ -769,14 +844,13 @@ export class Game {
 
   spawnEnemy(type, x, y) {
     const def = ENEMIES[type];
-    const hpScale = 1 + this.t / 90 + (this.t / 200) ** 2;
     const e = {
       id: this.nextId++, type, def, x, y, r: def.r,
-      hp: def.hp * hpScale, speed: def.speed * rand(0.9, 1.1),
-      dmg: def.dmg * (1 + this.t / 330), xp: def.xp,
+      hp: def.hp * this.hpMul, speed: def.speed * rand(0.9, 1.1) * (1 + Math.min(0.25, this.phase * 0.02)),
+      dmg: def.dmg * this.dmgMul, xp: def.xp * this.xpMul,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: false, boss: false,
       scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: def.hue ? 'hue' + def.hue : null,
-      shot: def.ranged ? rand(0.5, def.ranged.cd) : 0, arm: 0,
+      shot: def.ranged ? rand(0.5, def.ranged.cd) : 0, arm: 0, chargeT: 0, chargeCd: rand(1, 3),
     };
     e.maxHp = e.hp;
     this.enemies.push(e);
@@ -785,13 +859,12 @@ export class Game {
 
   // Élite: un villano de la serie con contorno dorado. Suelta una Cápsula Corp.
   spawnElite(x, y) {
-    let list = ELITES[0].list;
-    for (const b of ELITES) if (this.t >= b.t) list = b.list;
+    const list = this.phaseDef.elites;
+    if (!list.length) return null;
     const sprite = pick(list);
-    const hpScale = 1 + this.t / 90 + (this.t / 200) ** 2;
     const e = {
       id: this.nextId++, type: 'elite', def: { name: 'Élite', dmg: 12 }, x, y, r: 11,
-      hp: 110 * hpScale, speed: 46 * rand(0.9, 1.1), dmg: 11 * (1 + this.t / 500), xp: 30,
+      hp: 220 * this.hpMul, speed: 48 * rand(0.9, 1.1), dmg: 11 * this.dmgMul, xp: 30 * this.xpMul,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: true, boss: false,
       scale: 1, dead: false, orbCd: 0, sprite, mode: null, shot: rand(2, 4), atkT: 0,
     };
@@ -808,7 +881,7 @@ export class Game {
     const d = rand(140, 260);
     const e = {
       id: this.nextId++, type: 'pod', def: { name: 'Cápsula' }, x: this.player.x + Math.cos(a) * d, y: this.player.y + Math.sin(a) * d,
-      r: 8, hp: 20 + this.t / 12, speed: 0, dmg: 0, xp: 0, vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0,
+      r: 8, hp: 20 * Math.pow(SCALING.hp, this.phase + this.loop * 4), speed: 0, dmg: 0, xp: 0, vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0,
       elite: false, boss: false, pod: true, scale: 1, dead: false, orbCd: 0, sprite: null, mode: null,
     };
     e.maxHp = e.hp;
@@ -818,29 +891,39 @@ export class Game {
   spawnBoss(id) {
     const def = BOSSES[id];
     const pt = this.spawnPoint(20);
+    const hp = def.hp * Math.pow(SCALING.loop, this.loop) * 1.6;
     const e = {
       id: this.nextId++, type: id, def, x: pt.x, y: pt.y, r: def.r,
-      hp: def.hp * (this.bossIdx <= 1 ? 1.4 : 2), maxHp: def.hp * (this.bossIdx <= 1 ? 1.4 : 2), speed: def.speed, dmg: def.dmg, xp: def.xp,
+      hp, maxHp: hp, speed: def.speed, dmg: def.dmg * Math.pow(1.5, this.loop), xp: def.xp * this.xpMul,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: 0, elite: false, boss: true,
-      scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: null,
-      ai: { t: 2 + Math.random(), mode: 'walk', dash: 0, wx: 0, wy: 0, shots: 0 },
+      scale: 1, dead: false, orbCd: 0, sprite: def.sprite, mode: null, atkT: 0,
+      ai: { t: 2 + Math.random(), mode: 'walk', dash: 0, wx: 0, wy: 0, shots: 0, last: null },
     };
     this.enemies.push(e);
     this.boss = e;
     sfx('boss');
     this.shake = 0.5;
-    this.ui.banner('¡' + def.name.toUpperCase() + ' HA APARECIDO!', def.color);
+    // Presentación del jefe con un corte de anime
+    this.cutin = { t: 0, dur: 1.6, name: def.name, sub: def.quote, card: heroCard(def.sprite, 96, 120), boss: true, color: def.color };
   }
 
   updateSpawns(dt) {
-    const wave = this.currentWave();
-    const rate = wave.rate * (1 + (this.t - wave.t) / 400);
+    const ph = this.phaseDef;
+    // ritmo de aparición: sube con la fase y con el tiempo dentro de ella (y aún más si el jefe sigue vivo)
+    const enrage = this.boss && !this.boss.dead && this.phaseT > ph.bossAt + 80 ? 1.6 : 1;
+    const rate = Math.min(22, 3.2 + this.phase * 1.25 + this.loop * 4) * (1 + Math.min(this.phaseT, 150) / 150) * enrage *
+      (this.phaseBreak > 0 ? 0.3 : 1);
     this.spawnAcc += rate * dt;
     while (this.spawnAcc >= 1) {
       this.spawnAcc -= 1;
       if (this.enemies.length >= MAX_ENEMIES) break;
       const pt = this.spawnPoint();
-      this.spawnEnemy(pick(wave.types), pt.x, pt.y);
+      this.spawnEnemy(pick(ph.types), pt.x, pt.y);
+    }
+
+    if (!this.bossSpawned && this.phaseT >= ph.bossAt && this.phaseBreak <= 0) {
+      this.bossSpawned = true;
+      this.spawnBoss(ph.boss);
     }
 
     if (this.t >= this.nextPodT) {
@@ -849,25 +932,19 @@ export class Game {
     }
 
     if (this.t >= this.nextEliteT) {
-      this.nextEliteT += 50;
+      this.nextEliteT = this.t + Math.max(28, 48 - this.phase * 1.5);
       const pt = this.spawnPoint();
       this.spawnElite(pt.x, pt.y);
     }
 
-    const bs = BOSS_SCHEDULE[this.bossIdx];
-    if (bs && this.t >= bs.t) {
-      this.bossIdx++;
-      this.spawnBoss(bs.id);
-    }
-
-    const h = HORDES[this.hordeIdx];
-    if (h && this.t >= h) {
-      this.hordeIdx++;
-      const n = 46;
+    // Horda que te rodea a mitad de cada fase (desde la segunda)
+    if (!this.phaseHorde && this.phaseNum > 1 && this.phaseT >= ph.bossAt * 0.55) {
+      this.phaseHorde = true;
+      const n = Math.min(70, 30 + this.phase * 3);
       const R = Math.hypot(this.W, this.H) / 2 + 10;
       for (let i = 0; i < n; i++) {
         const a = (i / n) * TAU;
-        this.spawnEnemy(pick(wave.types), this.player.x + Math.cos(a) * R, this.player.y + Math.sin(a) * R);
+        this.spawnEnemy(pick(ph.types), this.player.x + Math.cos(a) * R, this.player.y + Math.sin(a) * R);
       }
       this.ui.banner('¡UNA HORDA TE RODEA!', '#ff6a6a');
     }
@@ -947,6 +1024,23 @@ export class Game {
           }
         });
         continue;
+      }
+      // Ráfaga continua (Renzoku): dispara una bola cada pocas centésimas
+      if (w.burst > 0) {
+        w.burstT -= dt;
+        while (w.burstT <= 0 && w.burst > 0) {
+          w.burstT += 0.045;
+          w.burst--;
+          const bs = w.burstS;
+          const tg = this.nearestEnemies(1, 300)[0];
+          const a = (tg ? Math.atan2(tg.y - p.y, tg.x - p.x) : Math.atan2(p.dirY, p.dirX)) + rand(-bs.spread, bs.spread);
+          this.projs.push({
+            kind: 'ki', x: p.x, y: p.y - 4, vx: Math.cos(a) * bs.speed, vy: Math.sin(a) * bs.speed,
+            r: bs.size * st.area, dmg: bs.dmg, pierce: 1, life: 1.2, color: w.def.color, hit: new Set(), art: w.def.art, tint: w.def.tint,
+          });
+          p.atkT = Math.max(p.atkT, 0.1);
+          sfx('shot', 0.05);
+        }
       }
       w.timer -= dt;
       if (w.timer > 0) continue;
@@ -1065,6 +1159,55 @@ export class Game {
         sfx('beam', 0.2);
         break;
       }
+      case 'barrage': {
+        w.burst = s.shots + st.amount * 3;
+        w.burstT = 0;
+        w.burstS = s;
+        break;
+      }
+      case 'hellzone': {
+        // bolas de ki rodean al enemigo y se cierran sobre él a la vez
+        const targets = this.nearestEnemies(s.targets || 1, 260);
+        const n = s.count + st.amount * 2;
+        for (const tg of targets) {
+          for (let i = 0; i < n; i++) {
+            const a = (i / n) * TAU;
+            const R = s.radius * st.area;
+            this.projs.push({
+              kind: 'hz', x: tg.x + Math.cos(a) * R, y: tg.y + Math.sin(a) * R, ox: Math.cos(a) * R, oy: Math.sin(a) * R, tg,
+              cx: tg.x, cy: tg.y, t: 0, delay: 0.55 + i * 0.015, vx: 0, vy: 0, r: 4, dmg: s.dmg, blast: s.blast * st.area,
+              life: 3, color, art, tint,
+            });
+          }
+        }
+        if (targets.length) sfx('capsule', 0.2);
+        break;
+      }
+      case 'rain': {
+        // bolas de fuego caen del cielo sobre enemigos al azar
+        const n = s.count + st.amount * 2;
+        const near = this.enemies.filter((e) => !e.dead && !e.pod && Math.abs(e.x - p.x) < 240 && Math.abs(e.y - p.y) < 160);
+        for (let i = 0; i < n; i++) {
+          const tg = near.length ? near[(Math.random() * near.length) | 0] : null;
+          const x = tg ? tg.x + rand(-8, 8) : p.x + rand(-160, 160);
+          const y = tg ? tg.y + rand(-8, 8) : p.y + rand(-110, 110);
+          this.prains.push({ x, y, t: 0, warn: 0.42 + i * 0.07, blast: s.blast * st.area, dmg: s.dmg, color, art, tint });
+        }
+        break;
+      }
+      case 'blink': {
+        // teletransportación: golpes instantáneos a varios enemigos
+        const n = s.count + st.amount;
+        const cand = this.enemies.filter((e) => !e.dead && !e.pod && Math.hypot(e.x - p.x, e.y - p.y) < s.range * st.area);
+        for (let i = 0; i < n && cand.length; i++) {
+          const e = cand.splice((Math.random() * cand.length) | 0, 1)[0];
+          this.effects.push({ kind: 'impact', x: e.x, y: e.y - 12, t: 0, dur: 0.28, art, tint, rot: Math.random() * TAU });
+          this.hit(e, s.dmg, p.x, p.y, 120);
+        }
+        this.effects.push({ kind: 'flash', x: p.x, y: p.y, t: 0, dur: 0.2, r: 18, color: '#ffffff' });
+        sfx('slash');
+        break;
+      }
       case 'homing': {
         // Fantasmas kamikaze: salen en abanico y persiguen al enemigo más cercano
         const n = s.count + st.amount;
@@ -1116,6 +1259,29 @@ export class Game {
         }
       }
       if (pr.kind === 'bomb') pr.grow = Math.min(1, pr.grow + dt * 2);
+      if (pr.kind === 'hz') {
+        pr.t += dt;
+        if (pr.tg && !pr.tg.dead) {
+          pr.cx = pr.tg.x;
+          pr.cy = pr.tg.y;
+        }
+        if (pr.t < pr.delay) {
+          pr.x = pr.cx + pr.ox;
+          pr.y = pr.cy + pr.oy + Math.sin(pr.t * 12) * 1.5;
+          continue;
+        }
+        const dx = pr.cx - pr.x;
+        const dy = pr.cy - pr.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 7) {
+          this.explode(pr);
+          pr.life = 0;
+          continue;
+        }
+        pr.x += (dx / d) * Math.min(d, 320 * dt);
+        pr.y += (dy / d) * Math.min(d, 320 * dt);
+        continue;
+      }
       if (pr.kind === 'ghost') {
         pr.retarget -= dt;
         if (!pr.target || pr.target.dead || pr.retarget <= 0) {
@@ -1164,6 +1330,14 @@ export class Game {
       }
     }
     this.projs = this.projs.filter((x) => x.life > 0);
+    for (const r of this.prains) {
+      r.t += dt;
+      if (r.t >= r.warn && !r.done) {
+        r.done = true;
+        this.explode({ x: r.x, y: r.y, blast: r.blast, dmg: r.dmg, color: r.color, kind: 'meteor' });
+      }
+    }
+    this.prains = this.prains.filter((r) => !r.done);
 
     for (const b of this.beams) {
       b.t += dt;
@@ -1191,7 +1365,7 @@ export class Game {
 
   explode(pr) {
     this.effects.push({ kind: 'boom', x: pr.x, y: pr.y, t: 0, dur: 0.5, r: pr.blast, color: pr.color, big: pr.kind === 'bomb' && pr.blast > 60 });
-    this.shake = Math.max(this.shake, 0.3);
+    if (pr.blast > 34) this.shake = Math.max(this.shake, 0.3);
     sfx('boom', 0.1);
     this.grid.query(pr.x, pr.y, pr.blast + 20, this.tmp);
     for (const e of this.tmp) {
@@ -1200,14 +1374,14 @@ export class Game {
   }
 
   hit(e, base, fx, fy, knock, quiet = false) {
-    if (e.dead) return;
+    if (e.dead || e.vanish) return;
     const crit = Math.random() < this.stats.crit;
     const dmg = base * this.stats.might * (crit ? 2 : 1) * rand(0.9, 1.1);
     e.hp -= dmg;
     e.flash = 0.08;
     if (knock && !e.boss && !e.pod) {
       const a = Math.atan2(e.y - fy, e.x - fx);
-      const k = knock / (e.elite ? 4 : 1);
+      const k = knock / (e.elite || e.def.tank ? 4 : 1);
       e.vx += Math.cos(a) * k;
       e.vy += Math.sin(a) * k;
     }
@@ -1227,6 +1401,10 @@ export class Game {
     e.dead = true;
     if (e.pod) return this.podLoot(e);
     this.kills++;
+    if (!e.boss && this.corpses.length < 60) {
+      const a = Math.atan2(e.y - this.player.y, e.x - this.player.x);
+      this.corpses.push({ sprite: e.sprite, mode: e.mode, x: e.x, y: e.y, vx: Math.cos(a) * 130, vy: Math.sin(a) * 90, t: 0, dur: 0.38, flip: e.face < 0, spin: (Math.random() < 0.5 ? -1 : 1) * rand(6, 12) });
+    }
     this.gainKi(e.boss ? 25 : e.elite ? 5 : 0.12);
     // Cristales de Ki para invocar: a veces los suelta cualquier enemigo
     if (Math.random() < 1 / 300) this.pickups.push({ type: 'crystal', x: e.x, y: e.y, value: 1 + ((Math.random() * 3) | 0) });
@@ -1256,8 +1434,14 @@ export class Game {
       this.pickups.push({ type: 'senzu', x: e.x - 10, y: e.y });
       const onMap = this.pickups.filter((k) => k.type === 'dragonball').length;
       if (this.dballs + onMap < 7) this.pickups.push({ type: 'dragonball', x: e.x, y: e.y + 12, stars: this.dballs + onMap + 1 });
-      if (this.boss === e) this.boss = null;
-      this.ui.banner('¡' + e.def.name.toUpperCase() + ' DERROTADO!', e.def.color);
+      if (this.boss === e) {
+        this.boss = null;
+        // explosiones encadenadas y paso de fase
+        for (let i = 0; i < 6; i++) {
+          this.effects.push({ kind: 'boom', x: e.x + rand(-30, 30), y: e.y + rand(-30, 20), t: -i * 0.12, dur: 0.6, r: 40 + i * 6, big: true });
+        }
+        this.clearPhase();
+      }
     }
   }
 
@@ -1306,11 +1490,47 @@ export class Game {
         if (d > farR * 1.6) e.dead = true;
         continue;
       }
+      if (e.boss && d > farR * 1.15 && e.ai.mode === 'walk') {
+        // el jefe no se queda atrás: reaparece cerca de ti
+        e.x = p.x - (dx / d) * (farR * 0.6);
+        e.y = p.y - (dy / d) * (farR * 0.6);
+        this.effects.push({ kind: 'flash', x: e.x, y: e.y, t: 0, dur: 0.3, r: 22, color: e.def.color });
+        continue;
+      }
       if (!e.boss && d > farR) {
         // Reaparece al otro lado (como en Vampire Survivors).
         e.x = p.x + dx * 0.9;
         e.y = p.y + dy * 0.9;
         continue;
+      }
+      // Embestida: se para, parpadea y se lanza en línea recta
+      const ch = e.def.charge;
+      if (ch && e.stun <= 0) {
+        e.chargeCd -= dt;
+        if (e.windT > 0) {
+          e.windT -= dt;
+          e.flash = Math.floor(e.windT * 14) % 2 ? 0.05 : 0;
+          e.atkT = 0.1;
+          if (e.windT <= 0) e.chargeT = ch.dur;
+          continue;
+        }
+        if (e.chargeT > 0) {
+          e.chargeT -= dt;
+          e.x += e.cdx * ch.speed * dt;
+          e.y += e.cdy * ch.speed * dt;
+          e.walkT += dt;
+          if (Math.random() < 0.4) this.particles.push({ x: e.x, y: e.y - 8, vx: 0, vy: 0, t: 0, dur: 0.25, color: '#ffffff', s: 2 });
+          if (d < e.r + p.r && p.inv <= 0) this.hurt(e.dmg * 1.3);
+          if (e.chargeT <= 0) e.chargeCd = rand(2.5, 4);
+          continue;
+        }
+        if (e.chargeCd <= 0 && d < ch.range) {
+          e.windT = ch.wind;
+          e.cdx = dx / d;
+          e.cdy = dy / d;
+          e.face = dx > 0 ? 1 : -1;
+          continue;
+        }
       }
       // Saibaman kamikaze: se para, avisa con un círculo y explota
       const bomb = e.def.bomb;
@@ -1395,79 +1615,159 @@ export class Game {
       e.walkT += dt;
 
       // Contacto con el jugador
-      if (d < e.r + p.r && p.inv <= 0) this.hurt(e.dmg);
+      if (!e.vanish && d < e.r + p.r && p.inv <= 0) this.hurt(e.dmg);
     }
   }
 
+  // IA de los jefes: caminan hacia ti y cada pocos segundos usan uno de sus ataques (def.moves).
+  // Con menos de la mitad de vida atacan más a menudo.
   bossAI(e, dt, dx, dy, d) {
     const ai = e.ai;
-    ai.t -= dt;
-    if (ai.mode === 'walk') {
-      if (ai.t <= 0) {
-        const r = Math.random();
-        if (r < 0.3) {
+    const rage = e.hp < e.maxHp * 0.5;
+    ai.t -= dt * (rage && ai.mode === 'walk' ? 1.4 : 1);
+    const toward = (k) => ({ x: (dx / d) * e.speed * k, y: (dy / d) * e.speed * k });
+    switch (ai.mode) {
+      case 'walk':
+        if (ai.t <= 0) this.bossChoose(e, dx, dy, d);
+        return toward(1);
+      case 'windup':
+        e.flash = 0.05;
+        if (ai.t <= 0) {
+          ai.mode = 'dash';
+          ai.t = 0.55;
+        }
+        return { x: 0, y: 0 };
+      case 'dash':
+        if (ai.t <= 0) this.bossRest(e);
+        if (Math.random() < 0.5) this.particles.push({ x: e.x, y: e.y - 10, vx: 0, vy: 0, t: 0, dur: 0.3, color: e.def.color, s: 3 });
+        return { x: ai.wx * e.speed * 5, y: ai.wy * e.speed * 5 };
+      case 'aim':
+        if (ai.t <= 0) {
+          ai.shots--;
+          ai.t = ai.iv;
+          e.atkT = 0.25;
+          const a = Math.atan2(dy, dx) + rand(-ai.spread, ai.spread);
+          this.eprojs.push({ x: e.x, y: e.y - 12, vx: Math.cos(a) * ai.sp, vy: Math.sin(a) * ai.sp, r: 5, dmg: e.dmg * 0.6, life: 4, color: e.def.color, fx: 'ki', ang: a });
+          sfx('shot', 0.05);
+          if (ai.shots <= 0) this.bossRest(e);
+        }
+        return toward(0.25);
+      case 'spiral':
+        ai.dur -= dt;
+        e.atkT = 0.2;
+        if (ai.t <= 0) {
+          ai.t = 0.075;
+          ai.ang += 0.42;
+          for (let k = 0; k < ai.arms; k++) {
+            const a = ai.ang + (k / ai.arms) * TAU;
+            this.eprojs.push({ x: e.x, y: e.y - 12, vx: Math.cos(a) * 105, vy: Math.sin(a) * 105, r: 4, dmg: e.dmg * 0.5, life: 4, color: e.def.color, fx: 'ki', ang: a });
+          }
+        }
+        if (ai.dur <= 0) this.bossRest(e);
+        return { x: 0, y: 0 };
+      case 'teleport':
+        // desaparece y reaparece a tu espalda para embestir
+        if (ai.t <= 0) {
+          const p = this.player;
+          const a = Math.atan2(p.dirY, p.dirX) + Math.PI + rand(-0.5, 0.5);
+          e.x = p.x + Math.cos(a) * 52;
+          e.y = p.y + Math.sin(a) * 52;
+          e.vanish = false;
+          this.effects.push({ kind: 'flash', x: e.x, y: e.y, t: 0, dur: 0.3, r: 24, color: '#ffffff' });
+          sfx('slash');
           ai.mode = 'windup';
-          ai.t = 0.6;
-          ai.wx = dx / d;
-          ai.wy = dy / d;
-        } else if (r < 0.55) {
-          this.bossRing(e);
-          ai.t = rand(2, 3);
-        } else if (r < 0.78) {
-          // Rayo con aviso: una franja roja en el suelo y, después, el rayo
-          ai.mode = 'beam';
-          ai.t = 1.4;
-          this.ebeams.push({ x: e.x, y: e.y, ang: Math.atan2(dy, dx), len: 420, w: 26, t: 0, warn: 0.85, dur: 1.3, dmg: e.dmg * 1.1, hit: false, color: e.def.color, src: e });
-        } else {
-          ai.mode = 'aim';
-          ai.shots = 3 + (this.bossIdx > 2 ? 2 : 0);
-          ai.t = 0.2;
+          ai.t = 0.4;
+          const dd = Math.hypot(p.x - e.x, p.y - e.y) || 1;
+          ai.wx = (p.x - e.x) / dd;
+          ai.wy = (p.y - e.y) / dd;
         }
-      }
-      return { x: (dx / d) * e.speed, y: (dy / d) * e.speed };
+        return { x: 0, y: 0 };
+      default: // 'cast': quieto mientras lanza (rayo, lluvia, refuerzos...)
+        if (ai.t <= 0) this.bossRest(e);
+        return { x: 0, y: 0 };
     }
-    if (ai.mode === 'beam') {
-      if (ai.t <= 0) {
-        ai.mode = 'walk';
-        ai.t = rand(1.5, 2.5);
-      }
-      return { x: 0, y: 0 };
-    }
-    if (ai.mode === 'windup') {
-      e.flash = 0.05;
-      if (ai.t <= 0) {
-        ai.mode = 'dash';
-        ai.t = 0.55;
-      }
-      return { x: 0, y: 0 };
-    }
-    if (ai.mode === 'dash') {
-      if (ai.t <= 0) {
-        ai.mode = 'walk';
-        ai.t = rand(2, 3.2);
-      }
-      if (Math.random() < 0.5) this.particles.push({ x: e.x, y: e.y, vx: 0, vy: 0, t: 0, dur: 0.3, color: e.def.color, s: 3 });
-      return { x: ai.wx * e.speed * 5, y: ai.wy * e.speed * 5 };
-    }
-    if (ai.mode === 'aim') {
-      if (ai.t <= 0) {
-        ai.shots--;
-        ai.t = 0.18;
-        const a = Math.atan2(dy, dx);
-        this.eprojs.push({ x: e.x, y: e.y - 12 * e.scale, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 5, dmg: e.dmg * 0.7, life: 4, color: e.def.color, fx: 'ki' });
-        sfx('shot');
-        if (ai.shots <= 0) {
-          ai.mode = 'walk';
-          ai.t = rand(2, 3);
-        }
-      }
-      return { x: (dx / d) * e.speed * 0.3, y: (dy / d) * e.speed * 0.3 };
-    }
-    return { x: 0, y: 0 };
   }
 
-  bossRing(e) {
-    const n = 14;
+  bossChoose(e, dx, dy, d) {
+    const ai = e.ai;
+    const moves = e.def.moves;
+    let m = pick(moves);
+    if (m === ai.last && moves.length > 1) m = pick(moves.filter((x) => x !== ai.last));
+    ai.last = m;
+    const lp = this.phase + this.loop * 4; // más balas en las fases avanzadas
+    e.atkT = 0.45;
+    switch (m) {
+      case 'dash':
+        ai.mode = 'windup';
+        ai.t = 0.6;
+        ai.wx = dx / d;
+        ai.wy = dy / d;
+        e.atkT = 0;
+        break;
+      case 'ring':
+        this.bossRing(e, 12 + Math.min(14, lp));
+        this.bossRest(e, 0.4);
+        break;
+      case 'aim':
+        Object.assign(ai, { mode: 'aim', shots: 3 + Math.min(4, lp >> 1), t: 0.25, iv: 0.2, spread: 0.06, sp: 150 });
+        break;
+      case 'barrage':
+        Object.assign(ai, { mode: 'aim', shots: 10 + Math.min(12, lp), t: 0.3, iv: 0.08, spread: 0.22, sp: 170 });
+        break;
+      case 'beam':
+        ai.mode = 'cast';
+        ai.t = 1.4;
+        this.ebeams.push({ x: e.x, y: e.y, ang: Math.atan2(dy, dx), len: 420, w: 26, t: 0, warn: 0.85, dur: 1.3, dmg: e.dmg * 1.1, hit: false, color: e.def.color, src: e });
+        break;
+      case 'spiral':
+        Object.assign(ai, { mode: 'spiral', t: 0.3, dur: 2.2, ang: Math.random() * TAU, arms: lp > 6 ? 3 : 2 });
+        break;
+      case 'rain':
+        ai.mode = 'cast';
+        ai.t = 1.3;
+        this.bossRain(e, 5 + Math.min(8, lp >> 1));
+        break;
+      case 'minions':
+        ai.mode = 'cast';
+        ai.t = 0.8;
+        this.bossSummon(e, lp);
+        break;
+      case 'disc': {
+        ai.mode = 'cast';
+        ai.t = 0.8;
+        const n = 2 + (lp > 8 ? 1 : 0);
+        for (let i = 0; i < n; i++) {
+          const a = Math.atan2(dy, dx) + (i - (n - 1) / 2) * 0.9;
+          this.eprojs.push({ x: e.x, y: e.y - 12, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, r: 6, dmg: e.dmg * 0.8, life: 4.5, color: e.def.color, fx: 'disc', homing: 2.2, sp: 125, spin: 0 });
+        }
+        sfx('slash');
+        break;
+      }
+      case 'bigball': {
+        ai.mode = 'cast';
+        ai.t = 1.1;
+        const a = Math.atan2(dy, dx);
+        this.eprojs.push({ x: e.x, y: e.y - 30, vx: Math.cos(a) * 50, vy: Math.sin(a) * 50, r: 14, dmg: e.dmg * 1.5, life: 7, color: e.def.color, fx: 'big', homing: 0.7, sp: 58, blast: 46 });
+        sfx('beam', 0.1);
+        break;
+      }
+      case 'teleport':
+        ai.mode = 'teleport';
+        ai.t = 0.35;
+        e.vanish = true;
+        e.atkT = 0;
+        this.effects.push({ kind: 'flash', x: e.x, y: e.y, t: 0, dur: 0.3, r: 20, color: '#ffffff' });
+        break;
+    }
+  }
+
+  bossRest(e, extra = 0) {
+    e.ai.mode = 'walk';
+    e.ai.t = rand(1.5, 2.4) + extra;
+    e.vanish = false;
+  }
+
+  bossRing(e, n = 14) {
     const off = Math.random() * TAU;
     for (let i = 0; i < n; i++) {
       const a = off + (i / n) * TAU;
@@ -1476,18 +1776,59 @@ export class Game {
     sfx('boom', 0.2);
   }
 
+  // Lluvia de ki: círculos de aviso en el suelo (uno justo debajo de ti) y, al segundo, caen las bolas
+  bossRain(e, n) {
+    const p = this.player;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * TAU;
+      const r = i === 0 ? 0 : rand(30, 120);
+      this.rains.push({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r, t: 0, warn: 1 + i * 0.07, r: 30, dmg: e.dmg * 0.9 });
+    }
+    sfx('beam', 0.1);
+  }
+
+  bossSummon(e, lp) {
+    const type = e.def.summon || pick(this.phaseDef.types);
+    const n = 6 + Math.min(6, lp >> 1);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU;
+      const m = this.spawnEnemy(type, e.x + Math.cos(a) * 46, e.y + Math.sin(a) * 46);
+      this.effects.push({ kind: 'flash', x: m.x, y: m.y, t: 0, dur: 0.35, r: 14, color: e.def.color });
+    }
+    this.ui.toast(`¡${e.def.name} llama refuerzos!`);
+  }
+
   updateEnemyProjectiles(dt) {
     const p = this.player;
     for (const b of this.eprojs) {
       b.life -= dt;
+      if (b.homing) {
+        // discos y esferas que te persiguen
+        const a = Math.atan2(p.y - b.y, p.x - b.x);
+        const k = Math.min(1, dt * b.homing);
+        b.vx += (Math.cos(a) * b.sp - b.vx) * k;
+        b.vy += (Math.sin(a) * b.sp - b.vy) * k;
+        if (b.spin !== undefined) b.spin += dt * 18;
+      }
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       if (Math.hypot(b.x - p.x, b.y - p.y) < b.r + p.r) {
-        if (p.inv <= 0) this.hurt(b.dmg);
+        if (b.fx === 'big') this.bigBallBoom(b);
+        else if (p.inv <= 0) this.hurt(b.dmg);
         b.life = 0;
-      }
+      } else if (b.fx === 'big' && b.life <= 0) this.bigBallBoom(b);
     }
     this.eprojs = this.eprojs.filter((b) => b.life > 0);
+    for (const r of this.rains) {
+      r.t += dt;
+      if (r.t >= r.warn && !r.done) {
+        r.done = true;
+        this.effects.push({ kind: 'boom', x: r.x, y: r.y, t: 0, dur: 0.45, r: r.r });
+        if (Math.hypot(p.x - r.x, p.y - r.y) < r.r + p.r && p.inv <= 0) this.hurt(r.dmg);
+        sfx('boom', 0.08);
+      }
+    }
+    this.rains = this.rains.filter((r) => !r.done);
     for (const b of this.ebeams) {
       b.t += dt;
       if (b.src && !b.src.dead && b.t < b.warn) {
@@ -1511,6 +1852,14 @@ export class Game {
     this.ebeams = this.ebeams.filter((b) => b.t < b.dur && !(b.src && b.src.dead && b.t < b.warn));
     this.minionShots = 0;
     for (const b of this.eprojs) if (b.minion) this.minionShots++;
+  }
+
+  bigBallBoom(b) {
+    const p = this.player;
+    this.effects.push({ kind: 'boom', x: b.x, y: b.y, t: 0, dur: 0.6, r: b.blast, big: true });
+    this.shake = Math.max(this.shake, 0.4);
+    sfx('boom', 0);
+    if (Math.hypot(p.x - b.x, p.y - b.y) < b.blast + p.r && p.inv <= 0) this.hurt(b.dmg);
   }
 
   hurt(amount) {
@@ -1789,6 +2138,14 @@ export class Game {
       q.vy *= 0.92;
     }
     this.particles = this.particles.filter((q) => q.t < q.dur);
+    for (const c of this.corpses) {
+      c.t += dt;
+      c.x += c.vx * dt;
+      c.y += c.vy * dt;
+      c.vx *= 0.9;
+      c.vy *= 0.9;
+    }
+    this.corpses = this.corpses.filter((c) => c.t < c.dur);
     if (this.particles.length > 400) this.particles.splice(0, this.particles.length - 400);
     for (const tx of this.texts) tx.t += dt;
     this.texts = this.texts.filter((tx) => tx.t < 0.7);
@@ -1796,14 +2153,16 @@ export class Game {
 
   end(win) {
     if (this.state === 'over') return;
+    win = !!this.won;
     this.state = 'over';
-    const zeni = Math.floor((this.coins + this.kills / 20 + this.t / 10 + this.bossKills * 30) * this.stats.greed);
+    const zeni = Math.floor((this.coins + this.kills / 15 + this.t / 8 + this.bossKills * 30) * this.stats.greed);
     this.ui.showEnd({
       win, time: this.t, kills: this.kills, level: this.level, zeni, char: this.char,
       bosses: this.bossKills, bossesBeaten: this.bossesBeaten, wishes: this.wishes,
       evolutions: this.evolutions, maxForm: !!this.maxForm, itemsFound: this.itemsFound,
       crystals: this.crystals + Math.floor(this.t / 60) * 3 + this.bossKills * 5 + (win ? 40 : 0),
       tickets: this.tickets, ticket10: this.ticket10, bonds: this.bondsUsed, ults: this.ults, pods: this.podsBroken,
+      phase: this.phaseNum, phasesCleared: this.phasesCleared, phaseName: this.phaseDef.name,
     });
   }
 
@@ -1829,9 +2188,9 @@ export class Game {
     ctx.translate(-camX, -camY);
 
     // Suelo de la zona actual
-    ctx.fillStyle = this.grounds[BIOMES[this.biome].tile];
+    ctx.fillStyle = this.grounds[this.biome];
     ctx.fillRect(camX, camY, W, H);
-    ctx.fillStyle = this.details[BIOMES[this.biome].tile];
+    ctx.fillStyle = this.details[this.biome];
     ctx.fillRect(camX, camY, W, H);
 
     // Aura de ki (técnica): llamas de energía en círculo
@@ -1856,6 +2215,34 @@ export class Game {
       if (o.player) this.drawPlayer(ctx);
       else if (o.e) this.drawEnemy(ctx, o.e);
       else this.drawDecorItem(ctx, o);
+    }
+    // Enemigos derrotados: salen despedidos girando y se desvanecen
+    for (const c of this.corpses) {
+      const k = c.t / c.dur;
+      const { h } = heroSize(c.sprite);
+      ctx.save();
+      ctx.globalAlpha = 1 - k;
+      ctx.translate(Math.round(c.x), Math.round(c.y - h / 2 - k * 10));
+      ctx.rotate(c.spin * c.t);
+      drawHero(ctx, c.sprite, 0, 0, h / 2, c.flip, k < 0.35 ? 'white' : c.mode);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    // Lluvia de meteoros del jugador: caen en diagonal
+    for (const r of this.prains) {
+      const k = Math.min(1, r.t / r.warn);
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = r.color;
+      ctx.beginPath();
+      ctx.ellipse(r.x, r.y, 6 * k + 2, 3 * k + 1, 0, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      this.drawArt(ctx, r.art || 'comet', 0, r.x - (1 - k) * 70, r.y - 10 - (1 - k) * 150, 22, 1, Math.atan2(150, 70), r.tint);
+    }
+    // Lluvia de ki de los jefes: la bola cae sobre el círculo de aviso
+    for (const r of this.rains) {
+      const k = Math.min(1, r.t / r.warn);
+      this.drawArt(ctx, 'ki_yellow', Math.floor(this.t * 12), r.x, r.y - 8 - (1 - k) * 140, 16, 1, 0, 'hue-40');
     }
 
     // Proyectiles
@@ -1891,10 +2278,29 @@ export class Game {
     this.drawIndicators(ctx, camX, camY);
 
     // Cronómetro con los dígitos de Legacy of Goku
-    const tt = Math.min(this.t, WIN_TIME);
+    const tt = this.t;
     const mm = String(Math.floor(tt / 60)).padStart(2, '0');
     const ss = String(Math.floor(tt % 60)).padStart(2, '0');
-    drawNumber(ctx, 'timer', mm + ':' + ss, W / 2, W < 520 ? 66 : 18);
+    const ty = W < 520 ? 66 : 18;
+    drawNumber(ctx, 'timer', mm + ':' + ss, W / 2, ty);
+    // Fase actual y cuánto falta para el jefe
+    const ph = this.phaseDef;
+    ctx.font = '8px "Pixelify Sans", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const label = `FASE ${this.phaseNum} · ${ph.name.toUpperCase()}`;
+    ctx.fillStyle = '#000';
+    ctx.fillText(label, W / 2 + 1, ty + 21);
+    ctx.fillStyle = this.loop ? '#ff9a9a' : '#ffe8c8';
+    ctx.fillText(label, W / 2, ty + 20);
+    if (!this.bossSpawned) {
+      const bw = 70;
+      const k = Math.min(1, this.phaseT / ph.bossAt);
+      ctx.fillStyle = '#1a1020';
+      ctx.fillRect(Math.round(W / 2 - bw / 2) - 1, ty + 31, bw + 2, 4);
+      ctx.fillStyle = '#ff6a6a';
+      ctx.fillRect(Math.round(W / 2 - bw / 2), ty + 32, Math.round(bw * k), 2);
+    }
 
     if (this.cutin) this.drawCutin(ctx);
 
@@ -1938,6 +2344,7 @@ export class Game {
   // Decorado determinista por trozos de mapa (árboles, rocas, volcanes...).
   visibleDecor(camX, camY) {
     const biome = BIOMES[this.biome];
+    const bseed = Object.keys(BIOMES).indexOf(this.biome);
     const out = { flat: [], items: [] };
     const pickW = (list, r) => {
       let total = 0;
@@ -1951,7 +2358,7 @@ export class Game {
       const x1 = Math.floor((camX + this.W + margin) / C);
       const y0 = Math.floor((camY - margin) / C);
       const y1 = Math.floor((camY + this.H + margin) / C);
-      for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) fn(cx, cy, rng((cx * 92837111) ^ (cy * 689287499) ^ (this.biome * 1000003) ^ C));
+      for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) fn(cx, cy, rng((cx * 92837111) ^ (cy * 689287499) ^ (bseed * 1000003) ^ C));
     };
     const clearStart = (x, y, R) => Math.hypot(x, y) < R;
     scan(120, 120, (cx, cy, r) => {
@@ -2090,6 +2497,7 @@ export class Game {
       }
       return;
     }
+    if (e.vanish) return;
     const { w, h } = heroSize(e.sprite);
     let frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 6);
     let flip = e.face < 0;
@@ -2213,8 +2621,34 @@ export class Game {
     ctx.restore();
   }
 
-  // Avisos en el suelo: saibaman a punto de explotar y rayos de jefe
+  // Avisos en el suelo: saibaman a punto de explotar, lluvia de ki, embestidas y rayos de jefe
   drawGroundWarnings(ctx) {
+    for (const r of this.rains) {
+      const k = Math.min(1, r.t / r.warn);
+      ctx.globalAlpha = 0.2 + k * 0.3;
+      ctx.fillStyle = '#ff2a2a';
+      ctx.beginPath();
+      ctx.ellipse(r.x, r.y, r.r * k, r.r * k * 0.6, 0, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 0.8;
+      ctx.strokeStyle = '#ff7a4a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(r.x, r.y, r.r, r.r * 0.6, 0, 0, TAU);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    for (const e of this.enemies) {
+      if (!(e.windT > 0) || e.dead) continue;
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      ctx.rotate(Math.atan2(e.cdy, e.cdx));
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#ff4a4a';
+      ctx.fillRect(0, -3, e.def.charge.speed * e.def.charge.dur, 6);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
     for (const e of this.enemies) {
       if (!(e.arm > 0) || e.dead) continue;
       const R = e.def.bomb.radius;
@@ -2316,22 +2750,22 @@ export class Game {
     const k = c.t / c.dur;
     const inK = Math.min(1, c.t / 0.18);
     const outK = Math.min(1, (c.dur - c.t) / 0.15);
-    const bh = Math.round(76 * inK * outK);
+    const bh = Math.round(80 * inK * outK);
     const cy = Math.round(H / 2);
-    ctx.fillStyle = 'rgba(8,6,20,0.55)';
+    const accent = c.boss ? c.color || '#ff4a4a' : '#ffd23a';
+    ctx.fillStyle = c.boss ? 'rgba(30,4,10,0.6)' : 'rgba(8,6,20,0.55)';
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#1a0f30';
+    ctx.fillStyle = c.boss ? '#2a0812' : '#1a0f30';
     ctx.fillRect(0, cy - bh / 2, W, bh);
-    // líneas de velocidad
-    ctx.fillStyle = '#ffd23a';
+    // líneas de velocidad (de derecha a izquierda para el héroe, al revés para el jefe)
+    ctx.fillStyle = accent;
     for (let i = 0; i < 14; i++) {
       const y = cy - bh / 2 + ((i * 37) % Math.max(1, bh));
       const x = ((i * 113 + c.t * 900) % (W + 80)) - 80;
       ctx.globalAlpha = 0.35;
-      ctx.fillRect(Math.round(W - x), Math.round(y), 40 + (i % 3) * 20, 1);
+      ctx.fillRect(Math.round(c.boss ? x : W - x), Math.round(y), 40 + (i % 3) * 20, 1);
     }
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#ffd23a';
     ctx.fillRect(0, cy - bh / 2, W, 2);
     ctx.fillRect(0, cy + bh / 2 - 2, W, 2);
     if (bh > 20) {
@@ -2339,20 +2773,41 @@ export class Game {
       ctx.beginPath();
       ctx.rect(0, cy - bh / 2 + 2, W, bh - 4);
       ctx.clip();
-      const x = Math.round(-100 + Math.min(1, k * 4) * (W * 0.22 + 100));
-      ctx.drawImage(c.card, x, cy - 70, 112, 140);
-      ctx.fillStyle = '#ffffff';
+      const slide = Math.min(1, k * 4);
       ctx.font = 'bold 16px "Pixelify Sans", monospace';
-      ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      const tx = Math.round(W * 0.22 + 120 - (1 - Math.min(1, k * 3)) * 60);
-      ctx.fillStyle = '#000';
-      ctx.fillText(c.name.toUpperCase(), tx + 1, cy + 1);
-      ctx.fillStyle = '#ffe14a';
-      ctx.fillText(c.name.toUpperCase(), tx, cy);
-      ctx.font = '9px "Pixelify Sans", monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(this.char.name, tx, cy - 16);
+      if (c.boss) {
+        // el jefe entra por la derecha, con su nombre y su frase
+        const x = Math.round(W + 20 - slide * (W * 0.22 + 132));
+        ctx.save();
+        ctx.translate(x + 112, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(c.card, 0, cy - 70, 112, 140);
+        ctx.restore();
+        const tx = Math.round(W * 0.72 - 140 + (1 - Math.min(1, k * 3)) * 60);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#000';
+        ctx.fillText(c.name.toUpperCase(), tx + 1, cy - 5);
+        ctx.fillStyle = accent;
+        ctx.fillText(c.name.toUpperCase(), tx, cy - 6);
+        ctx.font = '9px "Pixelify Sans", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('«' + c.sub + '»', tx, cy + 12);
+        ctx.fillStyle = '#ff9a9a';
+        ctx.fillText(`FASE ${this.phaseNum} · ¡JEFE!`, tx, cy - 24);
+      } else {
+        const x = Math.round(-100 + slide * (W * 0.22 + 100));
+        ctx.drawImage(c.card, x, cy - 70, 112, 140);
+        ctx.textAlign = 'left';
+        const tx = Math.round(W * 0.22 + 120 - (1 - Math.min(1, k * 3)) * 60);
+        ctx.fillStyle = '#000';
+        ctx.fillText(c.name.toUpperCase(), tx + 1, cy + 1);
+        ctx.fillStyle = '#ffe14a';
+        ctx.fillText(c.name.toUpperCase(), tx, cy);
+        ctx.font = '9px "Pixelify Sans", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(this.char.name, tx, cy - 16);
+      }
       ctx.restore();
     }
   }
@@ -2493,6 +2948,8 @@ export class Game {
       }
     } else if (pr.kind === 'ghost') {
       this.drawArt(ctx, pr.art || 'ghost', Math.floor(this.t * 10 + pr.wob), pr.x, pr.y, 18, 0.9, 0, pr.tint, pr.vx < 0);
+    } else if (pr.kind === 'hz') {
+      this.drawArt(ctx, pr.art || 'ki_yellow', fr, pr.x, pr.y, 11, 1, 0, pr.tint);
     }
   }
 
@@ -2506,6 +2963,33 @@ export class Game {
       ctx.rotate(b.ang);
       const im = img('fx', 'rocket');
       ctx.drawImage(im, -im.width / 2, -im.height / 2);
+    } else if (b.fx === 'disc') {
+      ctx.scale(1, 0.45);
+      ctx.fillStyle = b.color;
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, b.r + 4, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 8; i++) {
+        const a = b.spin + (i / 8) * TAU;
+        ctx.fillRect(Math.round(Math.cos(a) * (b.r + 1)) - 1, Math.round(Math.sin(a) * (b.r + 1)) - 1, 2, 2);
+      }
+      ctx.fillStyle = b.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, b.r, 0, TAU);
+      ctx.fill();
+    } else if (b.fx === 'big') {
+      ctx.restore();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = b.color;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y - 16, b.r * 1.6, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      this.drawArt(ctx, 'sun', 0, b.x, b.y - 16, b.r * 3, 1, this.t * 2, b.color === '#7aff6a' ? 'hue60' : b.color === '#b07aff' || b.color === '#c77bff' ? 'hue230' : null);
+      return;
     } else {
       ctx.restore();
       this.drawArt(ctx, b.minion ? 'ki_pink' : 'ki_purple', Math.floor(this.t * 12), b.x, b.y - 16, b.minion ? 14 : 18, 1, Math.atan2(b.vy, b.vx));
@@ -2526,6 +3010,7 @@ export class Game {
   }
 
   drawEffect(ctx, f) {
+    if (f.t < 0) return;
     const k = f.t / f.dur;
     if (f.kind === 'ring') {
       // Onda expansiva: conos de energía hacia fuera
@@ -2574,6 +3059,8 @@ export class Game {
       if (f.big || f.r > 26) this.drawArt(ctx, 'bigboom', Math.floor(k * 5), f.x, f.y - 6, s * (f.big ? 1.15 : 0.95), k > 0.8 ? (1 - k) * 5 : 1);
       else if (f.r > 16) this.drawArt(ctx, 'boom_orange', 0, f.x, f.y - 6, s * (0.7 + k * 0.5), 1 - k);
       else drawStrip(ctx, 'fx', 'boom', Math.floor(k * 18), Math.round(f.x - s / 2), Math.round(f.y - s / 2), s, s, 32, 32);
+    } else if (f.kind === 'impact') {
+      this.drawArt(ctx, f.art || 'impact', 0, f.x, f.y, 18 + k * 18, 1 - k, f.rot, f.tint);
     } else if (f.kind === 'hitfx') {
       const im = img('fx', 'kihit');
       ctx.globalAlpha = 1 - k;

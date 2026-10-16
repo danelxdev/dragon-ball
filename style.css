@@ -112,7 +112,7 @@ button {
 }
 .dballs i.on { background: radial-gradient(circle at 35% 35%, #ffe0a0, #ff9a1a 60%, #c86a00); box-shadow: 0 0 5px #ffa31a; }
 .bossbar {
-  position: absolute; left: 50%; transform: translateX(-50%); top: 84px;
+  position: absolute; left: 50%; transform: translateX(-50%); top: 118px;
   width: min(420px, 80vw); height: 14px; background: #1a1020; border: 2px solid #000;
 }
 #bossfill { height: 100%; width: 100%; background: linear-gradient(#ff7aa0, #b0103a); }
@@ -442,7 +442,7 @@ button {
 .settings input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--orange); }
 
 @media (max-width: 600px) {
-  .bossbar { top: 118px; width: 70vw; }
+  .bossbar { top: 140px; width: 70vw; }
   .toasts { bottom: 112px; }
   .tslot { height: 36px; min-width: 34px; padding-left: 10px; }
   .ti, .ti canvas { width: 22px; height: 22px; }
@@ -454,3 +454,10 @@ button {
   .press { margin-top: 12px; }
   .capsule { width: 70px; height: 130px; }
 }
+
+/* --- Fases y entrenamiento ------------------------------------------------ */
+.u-pc { font-size: 11px; color: #ffe8c8; }
+.phase-info { text-align: center; font-size: 13px; color: var(--muted); margin: -4px auto 10px; max-width: 760px; line-height: 1.4; }
+.phase-info b { color: var(--gold); }
+.train { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--panel2); border: 3px solid #000; padding: 8px 10px; font-size: 14px; }
+.train .muted { color: var(--muted); font-size: 12px; }

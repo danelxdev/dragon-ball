@@ -143,6 +143,36 @@ export const SONGS = {
       'D5 - - - B4 - - - G#4 - - - E4 - - -',
     ],
   },
+  // Ring de Cell y combates duros
+  arena: {
+    bpm: 150, drums: 'rock', bass: 'gallop', arp: 'up', lead: 'saw', pad: true,
+    chords: ['Cm', 'Ab', 'Bb', 'G', 'Cm', 'Ab', 'Fm', 'G'],
+    melody: [
+      'C5 - - - Eb5 - G5 - C6 - - - Bb5 - G5 -',
+      'Ab5 - - - G5 - Eb5 - C5 - - - . . . .',
+      'Bb4 - D5 - F5 - Bb5 - Ab5 - G5 - F5 - D5 -',
+      'G5 - - - - - . . B4 - D5 - G5 - - -',
+      'C6 - Bb5 - G5 - Eb5 - G5 - - - C6 - - -',
+      'Ab5 - - - C6 - - - Eb6 - D6 - C6 - - -',
+      'F5 - - - Ab5 - C6 - Bb5 - Ab5 - G5 - F5 -',
+      'G5 - - - B5 - - - D6 - - - G6 - - -',
+    ],
+  },
+  // Dragon Ball Super: épico
+  super: {
+    bpm: 156, drums: 'march', bass: 'eighth', arp: 'up', lead: 'square', pad: true,
+    chords: ['E', 'B', 'C#m', 'A', 'E', 'B', 'A', 'B'],
+    melody: [
+      'E5 - - B4 E5 - F#5 - G#5 - - - F#5 - E5 -',
+      'D#5 - - - F#5 - B5 - A5 - G#5 - F#5 - - -',
+      'G#5 - - - C#6 - - - B5 - A5 - G#5 - F#5 -',
+      'E5 - - - A5 - - - C#6 - B5 - A5 - - -',
+      'B5 - - G#5 B5 - C#6 - E6 - - - D#6 - B5 -',
+      'F#5 - - - D#5 - F#5 - B5 - - - . . B4 C#5',
+      'E5 - - C#5 E5 - F#5 - A5 - G#5 - F#5 - E5 -',
+      'F#5 - - - - - - - D#5 - F#5 - B5 - - -',
+    ],
+  },
   // Invocación: brillante
   gacha: {
     bpm: 120, drums: 'soft', bass: 'half', arp: 'bell', lead: 'triangle', pad: true,

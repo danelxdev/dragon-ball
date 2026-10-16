@@ -12,9 +12,9 @@ export const SAGAS = [
 
 export const RARITY = {
   C: { name: 'Común', color: '#b8c4d0', stars: 1, rate: 55, mult: 1, shards: 3 },
-  R: { name: 'Raro', color: '#4ab0ff', stars: 2, rate: 30, mult: 1.08, shards: 5 },
-  E: { name: 'Épico', color: '#c77bff', stars: 3, rate: 12, mult: 1.16, shards: 8 },
-  L: { name: 'Legendario', color: '#ffd23a', stars: 4, rate: 3, mult: 1.25, shards: 15 },
+  R: { name: 'Raro', color: '#4ab0ff', stars: 2, rate: 30, mult: 1.12, shards: 5 },
+  E: { name: 'Épico', color: '#c77bff', stars: 3, rate: 12, mult: 1.28, shards: 8 },
+  L: { name: 'Legendario', color: '#ffd23a', stars: 4, rate: 3, mult: 1.5, shards: 15 },
 };
 
 // Las invocaciones se pagan con Cristales de Ki o con tickets (x1 y x10). El Zeni es para mejoras y objetos.
@@ -120,7 +120,7 @@ export const ROSTER = [
   { id: 'janemba', name: 'Janemba', saga: 'movies', rarity: 'E', weapon: 'sword', stats: { hp: 120, speed: 1, might: 1.1 },
     desc: 'El demonio nacido de la maldad pura.', forms: [f(1, 'Janemba', 'janemba'), f(14, 'Super Janemba', 'janemba_super', { aura: '#ff4a4a', might: 0.45, speed: 0.1 }),
       f(28, 'Janemba definitivo', 'janemba_super', { aura: '#ff2a6a', sparks: true, might: 0.85, speed: 0.14 })] },
-  { id: 'goku_gt', name: 'Goku SSJ4', saga: 'movies', rarity: 'L', weapon: 'kamehameha', stats: { hp: 115, speed: 1.06, might: 1.2 },
+  { id: 'goku_gt', name: 'Goku SSJ4', saga: 'movies', rarity: 'L', weapon: 'dragonfist', stats: { hp: 115, speed: 1.06, might: 1.2 },
     desc: 'La transformación definitiva de GT.', forms: [f(1, 'Super Saiyajin 4', 'goku_ssj4', { aura: '#ff4a4a' }), f(25, 'SSJ4 al máximo', 'goku_ssj4', { aura: '#ff7a4a', sparks: true, might: 0.8, speed: 0.12 })] },
   { id: 'vegeta_gt', name: 'Vegeta SSJ4', saga: 'movies', rarity: 'E', weapon: 'finalflash', stats: { hp: 105, speed: 1.04, might: 1.2 },
     desc: 'El orgullo Saiyajin llevado al límite.', forms: [f(1, 'Super Saiyajin 4', 'vegeta_ssj4', { aura: '#ff4a4a' }), f(25, 'SSJ4 al máximo', 'vegeta_ssj4', { aura: '#ff7a4a', sparks: true, might: 0.8 })] },
@@ -513,6 +513,61 @@ Object.assign(WEAPONS, {
       { dmg: 66, cd: 1.8, count: 6, speed: 120, blast: 52 },
     ],
   },
+  renzoku: {
+    name: 'Ráfaga Renzoku', color: '#8fd8ff', kind: 'barrage',
+    desc: 'Una ráfaga continua de bolas de ki hacia el enemigo más cercano.',
+    levels: [
+      { dmg: 6, cd: 2.2, shots: 8, speed: 300, size: 3, spread: 0.3 },
+      { dmg: 7, cd: 2.1, shots: 10, speed: 310, size: 3, spread: 0.3 },
+      { dmg: 9, cd: 2.0, shots: 12, speed: 320, size: 3, spread: 0.32 },
+      { dmg: 11, cd: 1.8, shots: 14, speed: 330, size: 4, spread: 0.34 },
+      { dmg: 14, cd: 1.6, shots: 18, speed: 340, size: 4, spread: 0.36 },
+    ],
+  },
+  hellzone: {
+    name: 'Hellzone Grenade', color: '#9aff6a', kind: 'hellzone',
+    desc: 'Rodea al enemigo de bolas de ki que se cierran sobre él a la vez.',
+    levels: [
+      { dmg: 16, cd: 3.2, count: 6, radius: 46, blast: 22 },
+      { dmg: 20, cd: 3.0, count: 7, radius: 50, blast: 24 },
+      { dmg: 24, cd: 2.8, count: 8, radius: 54, blast: 26 },
+      { dmg: 30, cd: 2.6, count: 10, radius: 58, blast: 28 },
+      { dmg: 38, cd: 2.3, count: 12, radius: 64, blast: 32 },
+    ],
+  },
+  meteor: {
+    name: 'Lluvia de meteoros', color: '#ffb03a', kind: 'rain',
+    desc: 'Bolas de fuego caen del cielo sobre los enemigos.',
+    levels: [
+      { dmg: 30, cd: 2.6, count: 3, blast: 30 },
+      { dmg: 36, cd: 2.5, count: 4, blast: 32 },
+      { dmg: 44, cd: 2.4, count: 5, blast: 34 },
+      { dmg: 54, cd: 2.2, count: 6, blast: 38 },
+      { dmg: 68, cd: 2.0, count: 8, blast: 42 },
+    ],
+  },
+  blink: {
+    name: 'Teletransporte', color: '#fff6a0', kind: 'blink',
+    desc: 'Golpeas al instante a varios enemigos a la vez con la teletransportación.',
+    levels: [
+      { dmg: 28, cd: 2.4, count: 2, range: 200 },
+      { dmg: 34, cd: 2.3, count: 3, range: 210 },
+      { dmg: 42, cd: 2.2, count: 3, range: 220 },
+      { dmg: 52, cd: 2.0, count: 4, range: 230 },
+      { dmg: 66, cd: 1.8, count: 6, range: 250 },
+    ],
+  },
+  dragonfist: {
+    name: 'Puño del Dragón', color: '#ffd23a', kind: 'wave',
+    desc: 'Un dragón de energía dorada que lo atraviesa todo.',
+    levels: [
+      { dmg: 40, cd: 3.2, speed: 230, size: 9, pierce: 30, count: 1 },
+      { dmg: 50, cd: 3.0, speed: 240, size: 10, pierce: 40, count: 1 },
+      { dmg: 62, cd: 2.8, speed: 250, size: 11, pierce: 50, count: 1 },
+      { dmg: 76, cd: 2.6, speed: 260, size: 12, pierce: 60, count: 2 },
+      { dmg: 95, cd: 2.3, speed: 270, size: 14, pierce: 99, count: 2 },
+    ],
+  },
   // --- Evoluciones (una sola etapa, ya al máximo) ---
   kame10: { name: 'Kamehameha x10', color: '#9fe8ff', kind: 'beam', evolved: true, desc: 'El Kamehameha definitivo.',
     levels: [{ dmg: 26, cd: 1.6, len: 330, width: 30, dur: 0.9, aim: true, dual: true }] },
@@ -542,6 +597,16 @@ Object.assign(WEAPONS, {
     levels: [{ dmg: 70, cd: 1.6, len: 280, width: 52, dur: 0.8, aim: true, dual: true }] },
   burning_max: { name: 'Lluvia de fuego', color: '#ffb03a', kind: 'bomb', evolved: true, desc: 'Bolas de fuego sin parar.',
     levels: [{ dmg: 110, cd: 0.9, speed: 260, size: 9, blast: 78, count: 4 }] },
+  renzoku_max: { name: 'Ráfaga Galáctica', color: '#8fd8ff', kind: 'barrage', evolved: true, desc: 'Un torrente interminable de ki.',
+    levels: [{ dmg: 26, cd: 1.1, shots: 30, speed: 360, size: 5, spread: 0.45 }] },
+  hellzone_max: { name: 'Hellzone Grenade definitivo', color: '#9aff6a', kind: 'hellzone', evolved: true, desc: 'Encierra a varios enemigos a la vez.',
+    levels: [{ dmg: 70, cd: 1.6, count: 16, radius: 72, blast: 40, targets: 3 }] },
+  meteor_max: { name: 'Tormenta de meteoros', color: '#ffb03a', kind: 'rain', evolved: true, desc: 'El cielo arde sobre tus enemigos.',
+    levels: [{ dmg: 120, cd: 1.4, count: 12, blast: 52 }] },
+  blink_max: { name: 'Golpe instantáneo', color: '#fff6a0', kind: 'blink', evolved: true, desc: 'Nadie puede seguir tu velocidad.',
+    levels: [{ dmg: 120, cd: 1.1, count: 10, range: 300 }] },
+  dragonfist_max: { name: 'Puño del Dragón explosivo', color: '#ffd23a', kind: 'wave', evolved: true, desc: 'El dragón dorado arrasa todo el campo.',
+    levels: [{ dmg: 170, cd: 1.8, speed: 290, size: 18, pierce: 999, count: 3 }] },
   ghosts_max: { name: 'Súper Ataque Kamikaze Fantasma', color: '#e0f4ff', kind: 'homing', evolved: true, desc: 'Un ejército de fantasmas explosivos.',
     levels: [{ dmg: 110, cd: 1.3, count: 9, speed: 140, blast: 66 }] },
 });
@@ -567,6 +632,11 @@ export const EVOLUTIONS = {
   burning: { need: 'multiplicacion', into: 'burning_max' },
   ghosts: { need: 'multiplicacion', into: 'ghosts_max' },
   orbit: { need: 'control', into: 'ghosts_max' },
+  renzoku: { need: 'multiplicacion', into: 'renzoku_max' },
+  hellzone: { need: 'control', into: 'hellzone_max' },
+  meteor: { need: 'poder', into: 'meteor_max' },
+  blink: { need: 'velocidad', into: 'blink_max' },
+  dragonfist: { need: 'vida', into: 'dragonfist_max' },
 };
 
 // Arte de cada técnica (sprites de assets/fx). `tint`: giro de tono del sprite.
@@ -588,6 +658,11 @@ const ART = {
   supernova: { art: 'sun' }, eraser: { art: 'ki_yellow', tint: 'hue70' },
   burning: { art: 'comet' }, burning_max: { art: 'comet' },
   ghosts: { art: 'ghost' }, ghosts_max: { art: 'ghost' },
+  renzoku: { art: 'ki_blue' }, renzoku_max: { art: 'ki_blue' },
+  hellzone: { art: 'ki_yellow', tint: 'hue70' }, hellzone_max: { art: 'ki_yellow', tint: 'hue70' },
+  meteor: { art: 'comet' }, meteor_max: { art: 'comet', tint: 'hue-20' },
+  blink: { art: 'impact' }, blink_max: { art: 'impact', tint: 'hue-150' },
+  dragonfist: { art: 'comet', tint: 'gold' }, dragonfist_max: { art: 'comet', tint: 'gold' },
   sword: { art: 'slash_green' }, sword_max: { art: 'slash_green', tint: 'hue60' },
 };
 for (const [id, a] of Object.entries(ART)) Object.assign(WEAPONS[id], a);
@@ -601,10 +676,13 @@ export const ULTS = {
   bigbangkame: 'Big Bang Kamehameha x100', sword: 'Espada de la Esperanza', deathbeam: 'Rayo Mortal supremo',
   kikoho: 'Shin Kikoho', burning: 'Burning Attack', ghosts: 'Súper Kamikaze Fantasma', genkidama: 'Genkidama',
   orbit: 'Tormenta de esferas', aura: 'Estallido de ki', bakuhatsuha: 'Explosión de ki',
+  renzoku: 'Ráfaga de ki infinita', hellzone: 'Hellzone Grenade', meteor: 'Lluvia de meteoros',
+  blink: 'Teletransporte Kamehameha', dragonfist: 'Puño del Dragón',
 };
 
 // Técnicas que pueden salir al subir de nivel (las exclusivas solo las trae su personaje).
-export const COMMON_WEAPONS = ['kiblast', 'kamehameha', 'masenko', 'kienzan', 'taiyoken', 'aura', 'bakuhatsuha', 'orbit', 'genkidama', 'galick', 'makanko', 'sword'];
+export const COMMON_WEAPONS = ['kiblast', 'kamehameha', 'masenko', 'kienzan', 'taiyoken', 'aura', 'bakuhatsuha', 'orbit', 'genkidama',
+  'galick', 'makanko', 'sword', 'renzoku', 'hellzone', 'meteor', 'blink', 'dragonfist'];
 
 // ---------------------------------------------------------------------------
 // Objetos equipables (uno por partida)
@@ -658,6 +736,14 @@ export const MISSIONS = [
   { id: 'u1', name: '¡Kame... hame... HA!', desc: 'Lanza 10 ataques definitivos.', stat: 'ults', target: 10, reward: 300 },
   { id: 'u2', name: 'Poder desbordante', desc: 'Lanza 100 ataques definitivos.', stat: 'ults', target: 100, reward: 1200 },
   { id: 'x1', name: 'Rompecápsulas', desc: 'Rompe 30 cápsulas.', stat: 'pods', target: 30, reward: 300 },
+  { id: 'p3', name: 'Contra los Saiyajin', desc: 'Llega a la fase 3.', stat: 'maxPhase', target: 3, reward: 200 },
+  { id: 'p6', name: 'El terror de Namek', desc: 'Llega a la fase 6.', stat: 'maxPhase', target: 6, reward: 500 },
+  { id: 'p9', name: 'Más allá de Cell', desc: 'Llega a la fase 9.', stat: 'maxPhase', target: 9, reward: 900 },
+  { id: 'p12', name: 'Héroe del futuro', desc: 'Llega a la fase 12.', stat: 'maxPhase', target: 12, reward: 1500 },
+  { id: 'p15', name: 'Salvador del multiverso', desc: 'Derrota a Bills (supera la fase 14).', stat: 'maxPhase', target: 15, reward: 3000 },
+  { id: 'p20', name: 'Más allá de los dioses', desc: 'Llega a la fase 20 (segunda ronda).', stat: 'maxPhase', target: 20, reward: 5000 },
+  { id: 't5', name: 'Entrenamiento con Kaio', desc: 'Entrena a un guerrero hasta el nivel 5.', stat: 'maxTrain', target: 5, reward: 300 },
+  { id: 't15', name: 'La Sala del Espíritu y el Tiempo', desc: 'Entrena a un guerrero hasta el nivel 15.', stat: 'maxTrain', target: 15, reward: 1200 },
 ];
 // Las misiones también dan Cristales de Ki para invocar (un 40% de su Zeni).
 for (const m of MISSIONS) m.crystals = Math.round((m.reward * 0.4) / 10) * 10;
@@ -680,12 +766,23 @@ export const ENEMIES = {
     ranged: { range: 170, cd: 5, speed: 115, dmg: 5, fx: 'ki' } },
   soldier_g: { name: 'Soldado de élite', sprite: 'soldier', hue: 110, hp: 48, speed: 56, dmg: 10, xp: 4, r: 7,
     ranged: { range: 170, cd: 4.5, speed: 125, dmg: 7, fx: 'ki' } },
-  soldier_r: { name: 'Comando de Freezer', sprite: 'soldier', hue: -110, hp: 85, speed: 62, dmg: 13, xp: 6, r: 7, fly: true },
+  soldier_r: { name: 'Comando de Freezer', sprite: 'soldier', hue: -110, hp: 85, speed: 60, dmg: 13, xp: 6, r: 7, fly: true,
+    charge: { range: 140, wind: 0.6, speed: 230, dur: 0.45 } },
   appule: { name: 'Appule', sprite: 'appule', hp: 36, speed: 60, dmg: 9, xp: 3, r: 7, fly: true },
   cui: { name: 'Cui', sprite: 'cui', hp: 70, speed: 55, dmg: 12, xp: 6, r: 7,
     ranged: { range: 160, cd: 4, speed: 130, dmg: 8, fx: 'ki' } },
   // Cell Jr.: pequeños, rapidísimos y en grupo
   celljr: { name: 'Cell Jr.', sprite: 'celljr', hp: 70, speed: 86, dmg: 14, xp: 7, r: 6, fly: true },
+  // `charge`: se para, avisa y embiste en línea recta. `tank`: lento, muy resistente y casi no retrocede.
+  majin: { name: 'Guerrero Majin', sprite: 'bioman', hue: 160, hp: 90, speed: 64, dmg: 15, xp: 7, r: 7,
+    charge: { range: 150, wind: 0.55, speed: 250, dur: 0.45 } },
+  zamasu_clone: { name: 'Zamasu (copia)', sprite: 'zamasu', hp: 110, speed: 56, dmg: 17, xp: 8, r: 7,
+    ranged: { range: 180, cd: 4, speed: 140, dmg: 10, fx: 'ki' } },
+  u6: { name: 'Saiyajin del Universo 6', sprite: 'cabba', hp: 120, speed: 70, dmg: 18, xp: 9, r: 7, fly: true,
+    charge: { range: 160, wind: 0.5, speed: 270, dur: 0.45 } },
+  pride: { name: 'Tropas del Orgullo', sprite: 'toppo', hue: 60, hp: 280, speed: 42, dmg: 22, xp: 14, r: 10, tank: true },
+  frostu6: { name: 'Guerrero del Universo 6', sprite: 'frost_1', hue: -40, hp: 130, speed: 58, dmg: 18, xp: 9, r: 7,
+    ranged: { range: 170, cd: 4, speed: 140, dmg: 11, fx: 'ki' } },
 };
 
 // Élites (con contorno dorado): villanos que aparecen cada cierto tiempo, según el momento de la partida.
@@ -697,66 +794,102 @@ export const ELITES = [
   { t: 660, list: ['babidi', 'puipui', 'buu_fat', 'frost_1', 'cell_1', 'cooler'] },
 ];
 
+// Jefes: cada uno tiene su lista de ataques (`moves`, ver Game.bossAI) y su frase de entrada.
+// dash: embestida · ring: anillo de ki · aim: disparos apuntados · barrage: ráfaga continua · beam: rayo con aviso
+// spiral: espiral de balas · rain: lluvia de ki con aviso en el suelo · minions: llama refuerzos (`summon`)
+// disc: discos que te persiguen · bigball: esfera gigante lenta · teleport: aparece a tu espalda y golpea
 export const BOSSES = {
-  raditz: { name: 'Raditz', sprite: 'raditz', r: 12, hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a' },
-  freezer: { name: 'Freezer', sprite: 'freezer_final', r: 12, hp: 2200, speed: 60, dmg: 22, xp: 160, color: '#c77bff' },
-  cell: { name: 'Cell Perfecto', sprite: 'cell_perfect', r: 13, hp: 6000, speed: 64, dmg: 28, xp: 300, color: '#5fe07a' },
-  buu: { name: 'Kid Buu', sprite: 'buu_kid', r: 11, hp: 11000, speed: 74, dmg: 32, xp: 450, color: '#ff8ac8' },
-  broly: { name: 'Broly', sprite: 'broly_lssj', r: 16, hp: 18000, speed: 68, dmg: 38, xp: 600, color: '#7aff6a' },
+  raditz: { name: 'Raditz', sprite: 'raditz', r: 12, hp: 900, speed: 54, dmg: 14, xp: 60, color: '#ff6a6a',
+    quote: '¡Kakarot, ven conmigo!', moves: ['dash', 'aim', 'ring'] },
+  nappa: { name: 'Nappa', sprite: 'nappa', r: 13, hp: 1700, speed: 50, dmg: 17, xp: 90, color: '#ffb84a',
+    quote: '¡Saibamen, a por ellos!', moves: ['dash', 'rain', 'ring', 'minions'], summon: 'saibaman' },
+  vegeta: { name: 'Vegeta', sprite: 'vegeta_saiyan', r: 12, hp: 2800, speed: 62, dmg: 20, xp: 130, color: '#c77bff',
+    quote: 'Soy el príncipe de los Saiyajin.', moves: ['barrage', 'beam', 'dash', 'ring'] },
+  zarbon: { name: 'Zarbon', sprite: 'zarbon', r: 12, hp: 4200, speed: 62, dmg: 22, xp: 170, color: '#7affb8',
+    quote: 'Qué pena estropear una cara tan bonita...', moves: ['dash', 'aim', 'spiral', 'minions'], summon: 'soldier' },
+  ginyu: { name: 'Capitán Ginyu', sprite: 'ginyu', r: 12, hp: 6200, speed: 64, dmg: 25, xp: 220, color: '#c77bff',
+    quote: '¡Fuerzas Especiales Ginyu!', moves: ['barrage', 'minions', 'ring', 'dash', 'teleport'], summon: 'soldier_g' },
+  freezer: { name: 'Freezer', sprite: 'freezer_final', r: 12, hp: 9200, speed: 64, dmg: 28, xp: 300, color: '#c77bff',
+    quote: 'Ni siquiera he usado la mitad de mi poder.', moves: ['spiral', 'disc', 'bigball', 'dash', 'aim'] },
+  cell2: { name: 'Cell Semiperfecto', sprite: 'cell_2', r: 13, hp: 13000, speed: 62, dmg: 31, xp: 380, color: '#5fe07a',
+    quote: 'Necesito absorber a los androides.', moves: ['dash', 'barrage', 'beam', 'ring'] },
+  cell: { name: 'Cell Perfecto', sprite: 'cell_perfect', r: 13, hp: 18500, speed: 66, dmg: 34, xp: 460, color: '#5fe07a',
+    quote: '¡Que empiecen los Juegos de Cell!', moves: ['minions', 'beam', 'rain', 'dash', 'teleport'], summon: 'celljr' },
+  buu: { name: 'Kid Buu', sprite: 'buu_kid', r: 11, hp: 26000, speed: 76, dmg: 37, xp: 560, color: '#ff8ac8',
+    quote: '¡Jijijijiji!', moves: ['barrage', 'bigball', 'ring', 'dash', 'rain'] },
+  broly: { name: 'Broly', sprite: 'broly_lssj', r: 16, hp: 36000, speed: 70, dmg: 41, xp: 680, color: '#7aff6a',
+    quote: '¡Kakarooooot!', moves: ['bigball', 'dash', 'ring', 'rain', 'barrage'] },
+  freezer_golden: { name: 'Golden Freezer', sprite: 'freezer_golden', r: 12, hp: 50000, speed: 72, dmg: 45, xp: 820, color: '#ffd23a',
+    quote: 'He vuelto del infierno más fuerte que nunca.', moves: ['spiral', 'disc', 'beam', 'minions', 'teleport'], summon: 'soldier_r' },
+  zamasu: { name: 'Zamasu fusionado', sprite: 'zamasu_fused', r: 13, hp: 68000, speed: 70, dmg: 49, xp: 960, color: '#9fffd8',
+    quote: 'Los mortales son un error de los dioses.', moves: ['rain', 'spiral', 'minions', 'beam', 'bigball'], summon: 'zamasu_clone' },
+  jiren: { name: 'Jiren', sprite: 'jiren', r: 13, hp: 92000, speed: 74, dmg: 54, xp: 1100, color: '#ff4a4a',
+    quote: 'La fuerza lo es todo.', moves: ['dash', 'ring', 'barrage', 'teleport', 'rain'] },
+  beerus: { name: 'Bills', sprite: 'beerus', r: 12, hp: 125000, speed: 76, dmg: 60, xp: 1300, color: '#b07aff',
+    quote: 'Hakai.', moves: ['bigball', 'teleport', 'ring', 'spiral', 'disc'] },
 };
-
-// Oleadas: Saibaman en la Tierra, el ejército de Freezer en Namek y Bio-Men y Cell Jr. al final.
-export const WAVES = [
-  { t: 0, types: ['saibaman'], rate: 3.5 },
-  { t: 60, types: ['saibaman', 'saibaman', 'kyukonman', 'soldier'], rate: 6 },
-  { t: 150, types: ['kyukonman', 'saibaman', 'soldier', 'kamikaze', 'appule'], rate: 8 },
-  { t: 240, types: ['kyukonman', 'jinkouman', 'soldier', 'appule', 'kamikaze'], rate: 10 },
-  { t: 300, types: ['soldier', 'soldier_g', 'appule', 'jinkouman', 'cui'], rate: 11 },
-  { t: 420, types: ['soldier_g', 'cui', 'appule', 'tennenman', 'kamikaze'], rate: 13 },
-  { t: 540, types: ['soldier_r', 'cui', 'bioman', 'tennenman', 'soldier_g'], rate: 14 },
-  { t: 600, types: ['bioman', 'celljr', 'soldier_r', 'tennenman'], rate: 16 },
-  { t: 720, types: ['celljr', 'bioman', 'soldier_r', 'tennenman', 'kamikaze'], rate: 19 },
-];
-
-export const BOSS_SCHEDULE = [
-  { t: 120, id: 'raditz' },
-  { t: 270, id: 'freezer' },
-  { t: 450, id: 'cell' },
-  { t: 630, id: 'buu' },
-  { t: 810, id: 'broly' },
-];
 
 // Gradación del decorado de Legacy of Goku (menos saturado, como el suelo).
 export const DECOR_GRADE = { sat: 0.72, light: 0.95, contrast: 1.05 };
 
-// Zonas: el suelo cambia con el tiempo. `grade` corrige el color del suelo de GBA y `detail` añade
-// matas de hierba, flores, piedras y grietas por encima para que no se vea plano. `decor` son pares [id, peso];
-// `flat` se dibuja pegado al suelo y `big` son piezas enormes poco frecuentes.
-export const BIOMES = [
-  {
-    t: 0, name: 'Monte Paoz', tile: 'earth', base: [88, 208, 16],
+// Zonas. `grade` corrige el color del suelo de GBA (y permite hacer zonas nuevas con las mismas baldosas) y
+// `detail` añade matas de hierba, flores, piedras y grietas por encima. `decor` son pares [id, peso];
+// `flat` se dibuja pegado al suelo y `big` son piezas enormes poco frecuentes. `music` es el tema de la zona.
+const TREES = [['pine', 5], ['pine2', 5], ['spire', 1], ['spire2', 1], ['stump', 1], ['stump2', 1], ['stumps', 1],
+  ['pillar', 2], ['boulder', 1], ['rock', 3], ['rock2', 3]];
+const ROCKS = [['rock', 4], ['rock2', 4], ['boulder', 2], ['pillar', 2], ['spire', 1], ['spire2', 1], ['stumps', 1]];
+export const BIOMES = {
+  paoz: { id: 'paoz', name: 'Monte Paoz', tile: 'earth', base: [88, 208, 16], music: 'paoz',
     grade: { hue: 6, sat: 0.56, light: 0.88, contrast: 1.1 }, detail: { tufts: 320, flowers: 70, stones: 40 },
-    decor: [['pine', 5], ['pine2', 5], ['spire', 1], ['spire2', 1], ['stump', 1], ['stump2', 1], ['stumps', 1],
-      ['pillar', 2], ['boulder', 1], ['rock', 3], ['rock2', 3]],
-    flat: [['dirt', 3], ['dirt2', 3], ['dirt3', 1]],
-    big: [],
-  },
-  {
-    t: 300, name: 'Planeta Namek', tile: 'namek', base: [88, 192, 248],
+    decor: TREES, flat: [['dirt', 3], ['dirt2', 3], ['dirt3', 1]], big: [] },
+  yermo: { id: 'yermo', name: 'Tierras yermas', tile: 'earth', base: [88, 208, 16], music: 'namekd',
+    grade: { hue: 36, sat: 0.4, light: 0.8, contrast: 1.12 }, detail: { tufts: 110, flowers: 0, stones: 110, cracks: 10 },
+    decor: ROCKS, flat: [['dirt', 3], ['dirt2', 3], ['dirt3', 2]], big: [] },
+  namek: { id: 'namek', name: 'Planeta Namek', tile: 'namek', base: [88, 192, 248], music: 'namek',
     grade: { hue: -24, sat: 0.5, light: 0.82, contrast: 1.1 }, detail: { tufts: 260, flowers: 0, stones: 60 },
-    decor: [['ntree', 5], ['ntree2', 5], ['nrock', 3], ['nrock2', 3], ['nplant', 3]],
-    flat: [['sand', 2]],
-    big: [['volcano', 1]],
-  },
-  {
-    t: 600, name: 'Namek en destrucción', tile: 'namekd', base: [192, 160, 152],
+    decor: [['ntree', 5], ['ntree2', 5], ['nrock', 3], ['nrock2', 3], ['nplant', 3]], flat: [['sand', 2]], big: [['volcano', 1]] },
+  namekd: { id: 'namekd', name: 'Namek en destrucción', tile: 'namekd', base: [192, 160, 152], music: 'namekd',
     grade: { hue: -4, sat: 0.85, light: 0.78, contrast: 1.12 }, detail: { tufts: 0, flowers: 0, stones: 90, cracks: 26, embers: 50 },
-    decor: [['dtree', 5], ['drock', 4], ['drock2', 4]],
-    flat: [],
-    big: [['lavavolcano', 1]],
-  },
+    decor: [['dtree', 5], ['drock', 4], ['drock2', 4]], flat: [], big: [['lavavolcano', 1]] },
+  arena: { id: 'arena', name: 'El ring de los Juegos de Cell', tile: 'namekd', base: [192, 160, 152], music: 'arena',
+    grade: { hue: 0, sat: 0.12, light: 0.95, contrast: 1.15 }, detail: { tufts: 0, flowers: 0, stones: 70, cracks: 40 },
+    decor: [['rock', 3], ['rock2', 3], ['boulder', 2], ['pillar', 1]], flat: [], big: [] },
+  majin: { id: 'majin', name: 'Planeta de los Kaio-shin', tile: 'earth', base: [88, 208, 16], music: 'paoz',
+    grade: { hue: -22, sat: 0.55, light: 0.86, contrast: 1.1 }, detail: { tufts: 300, flowers: 90, stones: 30 },
+    decor: [['ntree', 4], ['ntree2', 4], ['pine', 2], ['rock', 2], ['boulder', 1]], flat: [['dirt', 2]], big: [] },
+  vacio: { id: 'vacio', name: 'El Mundo del Vacío', tile: 'namekd', base: [192, 160, 152], music: 'super',
+    grade: { hue: 200, sat: 0.3, light: 0.72, contrast: 1.18 }, detail: { tufts: 0, flowers: 0, stones: 50, cracks: 60 },
+    decor: [['drock', 3], ['drock2', 3], ['rock', 2]], flat: [], big: [] },
+  bills: { id: 'bills', name: 'El planeta de Bills', tile: 'namek', base: [88, 192, 248], music: 'super',
+    grade: { hue: 70, sat: 0.45, light: 0.8, contrast: 1.12 }, detail: { tufts: 240, flowers: 60, stones: 40 },
+    decor: [['ntree', 5], ['ntree2', 5], ['nrock', 3], ['nplant', 3]], flat: [['sand', 1]], big: [] },
+};
+
+// Partida por fases: cada fase es un momento de la serie con sus enemigos y sus élites, y termina al derrotar a su
+// jefe (aparece a los `bossAt` segundos). La dificultad sube en cada fase; tras la última empieza otra ronda
+// con todo más fuerte. Para llegar lejos hay que conseguir mejores guerreros y mejorarlos.
+export const PHASES = [
+  { name: 'La llegada de Raditz', biome: 'paoz', types: ['saibaman'], elites: [], boss: 'raditz', bossAt: 70 },
+  { name: 'Los Saiyajin', biome: 'paoz', types: ['saibaman', 'kyukonman', 'kamikaze'], elites: ['turles', 'raditz'], boss: 'nappa', bossAt: 75 },
+  { name: 'El príncipe Vegeta', biome: 'yermo', types: ['saibaman', 'kyukonman', 'jinkouman', 'kamikaze', 'tennenman'], elites: ['nappa', 'turles'], boss: 'vegeta', bossAt: 80 },
+  { name: 'Llegada a Namek', biome: 'namek', types: ['soldier', 'soldier', 'appule', 'soldier_g'], elites: ['dodoria', 'nappa'], boss: 'zarbon', bossAt: 80 },
+  { name: 'Las Fuerzas Especiales Ginyu', biome: 'namek', types: ['soldier_g', 'appule', 'cui', 'soldier'], elites: ['burter', 'dodoria', 'zarbon'], boss: 'ginyu', bossAt: 85 },
+  { name: 'El emperador Freezer', biome: 'namekd', types: ['soldier_g', 'soldier_r', 'cui', 'kamikaze'], elites: ['freezer_1', 'freezer_3', 'ginyu', 'burter'], boss: 'freezer', bossAt: 85 },
+  { name: 'Los androides', biome: 'yermo', types: ['bioman', 'soldier_r', 'jinkouman', 'tennenman'], elites: ['a16', 'a17', 'a18', 'cell_1'], boss: 'cell2', bossAt: 85 },
+  { name: 'Los Juegos de Cell', biome: 'arena', types: ['celljr', 'bioman', 'celljr'], elites: ['a16', 'cell_1', 'cell_2'], boss: 'cell', bossAt: 90 },
+  { name: 'La saga de Majin Buu', biome: 'majin', types: ['majin', 'bioman', 'kamikaze', 'majin'], elites: ['puipui', 'babidi', 'buu_fat', 'majin_vegeta'], boss: 'buu', bossAt: 90 },
+  { name: 'El Super Saiyajin Legendario', biome: 'yermo', types: ['soldier_r', 'majin', 'celljr', 'jinkouman'], elites: ['broly_2', 'broly_3', 'cooler'], boss: 'broly', bossAt: 90 },
+  { name: 'La resurrección de Freezer', biome: 'paoz', types: ['soldier', 'soldier_g', 'soldier_r', 'appule', 'cui'], elites: ['freezer_fp', 'cooler', 'frost_1'], boss: 'freezer_golden', bossAt: 95 },
+  { name: 'Goku Black', biome: 'yermo', types: ['zamasu_clone', 'soldier_r', 'majin'], elites: ['goku_black', 'zamasu', 'goku_black_rose'], boss: 'zamasu', bossAt: 95 },
+  { name: 'El Torneo del Poder', biome: 'vacio', types: ['u6', 'pride', 'u6', 'frostu6'], elites: ['toppo', 'hit', 'kale_ssj', 'caulifla', 'frost_final'], boss: 'jiren', bossAt: 100 },
+  { name: 'El Dios de la Destrucción', biome: 'bills', types: ['celljr', 'zamasu_clone', 'pride', 'soldier_r', 'u6'], elites: ['hit', 'toppo', 'goku_black_rose', 'kefla'], boss: 'beerus', bossAt: 100 },
 ];
 
-export const HORDES = [180, 360, 540, 720];
+// Escalado de la dificultad: vida y daño de los enemigos por fase y multiplicador de cada ronda extra.
+export const SCALING = { hp: 1.52, dmg: 1.17, xp: 0.18, loop: 3 };
 
-export const WIN_TIME = 900; // 15 minutos
+// Poder de combate recomendado para cada fase (se compara con el de tu guerrero)
+export const recommendedPower = (phase) => Math.round(1000 * Math.pow(1.155, phase) / 10) * 10;
+
+// Entrenamiento de personajes con Zeni: +5% de daño y de vida por nivel
+export const TRAIN = { max: 20, cost: (lvl) => Math.round((60 * Math.pow(lvl + 1, 1.5)) / 10) * 10, bonus: 0.05 };

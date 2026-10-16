@@ -1,5 +1,5 @@
 // Lógica de progreso fuera de la partida: gacha, colección, mejoras por personaje y misiones.
-import { ROSTER, RARITY, GACHA, MISSIONS } from './data.js';
+import { ROSTER, RARITY, GACHA, MISSIONS, TRAIN } from './data.js';
 
 export const byId = Object.fromEntries(ROSTER.map((r) => [r.id, r]));
 
@@ -39,6 +39,32 @@ export function dailyReward(save) {
   save.crystals += GACHA.daily.crystals;
   save.tickets += GACHA.daily.tickets;
   return GACHA.daily;
+}
+
+// Poder de combate de un guerrero con sus mejoras (para compararlo con la fase recomendada)
+export function power(unit, entry, save) {
+  const e = entry || { stars: 1, up: {}, lvl: 0 };
+  const rar = RARITY[unit.rarity];
+  const up = e.up || {};
+  const m = save.upgrades || {};
+  const stars = 1 + 0.06 * ((e.stars || 1) - 1);
+  const train = 1 + TRAIN.bonus * (e.lvl || 0);
+  const might = unit.stats.might * rar.mult * stars * (e.shiny ? 1.1 : 1) * train * (1 + 0.06 * (up.poder || 0)) * (1 + 0.05 * (m.poder || 0));
+  const hp = (unit.stats.hp * rar.mult * stars + 12 * (up.vida || 0) + 10 * (m.vida || 0)) * train;
+  return Math.round((1000 * might * Math.sqrt(hp / 100)) / 10) * 10;
+}
+
+// Entrenar a un guerrero con Zeni: +5% de daño y de vida por nivel
+export function train(save, id) {
+  const e = save.roster[id];
+  if (!e) return false;
+  const lvl = e.lvl || 0;
+  const cost = TRAIN.cost(lvl);
+  if (lvl >= TRAIN.max || save.zeni < cost) return false;
+  save.zeni -= cost;
+  e.lvl = lvl + 1;
+  maxStat(save, 'maxTrain', e.lvl);
+  return true;
 }
 
 export function ownedIds(save) {
@@ -170,6 +196,9 @@ export function applyRun(save, r) {
   save.ticket10 += r.ticket10 || 0;
   if (r.maxForm) addStat(save, 'maxForms');
   maxStat(save, 'maxLevel', r.level);
+  maxStat(save, 'maxPhase', r.phase || 1);
+  save.bestPhase = save.bestPhase || {};
+  save.bestPhase[r.char.id] = Math.max(save.bestPhase[r.char.id] || 0, r.phase || 1);
   for (const b of r.bossesBeaten) addStat(save, 'boss_' + b);
   for (const id of r.itemsFound) if (!save.items.includes(id)) save.items.push(id);
   if (r.win && !save.winners.includes(r.char.id)) save.winners.push(r.char.id);

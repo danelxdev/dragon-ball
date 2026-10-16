@@ -45,6 +45,13 @@ npm run build   # crea dist/assets-data.js y dist/game.js
 
 ## Contenido
 
+**La partida avanza por fases, cada vez más difíciles**, de saga en saga: la llegada de Raditz, los Saiyajin (Nappa),
+Vegeta, Namek (Zarbon), las Fuerzas Especiales Ginyu, Freezer, los androides (Cell semiperfecto), los Juegos de Cell,
+Majin Buu, Broly, Golden Freezer, Goku Black (Zamasu fusionado), el Torneo del Poder (Jiren) y Bills. Cada fase termina al
+derrotar a su jefe (con una entrada al estilo del anime) y la siguiente tiene enemigos más fuertes; tras Bills empieza otra
+ronda aún más dura. Para llegar lejos hay que conseguir guerreros mejores, **entrenarlos** con Zeni y comprar mejoras:
+cada guerrero tiene un **Poder de combate (PC)** que se compara con el recomendado para la siguiente fase.
+
 Funciona como PokeSurvivor: coleccionas guerreros con un gacha por sagas y los llevas a sobrevivir a las hordas.
 
 - **Solo empiezas con Goku.** Los demás se consiguen invocando.
@@ -57,23 +64,27 @@ Funciona como PokeSurvivor: coleccionas guerreros con un gacha por sagas y los l
   Final Flash, Genkidama, Súper Kamikaze Fantasma...) con un corte de anime.
 - **Técnicas con arte de verdad:** rayos con destello y cabeza, Kikoho en espiral, ondas de llamas, fantasmas de Gotenks,
   explosiones, discos y auras, sacados de hojas de sprites de la comunidad. Gemas de ki y Bolas de Dragón dibujadas en píxeles.
-- **26 técnicas y 15 técnicas definitivas por evolución:** técnica al máximo + la habilidad adecuada = carta dorada con la técnica definitiva.
+- **31 técnicas y 20 técnicas definitivas por evolución** (nuevas: Ráfaga Renzoku, Hellzone Grenade, Lluvia de meteoros,
+  Teletransporte y Puño del Dragón): técnica al máximo + la habilidad adecuada = carta dorada con la técnica definitiva.
 - **Invocación:** se paga con **Cristales de Ki** o **tickets** (x1 y x10); el **Zeni** es para mejoras y objetos. Rarezas Común,
   Raro, Épico y Legendario, brillantes (✦), x10 con Épico garantizado y **pity** (Legendario seguro a las 70). Animación de cápsula.
   Cristales y tickets se consiguen en las partidas (jefes, élites, cápsulas), en las misiones y con el regalo diario.
 - **Objetos:** uno equipado por partida; los jefes sueltan otro y eliges si cambiarlo (queda desbloqueado).
 - **Animaciones:** los guerreros vuelan inclinados con estela de imágenes residuales, adoptan su pose de lanzar ki al
   atacar y parpadean al recibir golpes; enemigos, élites y jefes también tienen pose de ataque y de vuelo.
-- **Enemigos:** Saibaman (normales, de colores y kamikaze), soldados de Freezer (tres tipos), Appule, Cui, Bio-Men y Cell Jr.,
-  según la zona. **Élites** con contorno dorado que lanzan ráfagas de ki: Nappa, Raditz, Dodoria, Zarbon, Ginyu, Burter,
-  Babidi, Pui Pui, androides... Y los jefes, con rayos que avisan con una franja en el suelo: Raditz, Freezer, Cell, Kid Buu y Broly.
+- **Enemigos:** Saibaman (normales, de colores y kamikaze), soldados de Freezer (tres tipos), Appule, Cui, Bio-Men, Cell Jr.,
+  guerreros Majin, copias de Zamasu y luchadores de los universos 6 y 11, según la fase. Algunos disparan, otros embisten
+  (avisan con una línea roja) y otros son tanques; al morir salen despedidos. **Élites** con contorno dorado que lanzan ráfagas de ki: Nappa, Raditz, Dodoria, Zarbon, Ginyu, Burter,
+  Babidi, Pui Pui, androides... Y **14 jefes** con ataques propios: embestidas, anillos y ráfagas de ki, rayos y lluvias de ki
+  que avisan en el suelo, espirales de balas, discos que te persiguen, esferas gigantes, refuerzos y teletransporte.
 - **Durante la partida:** cápsulas rompibles con potenciadores (furia, velocidad, recarga, radar) y Saibaman kamikaze que avisan
   con un círculo rojo.
 - **Bolas de Dragón:** reúne las 7 y pide un deseo a Shenlong (también puede darte un vínculo o cristales).
-- **Zonas:** Monte Paoz, Planeta Namek y Namek en destrucción. Al suelo y al decorado de GBA se les corrige el color al cargar
+- **Zonas:** Monte Paoz, Tierras yermas, Planeta Namek, Namek en destrucción, el ring de Cell, el planeta de los Kaio-shin,
+  el Mundo del Vacío y el planeta de Bills. Al suelo y al decorado de GBA se les corrige el color al cargar
   (en la consola estaban muy saturados) y se les añade detalle: matas de hierba, flores, piedras, grietas y brasas.
 - **Música original** compuesta para el juego (título, menús, cada zona, jefes, invocación, victoria y derrota) y ajustes de volumen.
-- **30 misiones** con Zeni y Cristales de Ki.
+- **38 misiones** con Zeni y Cristales de Ki (también por llegar a cada fase y por entrenar).
 
 ## Estructura
 
