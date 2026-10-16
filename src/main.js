@@ -1,7 +1,7 @@
 import { ROSTER, SAGAS, RARITY, GACHA, WEAPONS, PASSIVES, META, ITEMS, EVOLUTIONS, BIOMES, ULTS, DECOR_GRADE } from './data.js';
 import { Game, BUFF_COLORS, groundDetail } from './game.js';
 import { Input } from './input.js';
-import { loadAssets, heroCard, heroPortrait, img, meta, drawHero, recolor, graded } from './assets.js';
+import { loadAssets, heroCard, heroPortrait, img, meta, drawHero, recolor, graded, hasHero } from './assets.js';
 import { loadSave, writeSave } from './storage.js';
 import { unlockAudio, setMuted, isMuted, sfx, setVolumes } from './audio.js';
 import { playMusic } from './music.js';
@@ -466,7 +466,8 @@ function drawAttract(dt) {
     ctx.globalAlpha = 0.35;
     ctx.drawImage(img('fx', 'shadow'), Math.round(r.x - 5), gy - 2);
     ctx.globalAlpha = 1;
-    drawHero(ctx, r.id, Math.floor(t * 8), r.x, gy, false);
+    // vuelan con su pose de vuelo si la tienen
+    drawHero(ctx, hasHero(r.id + '@move') ? r.id + '@move' : r.id, Math.floor(t * 8), r.x, gy - (hasHero(r.id + '@move') ? 6 + Math.sin(t * 5 + r.sp) * 2 : 0), false);
   }
   // Goku en la Nube Kinton cruzando el cielo
   const nm = meta('fx', 'nimbus');

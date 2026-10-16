@@ -158,3 +158,32 @@ def annotate(im, boxes, path, scale=2):
         d.rectangle([x0 * scale, y0 * scale, x1 * scale - 1, y1 * scale - 1], outline=(255, 0, 0, 255))
         d.text((x0 * scale + 1, y0 * scale + 1), str(i), fill=(255, 0, 0, 255))
     a.save(path)
+
+
+def anchor_x(im, legs=True):
+    """Columna de referencia del cuerpo: centro de masa de las piernas (o de todo el sprite)."""
+    a = im.getchannel("A").load()
+    W, H = im.size
+    y0 = int(H * 0.65) if legs else 0
+    sx = n = 0
+    for y in range(y0, H):
+        for x in range(W):
+            if a[x, y] > 40:
+                sx += x
+                n += 1
+    return sx / n if n else W / 2
+
+
+def compose_strip(frames, ref=None, legs=True):
+    """Tira horizontal con los pies abajo y el cuerpo alineado con el fotograma de referencia `ref`
+    (el de reposo), para que al cambiar de pose el personaje no se desplace."""
+    from PIL import Image
+    off = (anchor_x(ref, legs) - ref.width / 2) if ref is not None else 0
+    ax = [anchor_x(f, legs) for f in frames]
+    half = max(max(a - off, f.width - a + off) for a, f in zip(ax, frames))
+    fw = int(2 * half + 2)
+    fh = max(f.height for f in frames)
+    out = Image.new("RGBA", (fw * len(frames), fh), (0, 0, 0, 0))
+    for i, (f, a) in enumerate(zip(frames, ax)):
+        out.paste(f, (int(round(i * fw + fw / 2 + off - a)), fh - f.height), f)
+    return out, fw, fh

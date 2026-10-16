@@ -271,3 +271,7 @@ export function graded(kind, key, gr) {
   cache.set(ck, c);
   return c;
 }
+
+export function hasHero(id) {
+  return !!assets.m.heroes[id];
+}

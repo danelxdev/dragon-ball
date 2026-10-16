@@ -674,11 +674,28 @@ export const ENEMIES = {
   // Se agarra a ti y se autodestruye (como con Yamcha). Avisa con un círculo rojo en el suelo.
   kamikaze: { name: 'Saibaman kamikaze', sprite: 'saibaman', hue: -95, hp: 14, speed: 66, dmg: 4, xp: 2, r: 6,
     bomb: { range: 30, fuse: 0.9, radius: 38, dmg: 16 } },
-  bioman: { name: 'Bio-Man', sprite: 'bioman', hp: 46, speed: 74, dmg: 11, xp: 5, r: 7 },
+  bioman: { name: 'Bio-Man', sprite: 'bioman', hp: 46, speed: 74, dmg: 11, xp: 5, r: 7, fly: true },
+  // Ejército de Freezer (Planeta Namek). `fly`: se lanzan volando hacia ti (pose de vuelo).
+  soldier: { name: 'Soldado de Freezer', sprite: 'soldier', hp: 20, speed: 50, dmg: 7, xp: 2, r: 7,
+    ranged: { range: 170, cd: 5, speed: 115, dmg: 5, fx: 'ki' } },
+  soldier_g: { name: 'Soldado de élite', sprite: 'soldier', hue: 110, hp: 48, speed: 56, dmg: 10, xp: 4, r: 7,
+    ranged: { range: 170, cd: 4.5, speed: 125, dmg: 7, fx: 'ki' } },
+  soldier_r: { name: 'Comando de Freezer', sprite: 'soldier', hue: -110, hp: 85, speed: 62, dmg: 13, xp: 6, r: 7, fly: true },
+  appule: { name: 'Appule', sprite: 'appule', hp: 36, speed: 60, dmg: 9, xp: 3, r: 7, fly: true },
+  cui: { name: 'Cui', sprite: 'cui', hp: 70, speed: 55, dmg: 12, xp: 6, r: 7,
+    ranged: { range: 160, cd: 4, speed: 130, dmg: 8, fx: 'ki' } },
+  // Cell Jr.: pequeños, rapidísimos y en grupo
+  celljr: { name: 'Cell Jr.', sprite: 'celljr', hp: 70, speed: 86, dmg: 14, xp: 7, r: 6, fly: true },
 };
 
-// Élites (con contorno dorado): villanos que aparecen cada cierto tiempo.
-export const ELITES = ['raditz', 'a16', 'a17', 'a18', 'turles', 'freezer_1', 'cell_1', 'buu_fat', 'frost_1', 'cooler'];
+// Élites (con contorno dorado): villanos que aparecen cada cierto tiempo, según el momento de la partida.
+// Lanzan ráfagas de ki y sueltan una Cápsula Corp.
+export const ELITES = [
+  { t: 0, list: ['nappa', 'raditz', 'turles', 'dodoria'] },
+  { t: 240, list: ['dodoria', 'zarbon', 'ginyu', 'burter', 'freezer_1', 'cooler'] },
+  { t: 480, list: ['ginyu', 'burter', 'a16', 'a17', 'a18', 'cell_1'] },
+  { t: 660, list: ['babidi', 'puipui', 'buu_fat', 'frost_1', 'cell_1', 'cooler'] },
+];
 
 export const BOSSES = {
   raditz: { name: 'Raditz', sprite: 'raditz', r: 12, hp: 650, speed: 52, dmg: 15, xp: 60, color: '#ff6a6a' },
@@ -688,15 +705,17 @@ export const BOSSES = {
   broly: { name: 'Broly', sprite: 'broly_lssj', r: 16, hp: 18000, speed: 68, dmg: 38, xp: 600, color: '#7aff6a' },
 };
 
+// Oleadas: Saibaman en la Tierra, el ejército de Freezer en Namek y Bio-Men y Cell Jr. al final.
 export const WAVES = [
   { t: 0, types: ['saibaman'], rate: 3.5 },
-  { t: 60, types: ['saibaman', 'saibaman', 'kyukonman'], rate: 6 },
-  { t: 150, types: ['kyukonman', 'saibaman', 'jinkouman', 'kamikaze'], rate: 8 },
-  { t: 240, types: ['kyukonman', 'jinkouman', 'kamikaze'], rate: 10 },
-  { t: 360, types: ['jinkouman', 'kyukonman', 'tennenman', 'bioman'], rate: 12 },
-  { t: 480, types: ['jinkouman', 'tennenman', 'bioman', 'kamikaze'], rate: 14 },
-  { t: 600, types: ['tennenman', 'bioman', 'jinkouman'], rate: 16 },
-  { t: 720, types: ['tennenman', 'bioman', 'jinkouman', 'kamikaze'], rate: 19 },
+  { t: 60, types: ['saibaman', 'saibaman', 'kyukonman', 'soldier'], rate: 6 },
+  { t: 150, types: ['kyukonman', 'saibaman', 'soldier', 'kamikaze', 'appule'], rate: 8 },
+  { t: 240, types: ['kyukonman', 'jinkouman', 'soldier', 'appule', 'kamikaze'], rate: 10 },
+  { t: 300, types: ['soldier', 'soldier_g', 'appule', 'jinkouman', 'cui'], rate: 11 },
+  { t: 420, types: ['soldier_g', 'cui', 'appule', 'tennenman', 'kamikaze'], rate: 13 },
+  { t: 540, types: ['soldier_r', 'cui', 'bioman', 'tennenman', 'soldier_g'], rate: 14 },
+  { t: 600, types: ['bioman', 'celljr', 'soldier_r', 'tennenman'], rate: 16 },
+  { t: 720, types: ['celljr', 'bioman', 'soldier_r', 'tennenman', 'kamikaze'], rate: 19 },
 ];
 
 export const BOSS_SCHEDULE = [

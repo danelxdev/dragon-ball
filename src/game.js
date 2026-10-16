@@ -3,7 +3,7 @@ import {
   RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES, MAX_SLOTS, BOND_MAX, ULTS, DECOR_GRADE,
 } from './data.js';
 import {
-  img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard, graded, gradeColor,
+  img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard, graded, gradeColor, hasHero,
 } from './assets.js';
 import { sfx } from './audio.js';
 
@@ -240,6 +240,7 @@ export class Game {
     this.player = {
       x: 0, y: 0, r: 6, hp: 1, maxHp: 1, face: 1, dirX: 1, dirY: 0, dir: 0,
       inv: 0, walkT: 0, moving: false, form: 0,
+      atkT: 0, atkDur: 0.25, atkAng: 0, hurtT: 0, trail: [], trailT: 0,
     };
     this.weapons = [];
     this.passives = {};
@@ -698,6 +699,18 @@ export class Game {
       this.ui.banner('ZONA: ' + BIOMES[bi].name.toUpperCase(), '#9fe0ff');
     }
     if (p.inv > 0) p.inv -= dt;
+    if (p.atkT > 0) p.atkT -= dt;
+    if (p.hurtT > 0) p.hurtT -= dt;
+    // estela de imágenes residuales al volar
+    p.trailT -= dt;
+    if (p.moving && p.trailT <= 0) {
+      p.trailT = 0.045;
+      p.trail.unshift({ x: p.x, y: p.y });
+      if (p.trail.length > 4) p.trail.pop();
+    } else if (!p.moving && p.trail.length && p.trailT <= 0) {
+      p.trailT = 0.045;
+      p.trail.pop();
+    }
     if (this.stats.regen > 0) this.heal(this.stats.regen * dt, true);
 
     // Rejilla de enemigos
@@ -772,14 +785,17 @@ export class Game {
 
   // Élite: un villano de la serie con contorno dorado. Suelta una Cápsula Corp.
   spawnElite(x, y) {
-    const sprite = pick(ELITES);
+    let list = ELITES[0].list;
+    for (const b of ELITES) if (this.t >= b.t) list = b.list;
+    const sprite = pick(list);
     const hpScale = 1 + this.t / 90 + (this.t / 200) ** 2;
     const e = {
       id: this.nextId++, type: 'elite', def: { name: 'Élite', dmg: 12 }, x, y, r: 11,
       hp: 110 * hpScale, speed: 46 * rand(0.9, 1.1), dmg: 11 * (1 + this.t / 500), xp: 30,
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite: true, boss: false,
-      scale: 1, dead: false, orbCd: 0, sprite, mode: null, shot: 0,
+      scale: 1, dead: false, orbCd: 0, sprite, mode: null, shot: rand(2, 4), atkT: 0,
     };
+    if (sprite === 'burter') e.speed *= 1.45; // el más rápido del universo
     e.maxHp = e.hp;
     this.enemies.push(e);
     return e;
@@ -943,6 +959,12 @@ export class Game {
     const p = this.player;
     const st = this.stats;
     const color = w.def.color;
+    if (w.def.kind !== 'aura') {
+      // pose de lanzar ki mirando hacia el objetivo
+      p.atkDur = w.def.kind === 'beam' ? Math.max(0.25, Math.min(s.dur || 0.3, 0.6)) : 0.25;
+      p.atkT = p.atkDur;
+      p.atkAng = this.aimAngle(true);
+    }
     const art = w.def.art;
     const tint = w.def.tint;
     switch (w.def.kind) {
@@ -1275,6 +1297,7 @@ export class Game {
     for (const e of this.enemies) {
       if (e.dead) continue;
       if (e.flash > 0) e.flash -= dt;
+      if (e.atkT > 0) e.atkT -= dt;
       const dx = p.x - e.x;
       const dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
@@ -1313,6 +1336,15 @@ export class Game {
         const v = this.bossAI(e, dt, dx, dy, d);
         mvx = v.x;
         mvy = v.y;
+      } else if (e.elite && d < 200 && (e.shot -= dt) <= 0) {
+        // Las élites lanzan una ráfaga de tres bolas de ki
+        e.shot = rand(4, 6);
+        e.atkT = 0.45;
+        const a0 = Math.atan2(dy, dx);
+        for (const da of [-0.25, 0, 0.25]) {
+          this.eprojs.push({ x: e.x, y: e.y - 12, vx: Math.cos(a0 + da) * 125, vy: Math.sin(a0 + da) * 125, r: 4, dmg: e.dmg * 0.45, life: 3, fx: 'ki', ang: a0 + da });
+        }
+        sfx('shot', 0.1);
       } else if (e.def.ranged && d < e.def.ranged.range) {
         // Enemigo a distancia: se queda quieto y dispara.
         const rg = e.def.ranged;
@@ -1321,6 +1353,7 @@ export class Game {
         if (e.shot <= 0 && this.minionShots < 8) {
           this.minionShots++;
           e.shot = rg.cd * rand(0.8, 1.2);
+          e.atkT = 0.35;
           const a = Math.atan2(dy, dx);
           this.eprojs.push({
             x: e.x, y: e.y - 10, vx: Math.cos(a) * rg.speed, vy: Math.sin(a) * rg.speed, r: 3,
@@ -1485,6 +1518,7 @@ export class Game {
     const dmg = Math.max(1, amount - this.stats.armor);
     p.hp -= dmg;
     p.inv = 0.45;
+    p.hurtT = 0.3;
     this.gainKi(3);
     this.shake = Math.max(this.shake, 0.15);
     sfx('hurt', 0.1);
@@ -1993,10 +2027,36 @@ export class Game {
       ctx.globalAlpha = 1;
     }
 
+    // Pose: lanzar ki, volar hacia delante o reposo
+    let spr = sprite;
+    let fr = frame;
+    let flip = p.face < 0;
+    let bob = 0;
+    if (p.atkT > 0 && hasHero(sprite + '@atk')) {
+      spr = sprite + '@atk';
+      fr = Math.floor((1 - p.atkT / p.atkDur) * 2);
+      flip = Math.cos(p.atkAng) < 0;
+    } else if (p.moving) {
+      if (hasHero(sprite + '@move')) {
+        spr = sprite + '@move';
+        fr = Math.floor(this.t * 7);
+      }
+      bob = Math.round(Math.sin(this.t * 12) * 1.2);
+    }
+    // imágenes residuales (como al volar a toda velocidad en la serie)
+    const trailCol = 'sil' + (f.aura || '#9fd8ff').slice(1);
+    for (let i = p.trail.length - 1; i >= 1; i--) {
+      const q = p.trail[i];
+      ctx.globalAlpha = 0.28 - i * 0.06;
+      drawHero(ctx, spr, fr, q.x, q.y + 2 + bob, flip, trailCol);
+    }
+    ctx.globalAlpha = 1;
     const blink = p.inv > 0 && Math.floor(this.t * 20) % 2;
     if (!blink) {
-      if (this.prog.shiny && Math.floor(this.t * 4) % 2) drawShinyOutline(ctx, sprite, frame, p.x, p.y + 2, p.face < 0);
-      drawHero(ctx, sprite, frame, p.x, p.y + 2, p.face < 0);
+      const hit = p.hurtT > 0;
+      const jx = hit ? Math.round(Math.sin(this.t * 90) * 1.5) : 0;
+      if (this.prog.shiny && Math.floor(this.t * 4) % 2) drawShinyOutline(ctx, spr, fr, p.x + jx, p.y + 2 + bob, flip);
+      drawHero(ctx, spr, fr, p.x + jx, p.y + 2 + bob, flip, hit && Math.floor(this.t * 24) % 2 ? 'silff4a4a' : null);
     }
 
     if (this.prog.shiny && Math.random() < 0.25) {
@@ -2031,8 +2091,21 @@ export class Game {
       return;
     }
     const { w, h } = heroSize(e.sprite);
-    const frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 6);
-    const flip = e.face < 0;
+    let frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 6);
+    let flip = e.face < 0;
+    // Pose del enemigo: atacando, volando hacia ti o en reposo
+    let spr = e.sprite;
+    const atking = e.atkT > 0 || (e.boss && (e.ai.mode === 'windup' || e.ai.mode === 'aim' || e.ai.mode === 'beam'));
+    const flying = e.stun <= 0 && ((e.boss && e.ai.mode === 'dash') || (e.def.fly && !atking));
+    if (atking && hasHero(spr + '@atk')) {
+      spr += '@atk';
+      frame = 0;
+      flip = this.player.x < e.x;
+    } else if (flying && hasHero(spr + '@move')) {
+      spr += '@move';
+      frame = Math.floor(e.walkT * 8);
+    }
+    const jx = e.flash > 0 ? (e.id % 2 ? 1 : -1) : 0;
     this.drawShadow(ctx, e.x, e.y, e.boss || e.elite);
     if (e.boss) {
       ctx.globalAlpha = 0.2 + Math.sin(this.t * 6) * 0.08;
@@ -2044,10 +2117,10 @@ export class Game {
     }
     if (e.elite && e.flash <= 0) {
       for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-        drawHero(ctx, e.sprite, frame, e.x + ox, e.y + 2 + oy, flip, 'silffd040');
+        drawHero(ctx, spr, frame, e.x + ox + jx, e.y + 2 + oy, flip, 'silffd040');
       }
     }
-    drawHero(ctx, e.sprite, frame, e.x, e.y + 2, flip, e.flash > 0 ? 'white' : e.mode);
+    drawHero(ctx, spr, frame, e.x + jx, e.y + 2, flip, e.flash > 0 ? 'white' : e.mode);
     const top = Math.round(e.y - h - 2);
     if (e.stun > 0) {
       ctx.fillStyle = '#ffff9a';

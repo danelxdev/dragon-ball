@@ -1131,92 +1131,1202 @@
   },
   "tien": {
    "file": "heroes/tien.png",
-   "fw": 24,
+   "fw": 26,
    "fh": 30,
    "frames": 4
   },
   "bioman": {
    "file": "heroes/bioman.png",
-   "fw": 25,
+   "fw": 30,
    "fh": 35,
    "frames": 3
   },
   "goku_kid": {
    "file": "heroes/goku_kid.png",
-   "fw": 35,
+   "fw": 42,
    "fh": 39,
    "frames": 3
   },
   "goku_gt_kid": {
    "file": "heroes/goku_gt_kid.png",
-   "fw": 35,
+   "fw": 39,
    "fh": 42,
    "frames": 3
   },
   "trunks_super": {
    "file": "heroes/trunks_super.png",
-   "fw": 26,
+   "fw": 30,
    "fh": 38,
    "frames": 3
   },
   "trunks_rage": {
    "file": "heroes/trunks_rage.png",
-   "fw": 23,
+   "fw": 26,
    "fh": 38,
    "frames": 4
   },
   "copy_vegeta": {
    "file": "heroes/copy_vegeta.png",
-   "fw": 29,
+   "fw": 33,
    "fh": 49,
    "frames": 3
   },
   "copy_vegeta_blue": {
    "file": "heroes/copy_vegeta_blue.png",
-   "fw": 24,
+   "fw": 30,
    "fh": 47,
    "frames": 3
   },
   "gohan_rof": {
    "file": "heroes/gohan_rof.png",
-   "fw": 29,
+   "fw": 31,
    "fh": 42,
    "frames": 3
   },
   "gohan_rof_ssj": {
    "file": "heroes/gohan_rof_ssj.png",
-   "fw": 30,
+   "fw": 36,
    "fh": 45,
    "frames": 4
   },
   "goten": {
    "file": "heroes/goten.png",
-   "fw": 29,
+   "fw": 40,
    "fh": 39,
    "frames": 2
   },
   "trunks_kid": {
    "file": "heroes/trunks_kid.png",
-   "fw": 26,
+   "fw": 30,
    "fh": 42,
    "frames": 4
   },
   "broly_dbs": {
    "file": "heroes/broly_dbs.png",
-   "fw": 32,
+   "fw": 34,
    "fh": 50,
    "frames": 2
   },
   "janemba_super": {
    "file": "heroes/janemba_super.png",
-   "fw": 31,
+   "fw": 36,
    "fh": 49,
    "frames": 3
   },
   "jaco": {
    "file": "heroes/jaco.png",
-   "fw": 18,
+   "fw": 20,
    "fh": 36,
+   "frames": 2
+  },
+  "goku_kid@move": {
+   "file": "heroes/goku_kid@move.png",
+   "fw": 47,
+   "fh": 36,
+   "frames": 2
+  },
+  "goku_kid@atk": {
+   "file": "heroes/goku_kid@atk.png",
+   "fw": 51,
+   "fh": 40,
+   "frames": 1
+  },
+  "goku_gt_kid@move": {
+   "file": "heroes/goku_gt_kid@move.png",
+   "fw": 39,
+   "fh": 31,
+   "frames": 1
+  },
+  "goku_gt_kid@atk": {
+   "file": "heroes/goku_gt_kid@atk.png",
+   "fw": 42,
+   "fh": 37,
+   "frames": 1
+  },
+  "trunks_super@move": {
+   "file": "heroes/trunks_super@move.png",
+   "fw": 39,
+   "fh": 36,
+   "frames": 2
+  },
+  "trunks_super@atk": {
+   "file": "heroes/trunks_super@atk.png",
+   "fw": 51,
+   "fh": 43,
+   "frames": 1
+  },
+  "trunks_rage@move": {
+   "file": "heroes/trunks_rage@move.png",
+   "fw": 33,
+   "fh": 31,
+   "frames": 1
+  },
+  "trunks_rage@atk": {
+   "file": "heroes/trunks_rage@atk.png",
+   "fw": 45,
+   "fh": 34,
+   "frames": 1
+  },
+  "copy_vegeta@move": {
+   "file": "heroes/copy_vegeta@move.png",
+   "fw": 34,
+   "fh": 45,
+   "frames": 2
+  },
+  "copy_vegeta@atk": {
+   "file": "heroes/copy_vegeta@atk.png",
+   "fw": 46,
+   "fh": 49,
+   "frames": 1
+  },
+  "copy_vegeta_blue@move": {
+   "file": "heroes/copy_vegeta_blue@move.png",
+   "fw": 31,
+   "fh": 41,
+   "frames": 1
+  },
+  "copy_vegeta_blue@atk": {
+   "file": "heroes/copy_vegeta_blue@atk.png",
+   "fw": 40,
+   "fh": 47,
+   "frames": 1
+  },
+  "gohan_rof@move": {
+   "file": "heroes/gohan_rof@move.png",
+   "fw": 33,
+   "fh": 35,
+   "frames": 1
+  },
+  "gohan_rof@atk": {
+   "file": "heroes/gohan_rof@atk.png",
+   "fw": 48,
+   "fh": 39,
+   "frames": 1
+  },
+  "gohan_rof_ssj@move": {
+   "file": "heroes/gohan_rof_ssj@move.png",
+   "fw": 39,
+   "fh": 38,
+   "frames": 2
+  },
+  "gohan_rof_ssj@atk": {
+   "file": "heroes/gohan_rof_ssj@atk.png",
+   "fw": 41,
+   "fh": 42,
+   "frames": 1
+  },
+  "goten@move": {
+   "file": "heroes/goten@move.png",
+   "fw": 37,
+   "fh": 35,
+   "frames": 1
+  },
+  "trunks_kid@move": {
+   "file": "heroes/trunks_kid@move.png",
+   "fw": 34,
+   "fh": 38,
+   "frames": 1
+  },
+  "trunks_kid@atk": {
+   "file": "heroes/trunks_kid@atk.png",
+   "fw": 32,
+   "fh": 38,
+   "frames": 1
+  },
+  "broly_dbs@move": {
+   "file": "heroes/broly_dbs@move.png",
+   "fw": 48,
+   "fh": 44,
+   "frames": 1
+  },
+  "broly_dbs@atk": {
+   "file": "heroes/broly_dbs@atk.png",
+   "fw": 46,
+   "fh": 48,
+   "frames": 1
+  },
+  "janemba_super@move": {
+   "file": "heroes/janemba_super@move.png",
+   "fw": 40,
+   "fh": 46,
+   "frames": 2
+  },
+  "janemba_super@atk": {
+   "file": "heroes/janemba_super@atk.png",
+   "fw": 41,
+   "fh": 44,
+   "frames": 1
+  },
+  "jaco@move": {
+   "file": "heroes/jaco@move.png",
+   "fw": 36,
+   "fh": 32,
+   "frames": 2
+  },
+  "jaco@atk": {
+   "file": "heroes/jaco@atk.png",
+   "fw": 38,
+   "fh": 34,
+   "frames": 1
+  },
+  "tien@move": {
+   "file": "heroes/tien@move.png",
+   "fw": 32,
+   "fh": 26,
+   "frames": 1
+  },
+  "tien@atk": {
+   "file": "heroes/tien@atk.png",
+   "fw": 39,
+   "fh": 26,
+   "frames": 1
+  },
+  "bioman@move": {
+   "file": "heroes/bioman@move.png",
+   "fw": 39,
+   "fh": 34,
+   "frames": 2
+  },
+  "celljr": {
+   "file": "heroes/celljr.png",
+   "fw": 23,
+   "fh": 25,
+   "frames": 4
+  },
+  "celljr@move": {
+   "file": "heroes/celljr@move.png",
+   "fw": 24,
+   "fh": 25,
+   "frames": 2
+  },
+  "celljr@atk": {
+   "file": "heroes/celljr@atk.png",
+   "fw": 32,
+   "fh": 24,
+   "frames": 1
+  },
+  "soldier": {
+   "file": "heroes/soldier.png",
+   "fw": 30,
+   "fh": 46,
+   "frames": 4
+  },
+  "soldier@move": {
+   "file": "heroes/soldier@move.png",
+   "fw": 49,
+   "fh": 34,
+   "frames": 2
+  },
+  "soldier@atk": {
+   "file": "heroes/soldier@atk.png",
+   "fw": 42,
+   "fh": 35,
+   "frames": 1
+  },
+  "appule": {
+   "file": "heroes/appule.png",
+   "fw": 38,
+   "fh": 41,
+   "frames": 3
+  },
+  "appule@move": {
+   "file": "heroes/appule@move.png",
+   "fw": 38,
+   "fh": 39,
+   "frames": 2
+  },
+  "appule@atk": {
+   "file": "heroes/appule@atk.png",
+   "fw": 46,
+   "fh": 37,
+   "frames": 1
+  },
+  "cui": {
+   "file": "heroes/cui.png",
+   "fw": 32,
+   "fh": 45,
+   "frames": 4
+  },
+  "cui@move": {
+   "file": "heroes/cui@move.png",
+   "fw": 42,
+   "fh": 41,
+   "frames": 2
+  },
+  "cui@atk": {
+   "file": "heroes/cui@atk.png",
+   "fw": 51,
+   "fh": 39,
+   "frames": 1
+  },
+  "nappa": {
+   "file": "heroes/nappa.png",
+   "fw": 32,
+   "fh": 39,
+   "frames": 2
+  },
+  "nappa@move": {
+   "file": "heroes/nappa@move.png",
+   "fw": 35,
+   "fh": 39,
+   "frames": 2
+  },
+  "nappa@atk": {
+   "file": "heroes/nappa@atk.png",
+   "fw": 43,
+   "fh": 36,
+   "frames": 1
+  },
+  "dodoria": {
+   "file": "heroes/dodoria.png",
+   "fw": 39,
+   "fh": 41,
+   "frames": 4
+  },
+  "dodoria@move": {
+   "file": "heroes/dodoria@move.png",
+   "fw": 35,
+   "fh": 40,
+   "frames": 2
+  },
+  "dodoria@atk": {
+   "file": "heroes/dodoria@atk.png",
+   "fw": 51,
+   "fh": 38,
+   "frames": 1
+  },
+  "zarbon": {
+   "file": "heroes/zarbon.png",
+   "fw": 35,
+   "fh": 46,
+   "frames": 4
+  },
+  "zarbon@move": {
+   "file": "heroes/zarbon@move.png",
+   "fw": 64,
+   "fh": 40,
+   "frames": 1
+  },
+  "zarbon@atk": {
+   "file": "heroes/zarbon@atk.png",
+   "fw": 47,
+   "fh": 42,
+   "frames": 1
+  },
+  "ginyu": {
+   "file": "heroes/ginyu.png",
+   "fw": 30,
+   "fh": 38,
+   "frames": 3
+  },
+  "ginyu@move": {
+   "file": "heroes/ginyu@move.png",
+   "fw": 36,
+   "fh": 34,
+   "frames": 2
+  },
+  "ginyu@atk": {
+   "file": "heroes/ginyu@atk.png",
+   "fw": 43,
+   "fh": 34,
+   "frames": 1
+  },
+  "burter": {
+   "file": "heroes/burter.png",
+   "fw": 39,
+   "fh": 43,
+   "frames": 3
+  },
+  "babidi": {
+   "file": "heroes/babidi.png",
+   "fw": 27,
+   "fh": 37,
+   "frames": 2
+  },
+  "babidi@move": {
+   "file": "heroes/babidi@move.png",
+   "fw": 39,
+   "fh": 35,
+   "frames": 1
+  },
+  "babidi@atk": {
+   "file": "heroes/babidi@atk.png",
+   "fw": 47,
+   "fh": 36,
+   "frames": 1
+  },
+  "puipui": {
+   "file": "heroes/puipui.png",
+   "fw": 24,
+   "fh": 33,
+   "frames": 2
+  },
+  "puipui@move": {
+   "file": "heroes/puipui@move.png",
+   "fw": 26,
+   "fh": 22,
+   "frames": 1
+  },
+  "puipui@atk": {
+   "file": "heroes/puipui@atk.png",
+   "fw": 40,
+   "fh": 28,
+   "frames": 1
+  },
+  "goku@move": {
+   "file": "heroes/goku@move.png",
+   "fw": 55,
+   "fh": 42,
+   "frames": 1
+  },
+  "goku@atk": {
+   "file": "heroes/goku@atk.png",
+   "fw": 47,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_kaioken@move": {
+   "file": "heroes/goku_kaioken@move.png",
+   "fw": 64,
+   "fh": 39,
+   "frames": 1
+  },
+  "krilin@move": {
+   "file": "heroes/krilin@move.png",
+   "fw": 40,
+   "fh": 31,
+   "frames": 1
+  },
+  "piccolo@move": {
+   "file": "heroes/piccolo@move.png",
+   "fw": 53,
+   "fh": 40,
+   "frames": 1
+  },
+  "piccolo@atk": {
+   "file": "heroes/piccolo@atk.png",
+   "fw": 47,
+   "fh": 42,
+   "frames": 1
+  },
+  "gohan_kid@move": {
+   "file": "heroes/gohan_kid@move.png",
+   "fw": 32,
+   "fh": 39,
+   "frames": 2
+  },
+  "gohan_kid@atk": {
+   "file": "heroes/gohan_kid@atk.png",
+   "fw": 30,
+   "fh": 43,
+   "frames": 1
+  },
+  "vegeta_saiyan@atk": {
+   "file": "heroes/vegeta_saiyan@atk.png",
+   "fw": 47,
+   "fh": 43,
+   "frames": 1
+  },
+  "raditz@move": {
+   "file": "heroes/raditz@move.png",
+   "fw": 50,
+   "fh": 37,
+   "frames": 1
+  },
+  "raditz@atk": {
+   "file": "heroes/raditz@atk.png",
+   "fw": 57,
+   "fh": 44,
+   "frames": 1
+  },
+  "raditz_ssj@move": {
+   "file": "heroes/raditz_ssj@move.png",
+   "fw": 49,
+   "fh": 37,
+   "frames": 2
+  },
+  "saibaman@move": {
+   "file": "heroes/saibaman@move.png",
+   "fw": 31,
+   "fh": 32,
+   "frames": 1
+  },
+  "saibaman@atk": {
+   "file": "heroes/saibaman@atk.png",
+   "fw": 34,
+   "fh": 33,
+   "frames": 1
+  },
+  "bardock@move": {
+   "file": "heroes/bardock@move.png",
+   "fw": 45,
+   "fh": 46,
+   "frames": 1
+  },
+  "bardock@atk": {
+   "file": "heroes/bardock@atk.png",
+   "fw": 48,
+   "fh": 44,
+   "frames": 1
+  },
+  "bardock_ssj@move": {
+   "file": "heroes/bardock_ssj@move.png",
+   "fw": 45,
+   "fh": 45,
+   "frames": 1
+  },
+  "bardock_ssj4@move": {
+   "file": "heroes/bardock_ssj4@move.png",
+   "fw": 59,
+   "fh": 41,
+   "frames": 1
+  },
+  "bardock_ssj4@atk": {
+   "file": "heroes/bardock_ssj4@atk.png",
+   "fw": 61,
+   "fh": 44,
+   "frames": 1
+  },
+  "goku_ssj_namek@move": {
+   "file": "heroes/goku_ssj_namek@move.png",
+   "fw": 37,
+   "fh": 47,
+   "frames": 2
+  },
+  "goku_ssj_namek@atk": {
+   "file": "heroes/goku_ssj_namek@atk.png",
+   "fw": 40,
+   "fh": 48,
+   "frames": 1
+  },
+  "vegeta@move": {
+   "file": "heroes/vegeta@move.png",
+   "fw": 34,
+   "fh": 43,
+   "frames": 2
+  },
+  "freezer_1@move": {
+   "file": "heroes/freezer_1@move.png",
+   "fw": 39,
+   "fh": 34,
+   "frames": 1
+  },
+  "freezer_3@move": {
+   "file": "heroes/freezer_3@move.png",
+   "fw": 89,
+   "fh": 52,
+   "frames": 1
+  },
+  "freezer_final@move": {
+   "file": "heroes/freezer_final@move.png",
+   "fw": 40,
+   "fh": 32,
+   "frames": 1
+  },
+  "freezer_final@atk": {
+   "file": "heroes/freezer_final@atk.png",
+   "fw": 42,
+   "fh": 38,
+   "frames": 1
+  },
+  "freezer_fp@move": {
+   "file": "heroes/freezer_fp@move.png",
+   "fw": 51,
+   "fh": 32,
+   "frames": 2
+  },
+  "freezer_fp@atk": {
+   "file": "heroes/freezer_fp@atk.png",
+   "fw": 64,
+   "fh": 41,
+   "frames": 1
+  },
+  "freezer_golden@move": {
+   "file": "heroes/freezer_golden@move.png",
+   "fw": 45,
+   "fh": 39,
+   "frames": 2
+  },
+  "freezer_golden@atk": {
+   "file": "heroes/freezer_golden@atk.png",
+   "fw": 51,
+   "fh": 40,
+   "frames": 1
+  },
+  "cooler@move": {
+   "file": "heroes/cooler@move.png",
+   "fw": 64,
+   "fh": 36,
+   "frames": 1
+  },
+  "cooler@atk": {
+   "file": "heroes/cooler@atk.png",
+   "fw": 48,
+   "fh": 42,
+   "frames": 1
+  },
+  "turles@move": {
+   "file": "heroes/turles@move.png",
+   "fw": 44,
+   "fh": 46,
+   "frames": 1
+  },
+  "turles@atk": {
+   "file": "heroes/turles@atk.png",
+   "fw": 50,
+   "fh": 44,
+   "frames": 1
+  },
+  "goku_ssj@move": {
+   "file": "heroes/goku_ssj@move.png",
+   "fw": 54,
+   "fh": 45,
+   "frames": 2
+  },
+  "goku_ssj@atk": {
+   "file": "heroes/goku_ssj@atk.png",
+   "fw": 48,
+   "fh": 45,
+   "frames": 1
+  },
+  "vegeta_ssj_grade@move": {
+   "file": "heroes/vegeta_ssj_grade@move.png",
+   "fw": 39,
+   "fh": 43,
+   "frames": 1
+  },
+  "gohan_teen_ssj@move": {
+   "file": "heroes/gohan_teen_ssj@move.png",
+   "fw": 38,
+   "fh": 41,
+   "frames": 1
+  },
+  "gohan_teen_ssj@atk": {
+   "file": "heroes/gohan_teen_ssj@atk.png",
+   "fw": 34,
+   "fh": 43,
+   "frames": 1
+  },
+  "gohan_teen_ssj2@move": {
+   "file": "heroes/gohan_teen_ssj2@move.png",
+   "fw": 32,
+   "fh": 43,
+   "frames": 1
+  },
+  "gohan_teen_ssj2@atk": {
+   "file": "heroes/gohan_teen_ssj2@atk.png",
+   "fw": 37,
+   "fh": 41,
+   "frames": 1
+  },
+  "trunks@move": {
+   "file": "heroes/trunks@move.png",
+   "fw": 46,
+   "fh": 42,
+   "frames": 2
+  },
+  "trunks@atk": {
+   "file": "heroes/trunks@atk.png",
+   "fw": 59,
+   "fh": 42,
+   "frames": 1
+  },
+  "trunks_ssj@move": {
+   "file": "heroes/trunks_ssj@move.png",
+   "fw": 57,
+   "fh": 47,
+   "frames": 2
+  },
+  "trunks_ssj@atk": {
+   "file": "heroes/trunks_ssj@atk.png",
+   "fw": 38,
+   "fh": 53,
+   "frames": 1
+  },
+  "trunks_armor@move": {
+   "file": "heroes/trunks_armor@move.png",
+   "fw": 33,
+   "fh": 38,
+   "frames": 1
+  },
+  "a16@move": {
+   "file": "heroes/a16@move.png",
+   "fw": 38,
+   "fh": 45,
+   "frames": 2
+  },
+  "a17@move": {
+   "file": "heroes/a17@move.png",
+   "fw": 40,
+   "fh": 38,
+   "frames": 2
+  },
+  "a17@atk": {
+   "file": "heroes/a17@atk.png",
+   "fw": 63,
+   "fh": 37,
+   "frames": 1
+  },
+  "a18@move": {
+   "file": "heroes/a18@move.png",
+   "fw": 50,
+   "fh": 29,
+   "frames": 1
+  },
+  "a18@atk": {
+   "file": "heroes/a18@atk.png",
+   "fw": 39,
+   "fh": 37,
+   "frames": 1
+  },
+  "cell_1@move": {
+   "file": "heroes/cell_1@move.png",
+   "fw": 57,
+   "fh": 47,
+   "frames": 2
+  },
+  "cell_1@atk": {
+   "file": "heroes/cell_1@atk.png",
+   "fw": 51,
+   "fh": 49,
+   "frames": 1
+  },
+  "cell_2@move": {
+   "file": "heroes/cell_2@move.png",
+   "fw": 63,
+   "fh": 43,
+   "frames": 1
+  },
+  "cell_perfect@move": {
+   "file": "heroes/cell_perfect@move.png",
+   "fw": 37,
+   "fh": 47,
+   "frames": 1
+  },
+  "cell_perfect@atk": {
+   "file": "heroes/cell_perfect@atk.png",
+   "fw": 52,
+   "fh": 46,
+   "frames": 1
+  },
+  "goku_ssj2@move": {
+   "file": "heroes/goku_ssj2@move.png",
+   "fw": 37,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_ssj2@atk": {
+   "file": "heroes/goku_ssj2@atk.png",
+   "fw": 46,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_ssj3@move": {
+   "file": "heroes/goku_ssj3@move.png",
+   "fw": 46,
+   "fh": 42,
+   "frames": 1
+  },
+  "vegeta_buu@atk": {
+   "file": "heroes/vegeta_buu@atk.png",
+   "fw": 47,
+   "fh": 43,
+   "frames": 1
+  },
+  "majin_vegeta@move": {
+   "file": "heroes/majin_vegeta@move.png",
+   "fw": 44,
+   "fh": 45,
+   "frames": 1
+  },
+  "gohan_adult@move": {
+   "file": "heroes/gohan_adult@move.png",
+   "fw": 32,
+   "fh": 43,
+   "frames": 2
+  },
+  "gohan_adult@atk": {
+   "file": "heroes/gohan_adult@atk.png",
+   "fw": 41,
+   "fh": 45,
+   "frames": 1
+  },
+  "gohan_mystic@move": {
+   "file": "heroes/gohan_mystic@move.png",
+   "fw": 36,
+   "fh": 47,
+   "frames": 1
+  },
+  "gohan_mystic@atk": {
+   "file": "heroes/gohan_mystic@atk.png",
+   "fw": 51,
+   "fh": 47,
+   "frames": 1
+  },
+  "gotenks@move": {
+   "file": "heroes/gotenks@move.png",
+   "fw": 43,
+   "fh": 38,
+   "frames": 1
+  },
+  "gotenks@atk": {
+   "file": "heroes/gotenks@atk.png",
+   "fw": 39,
+   "fh": 42,
+   "frames": 1
+  },
+  "buu_fat@move": {
+   "file": "heroes/buu_fat@move.png",
+   "fw": 66,
+   "fh": 49,
+   "frames": 2
+  },
+  "buu_fat@atk": {
+   "file": "heroes/buu_fat@atk.png",
+   "fw": 76,
+   "fh": 50,
+   "frames": 1
+  },
+  "buu_evil@move": {
+   "file": "heroes/buu_evil@move.png",
+   "fw": 54,
+   "fh": 48,
+   "frames": 2
+  },
+  "buu_evil@atk": {
+   "file": "heroes/buu_evil@atk.png",
+   "fw": 58,
+   "fh": 47,
+   "frames": 1
+  },
+  "buu_gohan@move": {
+   "file": "heroes/buu_gohan@move.png",
+   "fw": 58,
+   "fh": 48,
+   "frames": 2
+  },
+  "buu_gohan@atk": {
+   "file": "heroes/buu_gohan@atk.png",
+   "fw": 62,
+   "fh": 49,
+   "frames": 1
+  },
+  "buu_kid@move": {
+   "file": "heroes/buu_kid@move.png",
+   "fw": 42,
+   "fh": 38,
+   "frames": 2
+  },
+  "vegito@move": {
+   "file": "heroes/vegito@move.png",
+   "fw": 35,
+   "fh": 45,
+   "frames": 1
+  },
+  "vegito@atk": {
+   "file": "heroes/vegito@atk.png",
+   "fw": 46,
+   "fh": 49,
+   "frames": 1
+  },
+  "vegito_ssj@move": {
+   "file": "heroes/vegito_ssj@move.png",
+   "fw": 34,
+   "fh": 45,
+   "frames": 1
+  },
+  "vegito_ssj@atk": {
+   "file": "heroes/vegito_ssj@atk.png",
+   "fw": 44,
+   "fh": 50,
+   "frames": 1
+  },
+  "vegito_ssj2@move": {
+   "file": "heroes/vegito_ssj2@move.png",
+   "fw": 37,
+   "fh": 43,
+   "frames": 1
+  },
+  "vegito_ssj2@atk": {
+   "file": "heroes/vegito_ssj2@atk.png",
+   "fw": 53,
+   "fh": 48,
+   "frames": 1
+  },
+  "broly_2@move": {
+   "file": "heroes/broly_2@move.png",
+   "fw": 51,
+   "fh": 45,
+   "frames": 2
+  },
+  "broly_2@atk": {
+   "file": "heroes/broly_2@atk.png",
+   "fw": 51,
+   "fh": 47,
+   "frames": 1
+  },
+  "broly_3@move": {
+   "file": "heroes/broly_3@move.png",
+   "fw": 46,
+   "fh": 42,
+   "frames": 1
+  },
+  "broly_3@atk": {
+   "file": "heroes/broly_3@atk.png",
+   "fw": 50,
+   "fh": 46,
+   "frames": 1
+  },
+  "broly_lssj@move": {
+   "file": "heroes/broly_lssj@move.png",
+   "fw": 53,
+   "fh": 66,
+   "frames": 1
+  },
+  "broly_lssj@atk": {
+   "file": "heroes/broly_lssj@atk.png",
+   "fw": 66,
+   "fh": 69,
+   "frames": 1
+  },
+  "broly_ssj4@move": {
+   "file": "heroes/broly_ssj4@move.png",
+   "fw": 72,
+   "fh": 68,
+   "frames": 2
+  },
+  "janemba@move": {
+   "file": "heroes/janemba@move.png",
+   "fw": 37,
+   "fh": 44,
+   "frames": 1
+  },
+  "janemba@atk": {
+   "file": "heroes/janemba@atk.png",
+   "fw": 63,
+   "fh": 58,
+   "frames": 1
+  },
+  "goku_ssj4@move": {
+   "file": "heroes/goku_ssj4@move.png",
+   "fw": 64,
+   "fh": 38,
+   "frames": 1
+  },
+  "goku_ssj4@atk": {
+   "file": "heroes/goku_ssj4@atk.png",
+   "fw": 55,
+   "fh": 47,
+   "frames": 1
+  },
+  "vegeta_ssj4@move": {
+   "file": "heroes/vegeta_ssj4@move.png",
+   "fw": 45,
+   "fh": 45,
+   "frames": 2
+  },
+  "goku_god@move": {
+   "file": "heroes/goku_god@move.png",
+   "fw": 37,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_god@atk": {
+   "file": "heroes/goku_god@atk.png",
+   "fw": 36,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_blue@move": {
+   "file": "heroes/goku_blue@move.png",
+   "fw": 34,
+   "fh": 47,
+   "frames": 1
+  },
+  "goku_blue@atk": {
+   "file": "heroes/goku_blue@atk.png",
+   "fw": 40,
+   "fh": 45,
+   "frames": 1
+  },
+  "goku_blue_kaioken@move": {
+   "file": "heroes/goku_blue_kaioken@move.png",
+   "fw": 53,
+   "fh": 40,
+   "frames": 2
+  },
+  "goku_blue_kaioken@atk": {
+   "file": "heroes/goku_blue_kaioken@atk.png",
+   "fw": 44,
+   "fh": 51,
+   "frames": 1
+  },
+  "goku_ui@move": {
+   "file": "heroes/goku_ui@move.png",
+   "fw": 43,
+   "fh": 47,
+   "frames": 1
+  },
+  "goku_mui@move": {
+   "file": "heroes/goku_mui@move.png",
+   "fw": 51,
+   "fh": 51,
+   "frames": 2
+  },
+  "vegeta_blue@move": {
+   "file": "heroes/vegeta_blue@move.png",
+   "fw": 36,
+   "fh": 41,
+   "frames": 1
+  },
+  "vegeta_blue@atk": {
+   "file": "heroes/vegeta_blue@atk.png",
+   "fw": 46,
+   "fh": 51,
+   "frames": 1
+  },
+  "vegeta_blue_fp@move": {
+   "file": "heroes/vegeta_blue_fp@move.png",
+   "fw": 37,
+   "fh": 48,
+   "frames": 1
+  },
+  "vegeta_blue_fp@atk": {
+   "file": "heroes/vegeta_blue_fp@atk.png",
+   "fw": 53,
+   "fh": 50,
+   "frames": 1
+  },
+  "vegito_blue@move": {
+   "file": "heroes/vegito_blue@move.png",
+   "fw": 36,
+   "fh": 41,
+   "frames": 1
+  },
+  "vegito_blue@atk": {
+   "file": "heroes/vegito_blue@atk.png",
+   "fw": 39,
+   "fh": 52,
+   "frames": 1
+  },
+  "beerus@atk": {
+   "file": "heroes/beerus@atk.png",
+   "fw": 66,
+   "fh": 49,
+   "frames": 1
+  },
+  "hit@move": {
+   "file": "heroes/hit@move.png",
+   "fw": 42,
+   "fh": 41,
+   "frames": 2
+  },
+  "hit@atk": {
+   "file": "heroes/hit@atk.png",
+   "fw": 58,
+   "fh": 56,
+   "frames": 1
+  },
+  "goku_black@move": {
+   "file": "heroes/goku_black@move.png",
+   "fw": 47,
+   "fh": 40,
+   "frames": 1
+  },
+  "goku_black@atk": {
+   "file": "heroes/goku_black@atk.png",
+   "fw": 60,
+   "fh": 51,
+   "frames": 1
+  },
+  "goku_black_rose@move": {
+   "file": "heroes/goku_black_rose@move.png",
+   "fw": 37,
+   "fh": 45,
+   "frames": 2
+  },
+  "zamasu@move": {
+   "file": "heroes/zamasu@move.png",
+   "fw": 52,
+   "fh": 46,
+   "frames": 2
+  },
+  "zamasu_fused@move": {
+   "file": "heroes/zamasu_fused@move.png",
+   "fw": 54,
+   "fh": 39,
+   "frames": 1
+  },
+  "jiren@move": {
+   "file": "heroes/jiren@move.png",
+   "fw": 34,
+   "fh": 35,
+   "frames": 2
+  },
+  "toppo@move": {
+   "file": "heroes/toppo@move.png",
+   "fw": 64,
+   "fh": 49,
+   "frames": 2
+  },
+  "toppo@atk": {
+   "file": "heroes/toppo@atk.png",
+   "fw": 75,
+   "fh": 46,
+   "frames": 1
+  },
+  "caulifla@move": {
+   "file": "heroes/caulifla@move.png",
+   "fw": 42,
+   "fh": 45,
+   "frames": 1
+  },
+  "kale@move": {
+   "file": "heroes/kale@move.png",
+   "fw": 40,
+   "fh": 32,
+   "frames": 1
+  },
+  "kale_ssj@move": {
+   "file": "heroes/kale_ssj@move.png",
+   "fw": 33,
+   "fh": 35,
+   "frames": 1
+  },
+  "kale_ssj@atk": {
+   "file": "heroes/kale_ssj@atk.png",
+   "fw": 59,
+   "fh": 45,
+   "frames": 1
+  },
+  "cabba@move": {
+   "file": "heroes/cabba@move.png",
+   "fw": 51,
+   "fh": 33,
+   "frames": 1
+  },
+  "cabba_ssj@move": {
+   "file": "heroes/cabba_ssj@move.png",
+   "fw": 50,
+   "fh": 33,
+   "frames": 1
+  },
+  "frost_1@move": {
+   "file": "heroes/frost_1@move.png",
+   "fw": 61,
+   "fh": 34,
+   "frames": 2
+  },
+  "frost_1@atk": {
+   "file": "heroes/frost_1@atk.png",
+   "fw": 62,
+   "fh": 40,
+   "frames": 1
+  },
+  "frost_final@move": {
+   "file": "heroes/frost_final@move.png",
+   "fw": 62,
+   "fh": 39,
    "frames": 2
   }
  }

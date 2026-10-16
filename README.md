@@ -62,8 +62,13 @@ Funciona como PokeSurvivor: coleccionas guerreros con un gacha por sagas y los l
   Raro, Épico y Legendario, brillantes (✦), x10 con Épico garantizado y **pity** (Legendario seguro a las 70). Animación de cápsula.
   Cristales y tickets se consiguen en las partidas (jefes, élites, cápsulas), en las misiones y con el regalo diario.
 - **Objetos:** uno equipado por partida; los jefes sueltan otro y eliges si cambiarlo (queda desbloqueado).
-- **Durante la partida:** cápsulas rompibles con potenciadores (furia, velocidad, recarga, radar), Saibaman kamikaze que avisan
-  con un círculo rojo, Bio-Men, élites y jefes con rayos que avisan con una franja en el suelo: Raditz, Freezer, Cell, Kid Buu y Broly.
+- **Animaciones:** los guerreros vuelan inclinados con estela de imágenes residuales, adoptan su pose de lanzar ki al
+  atacar y parpadean al recibir golpes; enemigos, élites y jefes también tienen pose de ataque y de vuelo.
+- **Enemigos:** Saibaman (normales, de colores y kamikaze), soldados de Freezer (tres tipos), Appule, Cui, Bio-Men y Cell Jr.,
+  según la zona. **Élites** con contorno dorado que lanzan ráfagas de ki: Nappa, Raditz, Dodoria, Zarbon, Ginyu, Burter,
+  Babidi, Pui Pui, androides... Y los jefes, con rayos que avisan con una franja en el suelo: Raditz, Freezer, Cell, Kid Buu y Broly.
+- **Durante la partida:** cápsulas rompibles con potenciadores (furia, velocidad, recarga, radar) y Saibaman kamikaze que avisan
+  con un círculo rojo.
 - **Bolas de Dragón:** reúne las 7 y pide un deseo a Shenlong (también puede darte un vínculo o cristales).
 - **Zonas:** Monte Paoz, Planeta Namek y Namek en destrucción. Al suelo y al decorado de GBA se les corrige el color al cargar
   (en la consola estaban muy saturados) y se les añade detalle: matas de hierba, flores, piedras, grietas y brasas.
@@ -97,6 +102,8 @@ src/storage.js  Guardado local
   Para hojas de Spriters Resource con cajas sobre fondo verde azulado usa `from_boxes` (ver `tools/slice_boxes.py`).
 - **Personajes:** `python3 tools/build_sagas.py "<carpeta Dragon Ball Sagas>" assets` (después de `build_assets.py`). Elige
   automáticamente los fotogramas de pose de cada carpeta (`tools/sagas_extract.py`) y guarda los créditos de cada artista.
+- **Animaciones del pack:** `python3 tools/build_anims.py "<carpeta Dragon Ball Sagas>" assets` busca en cada carpeta la pose
+  de lanzar ki y la de vuelo (`tools/pose_detect.py`) y las guarda como `assets/heroes/<id>@atk.png` y `<id>@move.png`.
 - **Personajes y técnicas de hojas de DeviantArt:** `python3 tools/build_extra.py <carpeta de hojas> assets` recorta los
   personajes (fila y fotogramas de cada hoja) y `python3 tools/build_fx.py <carpeta de hojas> assets` el arte de las técnicas,
   las Bolas de Dragón, las gemas y los iconos. Las instrucciones para descargar las hojas están en la cabecera de los scripts.
