@@ -19,17 +19,17 @@ Hecho con HTML5 Canvas y JavaScript puro: sin dependencias ni paso de compilaci�
 
 ## Cómo jugarlo
 
-Los módulos ES necesitan servirse por HTTP (no funciona abriendo `index.html` con doble clic):
+**Abre `index.html` con doble clic** y listo: usa la versión empaquetada de `dist/`, con las imágenes incrustadas, así que
+funciona sin servidor. También funciona tal cual en **GitHub Pages** (*Settings → Pages → Deploy from branch → main*).
+
+### Desarrollo
+
+`dev.html` carga directamente los módulos de `src/`, pero necesita un servidor (`npm run dev` y abrir `http://localhost:8080/dev.html`).
+Después de cambiar el código o los sprites, regenera la versión empaquetada con:
 
 ```bash
-npx http-server -c-1 .
-# o
-python3 -m http.server 8000
+npm run build   # crea dist/assets-data.js y dist/game.js
 ```
-
-y abre `http://localhost:8080` (o el puerto que indique).
-
-También funciona tal cual en **GitHub Pages**: *Settings → Pages → Deploy from branch*.
 
 ## Controles
 

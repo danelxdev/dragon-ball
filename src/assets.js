@@ -13,13 +13,16 @@ function loadImage(src) {
 }
 
 export async function loadAssets() {
-  const res = await fetch('assets/manifest.json');
-  const m = await res.json();
+  // Si existe dist/assets-data.js (versión empaquetada), las imágenes van incrustadas y el
+  // juego funciona abriendo index.html con doble clic (file://), sin servidor.
+  const emb = typeof window !== 'undefined' && window.__DBS_ASSETS;
+  const m = emb ? emb.manifest : await (await fetch('assets/manifest.json')).json();
   assets.m = m;
   const jobs = [];
   for (const kind of Object.keys(m)) {
     for (const [key, v] of Object.entries(m[kind])) {
-      jobs.push(loadImage('assets/' + v.file).then((img) => (assets.img[kind + ':' + key] = img)));
+      const src = emb ? emb.images[v.file] : 'assets/' + v.file;
+      jobs.push(loadImage(src).then((img) => (assets.img[kind + ':' + key] = img)));
     }
   }
   await Promise.all(jobs);

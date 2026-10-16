@@ -717,7 +717,7 @@ show('<div class="zeni">Cargando...</div>', 'title-bg');
 loadAssets()
   .then(async () => {
     try {
-      credits = await (await fetch('assets/credits.json')).json();
+      credits = window.__DBS_ASSETS ? window.__DBS_ASSETS.credits : await (await fetch('assets/credits.json')).json();
     } catch {
       credits = {};
     }
