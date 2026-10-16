@@ -76,8 +76,17 @@ button {
 .hud-left, .hud-right { flex: 1; min-width: 0; }
 .hud-right { text-align: right; font-size: 16px; text-shadow: 2px 2px 0 #000; }
 .hud-center { text-align: center; }
-#timer { font-size: 26px; font-weight: 700; text-shadow: 2px 2px 0 #000; }
-.form { font-size: 13px; color: var(--gold); text-shadow: 1px 1px 0 #000; min-height: 16px; }
+.form { font-size: 13px; color: var(--gold); text-shadow: 1px 1px 0 #000; min-height: 16px; margin-top: 3px; }
+.who { display: flex; gap: 6px; align-items: flex-start; }
+.who-bars { flex: 1; min-width: 0; }
+.portrait {
+  width: 48px; height: 48px; image-rendering: pixelated; flex: none;
+  filter: drop-shadow(2px 2px 0 #000);
+}
+.portrait[src=""], .portrait:not([src]) { visibility: hidden; }
+.char .face { width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(3px 3px 0 #000); }
+.char .walk { width: 64px; height: 64px; margin-top: -6px; }
+.char.locked .face { filter: grayscale(1) brightness(0.35) drop-shadow(3px 3px 0 #000); }
 .hpbar {
   position: relative;
   width: min(220px, 100%);
@@ -181,7 +190,7 @@ button {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
 .char:hover, .char:focus-visible { border-color: var(--gold); outline: none; }
-.char canvas { width: 96px; height: 96px; image-rendering: pixelated; }
+.char canvas { image-rendering: pixelated; }
 .char .name { font-size: 18px; font-weight: 700; }
 .char .tech { font-size: 12px; color: var(--blue); }
 .char .desc { font-size: 12px; color: var(--muted); line-height: 1.25; }
@@ -222,5 +231,5 @@ button {
   .btn { padding: 6px 16px; font-size: 17px; }
   .panel { padding: 12px; }
   .card { min-height: 0; padding: 8px; }
-  #timer { font-size: 20px; }
+  .portrait { width: 36px; height: 36px; }
 }

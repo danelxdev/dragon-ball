@@ -12,6 +12,12 @@
    "fh": 32,
    "frames": 4
   },
+  "goku_ssj3": {
+   "file": "chars/goku_ssj3.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
   "gohan": {
    "file": "chars/gohan.png",
    "fw": 32,
@@ -20,6 +26,18 @@
   },
   "gohan_ssj": {
    "file": "chars/gohan_ssj.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "gohan_ult": {
+   "file": "chars/gohan_ult.png",
+   "fw": 32,
+   "fh": 32,
+   "frames": 4
+  },
+  "saiyaman": {
+   "file": "chars/saiyaman.png",
    "fw": 32,
    "fh": 32,
    "frames": 4
@@ -129,27 +147,8 @@
    "fw": 16,
    "fh": 16
   },
-  "masenko_boom": {
-   "file": "fx/masenko_boom.png",
-   "w": 128,
-   "h": 32,
-   "fw": 32,
-   "fh": 32
-  },
   "genkidama": {
    "file": "fx/genkidama.png",
-   "w": 32,
-   "h": 32
-  },
-  "genki_hit": {
-   "file": "fx/genki_hit.png",
-   "w": 128,
-   "h": 32,
-   "fw": 32,
-   "fh": 32
-  },
-  "bigbang": {
-   "file": "fx/bigbang.png",
    "w": 32,
    "h": 32
   },
@@ -191,11 +190,6 @@
    "fw": 16,
    "fh": 8
   },
-  "rocket": {
-   "file": "fx/rocket.png",
-   "w": 22,
-   "h": 8
-  },
   "shadow": {
    "file": "fx/shadow.png",
    "w": 10,
@@ -205,69 +199,202 @@
    "file": "fx/shadowbig.png",
    "w": 24,
    "h": 10
+  },
+  "rocket": {
+   "file": "fx/rocket.png",
+   "w": 22,
+   "h": 8
   }
  },
  "tiles": {
-  "grass": {
-   "file": "tiles/grass.png",
-   "w": 128,
-   "h": 64
+  "earth": {
+   "file": "tiles/earth.png",
+   "w": 256,
+   "h": 256
   },
-  "field": {
-   "file": "tiles/field.png",
-   "w": 64,
-   "h": 72
+  "namek": {
+   "file": "tiles/namek.png",
+   "w": 256,
+   "h": 256
   },
-  "sand": {
-   "file": "tiles/sand.png",
-   "w": 64,
-   "h": 64
-  },
-  "buu": {
-   "file": "tiles/buu.png",
-   "w": 64,
-   "h": 64
+  "namekd": {
+   "file": "tiles/namekd.png",
+   "w": 256,
+   "h": 256
   }
  },
  "decor": {
-  "tree": {
-   "file": "decor/tree.png",
-   "w": 240,
-   "h": 184,
-   "fw": 80,
-   "fh": 92
+  "pine": {
+   "file": "decor/pine.png",
+   "w": 48,
+   "h": 84
   },
-  "stone_big": {
-   "file": "decor/stone_big.png",
-   "w": 30,
-   "h": 31
+  "pine2": {
+   "file": "decor/pine2.png",
+   "w": 56,
+   "h": 76
   },
-  "stone_med": {
-   "file": "decor/stone_med.png",
-   "w": 24,
-   "h": 26
+  "spire": {
+   "file": "decor/spire.png",
+   "w": 60,
+   "h": 98
   },
-  "stone_small": {
-   "file": "decor/stone_small.png",
-   "w": 21,
-   "h": 20
+  "spire2": {
+   "file": "decor/spire2.png",
+   "w": 62,
+   "h": 98
   },
-  "mesa": {
-   "file": "decor/mesa.png",
-   "w": 96,
+  "stump": {
+   "file": "decor/stump.png",
+   "w": 44,
+   "h": 66
+  },
+  "stump2": {
+   "file": "decor/stump2.png",
+   "w": 36,
+   "h": 66
+  },
+  "stumps": {
+   "file": "decor/stumps.png",
+   "w": 52,
+   "h": 70
+  },
+  "pillar": {
+   "file": "decor/pillar.png",
+   "w": 18,
+   "h": 75
+  },
+  "boulder": {
+   "file": "decor/boulder.png",
+   "w": 70,
+   "h": 69
+  },
+  "rock": {
+   "file": "decor/rock.png",
+   "w": 32,
+   "h": 24
+  },
+  "rock2": {
+   "file": "decor/rock2.png",
+   "w": 32,
+   "h": 24
+  },
+  "dirt": {
+   "file": "decor/dirt.png",
+   "w": 56,
+   "h": 56
+  },
+  "dirt2": {
+   "file": "decor/dirt2.png",
+   "w": 52,
+   "h": 54
+  },
+  "dirt3": {
+   "file": "decor/dirt3.png",
+   "w": 102,
+   "h": 85
+  },
+  "volcano": {
+   "file": "decor/volcano.png",
+   "w": 380,
+   "h": 184
+  },
+  "nrock": {
+   "file": "decor/nrock.png",
+   "w": 23,
+   "h": 14
+  },
+  "nrock2": {
+   "file": "decor/nrock2.png",
+   "w": 23,
+   "h": 21
+  },
+  "sand": {
+   "file": "decor/sand.png",
+   "w": 80,
+   "h": 74
+  },
+  "nplant": {
+   "file": "decor/nplant.png",
+   "w": 16,
+   "h": 14
+  },
+  "lavavolcano": {
+   "file": "decor/lavavolcano.png",
+   "w": 379,
+   "h": 131
+  },
+  "drock": {
+   "file": "decor/drock.png",
+   "w": 23,
+   "h": 14
+  },
+  "drock2": {
+   "file": "decor/drock2.png",
+   "w": 17,
+   "h": 21
+  },
+  "ntree": {
+   "file": "decor/ntree.png",
+   "w": 32,
+   "h": 86
+  },
+  "ntree2": {
+   "file": "decor/ntree2.png",
+   "w": 29,
    "h": 88
   },
-  "bush": {
-   "file": "decor/bush.png",
-   "w": 80,
-   "h": 57
+  "dtree": {
+   "file": "decor/dtree.png",
+   "w": 24,
+   "h": 88
   }
  },
  "items": {
+  "db1": {
+   "file": "items/db1.png",
+   "w": 15,
+   "h": 15
+  },
+  "db2": {
+   "file": "items/db2.png",
+   "w": 15,
+   "h": 15
+  },
+  "db3": {
+   "file": "items/db3.png",
+   "w": 15,
+   "h": 15
+  },
+  "db4": {
+   "file": "items/db4.png",
+   "w": 15,
+   "h": 15
+  },
+  "db5": {
+   "file": "items/db5.png",
+   "w": 15,
+   "h": 15
+  },
+  "db6": {
+   "file": "items/db6.png",
+   "w": 15,
+   "h": 15
+  },
+  "db7": {
+   "file": "items/db7.png",
+   "w": 15,
+   "h": 15
+  },
   "senzu": {
    "file": "items/senzu.png",
    "w": 10,
    "h": 10
+  },
+  "capsule": {
+   "file": "items/capsule.png",
+   "w": 8,
+   "h": 16
   },
   "zeni": {
    "file": "items/zeni.png",
@@ -275,16 +402,77 @@
    "h": 8,
    "fw": 8,
    "fh": 8
+  }
+ },
+ "ui": {
+  "p_goku": {
+   "file": "ui/p_goku.png",
+   "w": 64,
+   "h": 64
   },
-  "chest": {
-   "file": "items/chest.png",
-   "w": 32,
-   "h": 28
+  "p_goku_ssj": {
+   "file": "ui/p_goku_ssj.png",
+   "w": 64,
+   "h": 64
   },
-  "dragonball": {
-   "file": "items/dragonball.png",
-   "w": 14,
-   "h": 14
+  "p_goku_ssj3": {
+   "file": "ui/p_goku_ssj3.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_gohan": {
+   "file": "ui/p_gohan.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_gohan_ssj": {
+   "file": "ui/p_gohan_ssj.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_saiyaman": {
+   "file": "ui/p_saiyaman.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_gohan_ult": {
+   "file": "ui/p_gohan_ult.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_vegeta": {
+   "file": "ui/p_vegeta.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_vegeta_ssj": {
+   "file": "ui/p_vegeta_ssj.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_goten": {
+   "file": "ui/p_goten.png",
+   "w": 64,
+   "h": 64
+  },
+  "p_goten_ssj": {
+   "file": "ui/p_goten_ssj.png",
+   "w": 64,
+   "h": 64
+  },
+  "dmg": {
+   "file": "ui/dmg.png",
+   "w": 60,
+   "h": 8,
+   "fw": 6,
+   "fh": 8
+  },
+  "timer": {
+   "file": "ui/timer.png",
+   "w": 121,
+   "h": 15,
+   "fw": 11,
+   "fh": 15
   }
  }
 }

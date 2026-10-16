@@ -1,7 +1,7 @@
 import {
   WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_WEAPONS, MAX_PASSIVES, BIOMES,
 } from './data.js';
-import { img, meta, recolor, drawChar, drawStrip } from './assets.js';
+import { img, meta, recolor, drawChar, drawStrip, drawNumber } from './assets.js';
 import { sfx } from './audio.js';
 
 function rng(seed) {
@@ -382,7 +382,7 @@ export class Game {
       hp: def.hp * hpScale * (elite ? 14 : 1), speed: def.speed * (elite ? 0.85 : 1) * rand(0.9, 1.1),
       dmg: def.dmg * (1 + this.t / 600) * (elite ? 1.5 : 1), xp: def.xp * (elite ? 10 : 1),
       vx: 0, vy: 0, flash: 0, stun: 0, face: 1, dir: 0, walkT: Math.random(), elite, boss: false,
-      scale: elite ? 2 : 1, dead: false, orbCd: 0, sprite: def.sprite,
+      scale: 1, dead: false, orbCd: 0, sprite: def.sprite,
       shot: def.ranged ? rand(0.5, def.ranged.cd) : 0,
     };
     e.maxHp = e.hp;
@@ -1024,10 +1024,10 @@ export class Game {
           const w = pick(ups);
           w.level++;
           if (w.def.kind === 'orbit') this.rebuildOrbs();
-          this.ui.toast(`Cofre: ${w.def.name} sube a nivel ${w.level}`);
+          this.ui.toast(`Cápsula Corp: ${w.def.name} sube a nivel ${w.level}`);
         } else {
           this.coins += 30;
-          this.ui.toast('Cofre: +30 Zeni');
+          this.ui.toast('Cápsula Corp: +30 Zeni');
         }
         sfx('level');
         break;
@@ -1183,11 +1183,16 @@ export class Game {
       ctx.globalAlpha = 1;
     }
 
-    // Objetos del suelo
+    // Decorado plano (parches de tierra, arena...) y objetos del suelo
+    const decor = this.visibleDecor(camX, camY);
+    for (const o of decor.flat) {
+      const im = img('decor', o.key);
+      ctx.drawImage(im, Math.round(o.x - im.width / 2), Math.round(o.y - im.height / 2));
+    }
     for (const k of this.pickups) this.drawPickup(ctx, k);
 
     // Decorado + entidades ordenados por Y
-    const list = this.visibleDecor(camX, camY);
+    const list = decor.items;
     for (const e of this.enemies) list.push({ y: e.y, e });
     list.push({ y: p.y, player: true });
     list.sort((a, b) => a.y - b.y);
@@ -1214,22 +1219,23 @@ export class Game {
     }
     ctx.globalAlpha = 1;
 
-    // Números de daño
-    ctx.font = '8px "Pixelify Sans", monospace';
-    ctx.textAlign = 'center';
-    ctx.lineWidth = 2;
+    // Números de daño (fuente de Legacy of Goku)
     for (const tx of this.texts) {
-      const y = Math.round(tx.y - tx.t * 20);
-      ctx.globalAlpha = 1 - tx.t / 0.7;
-      ctx.strokeStyle = '#1a1020';
-      ctx.strokeText(tx.v, Math.round(tx.x), y);
-      ctx.fillStyle = tx.heal ? '#7aff6a' : tx.crit ? '#ffcf3a' : '#ffffff';
-      ctx.fillText(tx.v, Math.round(tx.x), y);
+      const y = tx.y - tx.t * 22;
+      ctx.globalAlpha = Math.min(1, 2 - tx.t / 0.35);
+      const mode = tx.heal ? 'hue110' : tx.crit ? 'hue-25' : null;
+      drawNumber(ctx, 'dmg', String(tx.v).replace('+', ''), tx.x, y - 4, 'center', mode);
     }
     ctx.globalAlpha = 1;
     ctx.restore();
 
     this.drawIndicators(ctx, camX, camY);
+
+    // Cronómetro con los dígitos de Legacy of Goku
+    const tt = Math.min(this.t, WIN_TIME);
+    const mm = String(Math.floor(tt / 60)).padStart(2, '0');
+    const ss = String(Math.floor(tt % 60)).padStart(2, '0');
+    drawNumber(ctx, 'timer', mm + ':' + ss, W / 2, 18);
 
     if (this.flashScreen > 0) {
       ctx.fillStyle = '#ffffff';
@@ -1268,47 +1274,58 @@ export class Game {
     }
   }
 
-  // Decorado determinista por trozos de mapa (árboles, rocas, mesetas...).
+  // Decorado determinista por trozos de mapa (árboles, rocas, volcanes...).
   visibleDecor(camX, camY) {
-    const C = 140;
-    const out = [];
     const biome = BIOMES[this.biome];
-    const x0 = Math.floor((camX - 100) / C);
-    const x1 = Math.floor((camX + this.W + 100) / C);
-    const y0 = Math.floor((camY - 40) / C);
-    const y1 = Math.floor((camY + this.H + 140) / C);
-    for (let cx = x0; cx <= x1; cx++) {
-      for (let cy = y0; cy <= y1; cy++) {
-        const r = rng((cx * 92837111) ^ (cy * 689287499) ^ (this.biome * 1000003));
-        const n = r() < 0.6 ? 1 : r() < 0.3 ? 2 : 0;
-        for (let i = 0; i < n; i++) {
-          const key = biome.decor[(r() * biome.decor.length) | 0];
-          const x = cx * C + r() * C;
-          const y = cy * C + r() * C;
-          const frame = (r() * 6) | 0;
-          // deja libre la zona de inicio
-          if (Math.abs(x) < 50 && Math.abs(y) < 50) continue;
-          out.push({ y, x, key, frame });
-        }
+    const out = { flat: [], items: [] };
+    const pickW = (list, r) => {
+      let total = 0;
+      for (const [, w] of list) total += w;
+      let v = r() * total;
+      for (const [k, w] of list) if ((v -= w) <= 0) return k;
+      return list[0][0];
+    };
+    const scan = (C, margin, fn) => {
+      const x0 = Math.floor((camX - margin) / C);
+      const x1 = Math.floor((camX + this.W + margin) / C);
+      const y0 = Math.floor((camY - margin) / C);
+      const y1 = Math.floor((camY + this.H + margin) / C);
+      for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) fn(cx, cy, rng((cx * 92837111) ^ (cy * 689287499) ^ (this.biome * 1000003) ^ C));
+    };
+    const clearStart = (x, y, R) => Math.hypot(x, y) < R;
+    scan(120, 120, (cx, cy, r) => {
+      const n = r() < 0.45 ? 1 : r() < 0.25 ? 2 : 0;
+      for (let i = 0; i < n; i++) {
+        const key = pickW(biome.decor, r);
+        const x = cx * 120 + r() * 120;
+        const y = cy * 120 + r() * 120;
+        if (!clearStart(x, y, 60)) out.items.push({ y, x, key });
       }
+    });
+    if (biome.flat.length) {
+      scan(200, 120, (cx, cy, r) => {
+        if (r() < 0.5) {
+          const x = cx * 200 + r() * 200;
+          const y = cy * 200 + r() * 200;
+          out.flat.push({ x, y, key: pickW(biome.flat, r) });
+        }
+      });
+    }
+    if (biome.big.length) {
+      scan(700, 400, (cx, cy, r) => {
+        if (r() < 0.45) {
+          const x = cx * 700 + 150 + r() * 400;
+          const y = cy * 700 + 150 + r() * 400;
+          if (!clearStart(x, y, 300)) out.items.push({ x, y, key: pickW(biome.big, r) });
+        }
+      });
     }
     return out;
   }
 
   drawDecorItem(ctx, o) {
-    const m = meta('decor', o.key);
     const im = img('decor', o.key);
-    const fw = m.fw || m.w;
-    const fh = m.fh || m.h;
-    const x = Math.round(o.x - fw / 2);
-    const y = Math.round(o.y - fh);
-    if (m.fw) {
-      const cols = Math.floor(im.width / fw);
-      const f = o.frame % (cols * Math.floor(im.height / fh));
-      ctx.drawImage(im, (f % cols) * fw, Math.floor(f / cols) * fh, fw, fh, x, y, fw, fh);
-    } else {
-      ctx.drawImage(im, x, y);
-    }
+    ctx.drawImage(im, Math.round(o.x - im.width / 2), Math.round(o.y - im.height));
   }
 
   drawShadow(ctx, x, y, big) {
@@ -1373,7 +1390,7 @@ export class Game {
     const h = m.fh * s;
     const frame = e.stun > 0 ? 0 : Math.floor(e.walkT * 7);
     this.drawShadow(ctx, e.x, e.y, s > 1 || m.fw > 32);
-    if (e.elite || e.boss) {
+    if (e.boss) {
       ctx.globalAlpha = 0.22 + Math.sin(this.t * 6) * 0.08;
       ctx.fillStyle = e.boss ? e.def.color : '#ffcf3a';
       ctx.beginPath();
@@ -1381,10 +1398,13 @@ export class Game {
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-    let mode = null;
-    if (e.flash > 0) mode = 'white';
-    else if (e.elite) mode = 'gold';
-    drawChar(ctx, e.sprite, e.dir, frame, e.x, e.y + 2 * s, s, mode);
+    if (e.elite && e.flash <= 0) {
+      // Contorno dorado para las élites
+      for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        drawChar(ctx, e.sprite, e.dir, frame, e.x + ox, e.y + 2 * s + oy, s, 'silffd040');
+      }
+    }
+    drawChar(ctx, e.sprite, e.dir, frame, e.x, e.y + 2 * s, s, e.flash > 0 ? 'white' : null);
     const top = Math.round(e.y - h * 0.85);
     if (e.stun > 0) {
       ctx.fillStyle = '#ffff9a';
@@ -1406,36 +1426,27 @@ export class Game {
   drawPickup(ctx, k) {
     const bob = Math.round(Math.sin(this.t * 4 + k.x) * 1.5);
     if (k.type === 'xp') {
+      // Esferas de ki: azul, verde o roja según su valor
       const v = k.value;
-      const c = v >= 20 ? '#ff4a6a' : v >= 5 ? '#5cff7a' : '#5ac8ff';
-      const r = v >= 20 ? 3 : v >= 5 ? 2.5 : 2;
-      ctx.fillStyle = c;
-      ctx.globalAlpha = 0.35;
-      ctx.beginPath();
-      ctx.arc(k.x, k.y + bob, r + 2, 0, TAU);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(k.x, k.y + bob, r, 0, TAU);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(Math.round(k.x - 1), Math.round(k.y + bob - 1), 1, 1);
+      const [f, mode, s] = v >= 20 ? [2, 'hue-60', 12] : v >= 5 ? [1, 'hue100', 10] : [0, 'hue170', 10];
+      drawStrip(ctx, 'fx', 'masenko', f, Math.round(k.x - s / 2), Math.round(k.y - s / 2 + bob), s, s, 16, 16, 0, mode);
       return;
     }
     if (k.type === 'zeni') {
       drawStrip(ctx, 'items', 'zeni', Math.floor(this.t * 8 + k.x), Math.round(k.x - 4), Math.round(k.y - 4 + bob), 8, 8);
       return;
     }
-    const key = k.type === 'capsule' ? 'chest' : k.type;
+    const key = k.type === 'dragonball' ? 'db' + Math.min(7, Math.max(1, k.stars || 1)) : k.type;
     const im = img('items', key);
-    if (k.type === 'dragonball') {
-      ctx.globalAlpha = 0.3 + Math.sin(this.t * 5) * 0.15;
-      ctx.fillStyle = '#ffa31a';
+    if (k.type === 'dragonball' || k.type === 'capsule') {
+      ctx.globalAlpha = 0.25 + Math.sin(this.t * 5) * 0.12;
+      ctx.fillStyle = k.type === 'dragonball' ? '#ffa31a' : '#9fd8ff';
       ctx.beginPath();
-      ctx.arc(k.x, k.y + bob, 11, 0, TAU);
+      ctx.arc(k.x, k.y + bob, 10, 0, TAU);
       ctx.fill();
       ctx.globalAlpha = 1;
     }
+    this.drawShadow(ctx, k.x, k.y + 7);
     ctx.drawImage(im, Math.round(k.x - im.width / 2), Math.round(k.y - im.height / 2 + bob));
   }
 

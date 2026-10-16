@@ -55,6 +55,11 @@ export function recolor(kind, key, mode) {
       d[i] = r;
       d[i + 1] = g;
       d[i + 2] = b;
+    } else if (mode.startsWith('sil')) {
+      const hex = mode.slice(3);
+      d[i] = parseInt(hex.slice(0, 2), 16);
+      d[i + 1] = parseInt(hex.slice(2, 4), 16);
+      d[i + 2] = parseInt(hex.slice(4, 6), 16);
     } else if (mode === 'gold') {
       const l = (d[i] + d[i + 1] + d[i + 2]) / 3;
       d[i] = Math.min(255, l * 1.3 + 40);
@@ -118,4 +123,19 @@ export function drawStrip(ctx, kind, key, i, x, y, w, h, fw, fh, row = 0, mode =
   const fH = fh || m.fh || m.h;
   const n = Math.max(1, Math.floor(src.width / fW));
   ctx.drawImage(src, (i % n) * fW, row * fH, fW, fH, x, y, w, h);
+}
+
+// Escribe un número con una fuente de dígitos en tira (ui:dmg, ui:timer). ':' es el índice 10.
+export function drawNumber(ctx, key, text, x, y, align = 'center', mode = null) {
+  const m = meta('ui', key);
+  const src = mode ? recolor('ui', key, mode) : img('ui', key);
+  const str = String(text);
+  const adv = m.fw - (key === 'dmg' ? 1 : 0);
+  const w = str.length * adv;
+  let cx = Math.round(align === 'center' ? x - w / 2 : align === 'right' ? x - w : x);
+  for (const ch of str) {
+    const i = ch === ':' ? 10 : ch.charCodeAt(0) - 48;
+    if (i >= 0 && i <= 10) ctx.drawImage(src, i * m.fw, 0, m.fw, m.fh, cx, Math.round(y), m.fw, m.fh);
+    cx += adv;
+  }
 }

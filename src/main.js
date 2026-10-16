@@ -1,4 +1,4 @@
-import { CHARACTERS, WEAPONS, PASSIVES, META, WIN_TIME } from './data.js';
+import { CHARACTERS, WEAPONS, PASSIVES, META } from './data.js';
 import { Game } from './game.js';
 import { Input } from './input.js';
 import { loadAssets, drawChar } from './assets.js';
@@ -166,7 +166,8 @@ function updateHud(g, force) {
   hudT = 6;
   $('hptext').textContent = Math.ceil(p.hp) + ' / ' + Math.round(p.maxHp);
   $('lvl').textContent = 'Nv ' + g.level;
-  $('timer').textContent = fmt(Math.min(g.t, WIN_TIME));
+  const face = 'assets/ui/p_' + ((g.form && g.form.portrait) || g.char.portrait) + '.png';
+  if (!$('portrait').src.endsWith(face)) $('portrait').src = face;
   $('kills').textContent = '☠ ' + g.kills;
   $('coins').textContent = 'Ƶ ' + g.coins;
   $('form').textContent = g.form ? g.form.name : '';
@@ -274,7 +275,13 @@ document.addEventListener('visibilitychange', () => {
 // Pantallas de menú
 // ---------------------------------------------------------------------------
 function charPreview(c) {
+  const wrap = document.createElement('div');
+  const face = document.createElement('img');
+  face.className = 'face';
+  face.src = 'assets/ui/p_' + c.portrait + '.png';
+  face.alt = c.name;
   const cv = document.createElement('canvas');
+  cv.className = 'walk';
   cv.width = 32;
   cv.height = 32;
   const ctx = cv.getContext('2d');
@@ -287,7 +294,11 @@ function charPreview(c) {
     setTimeout(draw, 16);
   };
   draw();
-  return cv;
+  wrap.append(face, cv);
+  wrap.style.display = 'flex';
+  wrap.style.flexDirection = 'column';
+  wrap.style.alignItems = 'center';
+  return wrap;
 }
 
 function titleScreen() {
@@ -402,7 +413,7 @@ function helpScreen() {
     <p><b>Transfórmate:</b> a los niveles 10, 20 y 30 tu guerrero alcanza nuevas formas, como el Super Saiyajin.</p>
     <p><b>Bolas de Dragón:</b> el radar marca dónde están. Los jefes también las sueltan. Reúne las 7 para pedirle un deseo a Shenlong.</p>
     <p><b>Jefes:</b> Pui Pui, los Androides 17 y 18, Freezer, Cell y Majin Buu. Aguanta 15 minutos para salvar la Tierra.</p>
-    <p>Los enemigos de élite sueltan <b>cofres</b> que mejoran una técnica, y a veces caen <b>Semillas del Ermitaño</b>. Con el <b>Zeni</b> compras mejoras permanentes y desbloqueas a Goten.</p>
+    <p>Los enemigos de élite sueltan <b>cofres</b> que mejoran una técnica, y a veces caen <b>Semillas del Ermitaño</b>. Con el <b>Zeni</b> compras mejoras permanentes y desbloqueas a Goten y al Gran Saiyaman.</p>
     <div class="row"><button class="btn alt small" id="back">Volver</button></div>
   </div>`, 'title-bg');
   $('back').addEventListener('click', titleScreen);

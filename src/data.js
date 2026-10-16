@@ -3,46 +3,54 @@
 
 export const CHARACTERS = [
   {
-    id: 'goku', name: 'Goku', cost: 0, weapon: 'kamehameha', sprite: 'goku',
+    id: 'goku', name: 'Goku', cost: 0, weapon: 'kamehameha', sprite: 'goku', portrait: 'goku',
     desc: 'Saiyajin criado en la Tierra. Equilibrado en todo.',
     stats: { hp: 100, speed: 1, might: 1 },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'goku_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'goku_ssj', aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 },
-      { lvl: 30, name: 'Super Saiyajin 3', sprite: 'goku_ssj', aura: '#ffd000', sparks: true, big: true, might: 0.9, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'goku_ssj', portrait: 'goku_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'goku_ssj', portrait: 'goku_ssj', aura: '#fff07a', sparks: true, might: 0.5, speed: 0.12 },
+      { lvl: 30, name: 'Super Saiyajin 3', sprite: 'goku_ssj3', portrait: 'goku_ssj3', aura: '#ffd000', sparks: true, big: true, might: 0.9, speed: 0.15 },
     ],
   },
   {
-    id: 'vegeta', name: 'Vegeta', cost: 0, weapon: 'galick', sprite: 'vegeta',
+    id: 'vegeta', name: 'Vegeta', cost: 0, weapon: 'galick', sprite: 'vegeta', portrait: 'vegeta',
     desc: 'El príncipe de los Saiyajin. Más daño, menos vida.',
     stats: { hp: 85, speed: 1, might: 1.15 },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'vegeta_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Vegeta', sprite: 'vegeta_ssj', aura: '#ffd84a', might: 0.5, speed: 0.1 },
-      { lvl: 30, name: 'Majin Vegeta', sprite: 'vegeta_ssj', aura: '#ffe14a', sparks: true, big: true, might: 0.95, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Vegeta', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffd84a', might: 0.5, speed: 0.1 },
+      { lvl: 30, name: 'Majin Vegeta', sprite: 'vegeta_ssj', portrait: 'vegeta_ssj', aura: '#ffe14a', sparks: true, big: true, might: 0.95, speed: 0.15 },
     ],
   },
   {
-    id: 'gohan', name: 'Gohan', cost: 0, weapon: 'masenko', sprite: 'gohan',
+    id: 'gohan', name: 'Gohan', cost: 0, weapon: 'masenko', sprite: 'gohan', portrait: 'gohan',
     desc: 'Poder oculto inmenso. Recibe más experiencia.',
     stats: { hp: 95, speed: 1.03, might: 1, growth: 0.1 },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'gohan_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
-      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'gohan_ssj', aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 },
-      { lvl: 30, name: 'Gohan Definitivo', sprite: 'gohan', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'gohan_ssj', portrait: 'gohan_ssj', aura: '#ffe14a', might: 0.25, speed: 0.08 },
+      { lvl: 20, name: 'Super Saiyajin 2', sprite: 'gohan_ssj', portrait: 'gohan_ssj', aura: '#fff07a', sparks: true, might: 0.55, speed: 0.12 },
+      { lvl: 30, name: 'Gohan Definitivo', sprite: 'gohan_ult', portrait: 'gohan_ult', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
     ],
   },
   {
-    id: 'goten', name: 'Goten', cost: 400, weapon: 'kiblast', sprite: 'goten',
+    id: 'goten', name: 'Goten', cost: 400, weapon: 'kiblast', sprite: 'goten', portrait: 'goten',
     desc: 'El hijo pequeño de Goku. Rápido y con más imán.',
     stats: { hp: 90, speed: 1.1, might: 1, magnet: 0.3 },
     forms: [
-      { lvl: 10, name: 'Super Saiyajin', sprite: 'goten_ssj', aura: '#ffe14a', might: 0.3, speed: 0.1 },
-      { lvl: 20, name: 'Super Saiyajin al máximo', sprite: 'goten_ssj', aura: '#fff07a', sparks: true, might: 0.65, speed: 0.15 },
+      { lvl: 10, name: 'Super Saiyajin', sprite: 'goten_ssj', portrait: 'goten_ssj', aura: '#ffe14a', might: 0.3, speed: 0.1 },
+      { lvl: 20, name: 'Super Saiyajin al máximo', sprite: 'goten_ssj', portrait: 'goten_ssj', aura: '#fff07a', sparks: true, might: 0.65, speed: 0.15 },
+    ],
+  },
+  {
+    id: 'saiyaman', name: 'Gran Saiyaman', cost: 800, weapon: 'bakuhatsuha', sprite: 'saiyaman', portrait: 'saiyaman',
+    desc: '¡El héroe de la justicia! Mucha vida y daño desde el principio.',
+    stats: { hp: 120, speed: 1.05, might: 1.2, regen: 0.3 },
+    forms: [
+      { lvl: 15, name: '¡Justicia implacable!', sprite: 'saiyaman', portrait: 'saiyaman', aura: '#ff6a6a', might: 0.4, speed: 0.1 },
+      { lvl: 30, name: 'Poder definitivo', sprite: 'gohan_ult', portrait: 'gohan_ult', aura: '#ffffff', big: true, might: 1.0, speed: 0.15 },
     ],
   },
 ];
-
 
 // ---------------------------------------------------------------------------
 // Técnicas (armas). Cada nivel tiene sus estadísticas completas.
@@ -262,11 +270,28 @@ export const BOSS_SCHEDULE = [
   { t: 810, id: 'buu' },
 ];
 
-// Zonas: el suelo cambia con el tiempo.
+// Zonas: el suelo cambia con el tiempo. `decor` son pares [id, peso];
+// `flat` se dibuja pegado al suelo y `big` son piezas enormes poco frecuentes.
 export const BIOMES = [
-  { t: 0, name: 'Llanuras de la Tierra', tile: 'grass', decor: ['tree', 'tree', 'bush', 'stone_big', 'stone_med', 'stone_small'] },
-  { t: 300, name: 'Desierto rocoso', tile: 'sand', decor: ['mesa', 'stone_big', 'stone_med', 'stone_small', 'stone_small'] },
-  { t: 600, name: 'Interior de Majin Buu', tile: 'buu', decor: ['stone_big', 'stone_med', 'stone_small'] },
+  {
+    t: 0, name: 'Monte Paoz', tile: 'earth',
+    decor: [['pine', 5], ['pine2', 5], ['spire', 1], ['spire2', 1], ['stump', 1], ['stump2', 1], ['stumps', 1],
+      ['pillar', 2], ['boulder', 1], ['rock', 3], ['rock2', 3]],
+    flat: [['dirt', 3], ['dirt2', 3], ['dirt3', 1]],
+    big: [],
+  },
+  {
+    t: 300, name: 'Planeta Namek', tile: 'namek',
+    decor: [['ntree', 5], ['ntree2', 5], ['nrock', 3], ['nrock2', 3], ['nplant', 3]],
+    flat: [['sand', 2]],
+    big: [['volcano', 1]],
+  },
+  {
+    t: 600, name: 'Namek en destrucción', tile: 'namekd',
+    decor: [['dtree', 5], ['drock', 4], ['drock2', 4]],
+    flat: [],
+    big: [['lavavolcano', 1]],
+  },
 ];
 
 export const HORDES = [180, 360, 540, 720];
