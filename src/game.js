@@ -1,8 +1,10 @@
 import {
   WEAPONS, PASSIVES, ENEMIES, BOSSES, WAVES, BOSS_SCHEDULE, HORDES, WIN_TIME, MAX_PASSIVES, BIOMES,
-  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES, MAX_SLOTS, BOND_MAX, ULTS,
+  RARITY, ITEMS, EVOLUTIONS, COMMON_WEAPONS, ELITES, MAX_SLOTS, BOND_MAX, ULTS, DECOR_GRADE,
 } from './data.js';
-import { img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard } from './assets.js';
+import {
+  img, meta, recolor, drawHero, drawShinyOutline, heroSize, drawStrip, drawNumber, heroCard, graded, gradeColor,
+} from './assets.js';
 import { sfx } from './audio.js';
 
 function rng(seed) {
@@ -67,6 +69,104 @@ class Grid {
   }
 }
 
+// Capa de detalle del suelo (640x640, se repite desfasada con las baldosas de 256): manchas de luz y
+// sombra suaves, matas de hierba, flores, piedrecitas, grietas y brasas según la zona.
+const detailCache = {};
+export function groundDetail(b) {
+  if (detailCache[b.tile]) return detailCache[b.tile];
+  const S = 640;
+  const c = document.createElement('canvas');
+  c.width = S;
+  c.height = S;
+  const ctx = c.getContext('2d');
+  const r = rng(b.tile.length * 7919 + 17);
+  const [br, bg, bb] = gradeColor(b.base[0], b.base[1], b.base[2], b.grade);
+  const shade = (k, a = 1) => `rgba(${Math.round(br * k)},${Math.round(bg * k)},${Math.round(bb * k)},${a})`;
+  const d = b.detail;
+  // manchas grandes (se dibujan 9 veces desplazadas para que encajen al repetirse)
+  const wrap = (fn) => {
+    for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) fn(ox, oy);
+  };
+  for (let i = 0; i < 26; i++) {
+    const x = r() * S;
+    const y = r() * S;
+    const R = 50 + r() * 110;
+    const dark = r() < 0.55;
+    wrap((ox, oy) => {
+      const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, R);
+      g.addColorStop(0, dark ? 'rgba(10,20,10,0.13)' : 'rgba(255,250,220,0.07)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x + ox - R, y + oy - R, R * 2, R * 2);
+    });
+  }
+  const px = (x, y, col) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(((Math.round(x) % S) + S) % S, ((Math.round(y) % S) + S) % S, 1, 1);
+  };
+  // matas de hierba: 3-5 hojas, oscuras abajo y claras en la punta
+  for (let i = 0; i < (d.tufts || 0); i++) {
+    const x = r() * S;
+    const y = r() * S;
+    const n = 3 + Math.floor(r() * 3);
+    for (let k = 0; k < n; k++) {
+      const bx = x + (k - n / 2) * 1.5 + (r() - 0.5);
+      const h = 2 + Math.floor(r() * 3);
+      const lean = r() < 0.5 ? -1 : 1;
+      for (let j = 0; j < h; j++) px(bx + (j === h - 1 && k !== Math.floor(n / 2) ? lean : 0), y - j, j === h - 1 ? shade(1.3) : shade(0.68));
+    }
+  }
+  // flores
+  const fcols = ['#f4efd6', '#f2d06a', '#e8879e', '#b9a6f0'];
+  for (let i = 0; i < (d.flowers || 0); i++) {
+    const x = r() * S;
+    const y = r() * S;
+    const col = fcols[Math.floor(r() * fcols.length)];
+    px(x - 1, y, col);
+    px(x + 1, y, col);
+    px(x, y - 1, col);
+    px(x, y + 1, col);
+    px(x, y, '#ffe36a');
+    px(x, y + 2, shade(0.6));
+  }
+  // piedrecitas
+  for (let i = 0; i < (d.stones || 0); i++) {
+    const x = r() * S;
+    const y = r() * S;
+    const big = r() < 0.4;
+    px(x, y, shade(1.25));
+    px(x + 1, y, shade(1.1));
+    if (big) {
+      px(x, y + 1, shade(0.9));
+      px(x + 1, y + 1, shade(0.75));
+      px(x + 2, y + 1, shade(0.7));
+    } else px(x + 1, y + 1, shade(0.7));
+  }
+  // grietas (Namek en destrucción)
+  for (let i = 0; i < (d.cracks || 0); i++) {
+    let x = r() * S;
+    let y = r() * S;
+    let a = r() * Math.PI * 2;
+    const len = 10 + r() * 30;
+    for (let j = 0; j < len; j++) {
+      px(x, y, shade(0.5));
+      if (r() < 0.3) px(x + 1, y, shade(0.62));
+      a += (r() - 0.5) * 0.9;
+      x += Math.cos(a);
+      y += Math.sin(a);
+    }
+  }
+  // brasas
+  for (let i = 0; i < (d.embers || 0); i++) {
+    const x = r() * S;
+    const y = r() * S;
+    px(x, y, r() < 0.5 ? '#ff7a3a' : '#ffb84a');
+    if (r() < 0.4) px(x + 1, y, '#c0401a');
+  }
+  detailCache[b.tile] = c;
+  return c;
+}
+
 function distToSegment(px, py, x1, y1, x2, y2) {
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -100,7 +200,11 @@ export class Game {
     this.scale = 1;
 
     this.grounds = {};
-    for (const b of BIOMES) this.grounds[b.tile] = this.ctx.createPattern(img('tiles', b.tile), 'repeat');
+    this.details = {};
+    for (const b of BIOMES) {
+      this.grounds[b.tile] = this.ctx.createPattern(graded('tiles', b.tile, b.grade), 'repeat');
+      this.details[b.tile] = this.ctx.createPattern(groundDetail(b), 'repeat');
+    }
     this.biome = 0;
     this.grid = new Grid(32);
     this.tmp = [];
@@ -1693,6 +1797,8 @@ export class Game {
     // Suelo de la zona actual
     ctx.fillStyle = this.grounds[BIOMES[this.biome].tile];
     ctx.fillRect(camX, camY, W, H);
+    ctx.fillStyle = this.details[BIOMES[this.biome].tile];
+    ctx.fillRect(camX, camY, W, H);
 
     // Aura de ki (técnica): llamas de energía en círculo
     const auraW = this.activeSlot && this.activeSlot.ws.find((w) => w.def.kind === 'aura');
@@ -1701,7 +1807,7 @@ export class Game {
     // Decorado plano (parches de tierra, arena...) y objetos del suelo
     const decor = this.visibleDecor(camX, camY);
     for (const o of decor.flat) {
-      const im = img('decor', o.key);
+      const im = graded('decor', o.key, DECOR_GRADE);
       ctx.drawImage(im, Math.round(o.x - im.width / 2), Math.round(o.y - im.height / 2));
     }
     for (const k of this.pickups) this.drawPickup(ctx, k);
@@ -1845,7 +1951,7 @@ export class Game {
   }
 
   drawDecorItem(ctx, o) {
-    const im = img('decor', o.key);
+    const im = graded('decor', o.key, DECOR_GRADE);
     ctx.drawImage(im, Math.round(o.x - im.width / 2), Math.round(o.y - im.height));
   }
 

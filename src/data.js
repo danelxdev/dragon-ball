@@ -707,24 +707,31 @@ export const BOSS_SCHEDULE = [
   { t: 810, id: 'broly' },
 ];
 
-// Zonas: el suelo cambia con el tiempo. `decor` son pares [id, peso];
+// Gradación del decorado de Legacy of Goku (menos saturado, como el suelo).
+export const DECOR_GRADE = { sat: 0.72, light: 0.95, contrast: 1.05 };
+
+// Zonas: el suelo cambia con el tiempo. `grade` corrige el color del suelo de GBA y `detail` añade
+// matas de hierba, flores, piedras y grietas por encima para que no se vea plano. `decor` son pares [id, peso];
 // `flat` se dibuja pegado al suelo y `big` son piezas enormes poco frecuentes.
 export const BIOMES = [
   {
-    t: 0, name: 'Monte Paoz', tile: 'earth',
+    t: 0, name: 'Monte Paoz', tile: 'earth', base: [88, 208, 16],
+    grade: { hue: 6, sat: 0.56, light: 0.88, contrast: 1.1 }, detail: { tufts: 320, flowers: 70, stones: 40 },
     decor: [['pine', 5], ['pine2', 5], ['spire', 1], ['spire2', 1], ['stump', 1], ['stump2', 1], ['stumps', 1],
       ['pillar', 2], ['boulder', 1], ['rock', 3], ['rock2', 3]],
     flat: [['dirt', 3], ['dirt2', 3], ['dirt3', 1]],
     big: [],
   },
   {
-    t: 300, name: 'Planeta Namek', tile: 'namek',
+    t: 300, name: 'Planeta Namek', tile: 'namek', base: [88, 192, 248],
+    grade: { hue: -24, sat: 0.5, light: 0.82, contrast: 1.1 }, detail: { tufts: 260, flowers: 0, stones: 60 },
     decor: [['ntree', 5], ['ntree2', 5], ['nrock', 3], ['nrock2', 3], ['nplant', 3]],
     flat: [['sand', 2]],
     big: [['volcano', 1]],
   },
   {
-    t: 600, name: 'Namek en destrucción', tile: 'namekd',
+    t: 600, name: 'Namek en destrucción', tile: 'namekd', base: [192, 160, 152],
+    grade: { hue: -4, sat: 0.85, light: 0.78, contrast: 1.12 }, detail: { tufts: 0, flowers: 0, stones: 90, cracks: 26, embers: 50 },
     decor: [['dtree', 5], ['drock', 4], ['drock2', 4]],
     flat: [],
     big: [['lavavolcano', 1]],

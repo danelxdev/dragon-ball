@@ -65,6 +65,8 @@ Funciona como PokeSurvivor: coleccionas guerreros con un gacha por sagas y los l
 - **Durante la partida:** cápsulas rompibles con potenciadores (furia, velocidad, recarga, radar), Saibaman kamikaze que avisan
   con un círculo rojo, Bio-Men, élites y jefes con rayos que avisan con una franja en el suelo: Raditz, Freezer, Cell, Kid Buu y Broly.
 - **Bolas de Dragón:** reúne las 7 y pide un deseo a Shenlong (también puede darte un vínculo o cristales).
+- **Zonas:** Monte Paoz, Planeta Namek y Namek en destrucción. Al suelo y al decorado de GBA se les corrige el color al cargar
+  (en la consola estaban muy saturados) y se les añade detalle: matas de hierba, flores, piedras, grietas y brasas.
 - **Música original** compuesta para el juego (título, menús, cada zona, jefes, invocación, victoria y derrota) y ajustes de volumen.
 - **30 misiones** con Zeni y Cristales de Ki.
 

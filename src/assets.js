@@ -205,3 +205,69 @@ export function drawShinyOutline(ctx, id, frame, x, y, flip = false, scale = 1) 
     drawHero(ctx, id, frame, x + ox * scale, y + oy * scale, flip, 'silfff2a0', scale);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Gradación de color: los sprites de GBA (Legacy of Goku) están muy saturados para
+// compensar su pantalla; en un monitor actual el verde queda fosforito. Se corrige al cargar.
+// ---------------------------------------------------------------------------
+function rgb2hsl(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return [h, s, l];
+}
+
+function hsl2rgb(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+}
+
+// g = { hue, sat, light, contrast }: giro de tono (grados) y multiplicadores
+export function gradeColor(r, g, b, gr) {
+  let [h, s, l] = rgb2hsl(r, g, b);
+  h += gr.hue || 0;
+  s = Math.min(1, s * (gr.sat ?? 1));
+  l = Math.min(1, Math.max(0, (l - 0.5) * (gr.contrast ?? 1) + 0.5) * (gr.light ?? 1));
+  return hsl2rgb(h, s, l);
+}
+
+export function graded(kind, key, gr) {
+  const ck = kind + ':' + key + ':grade:' + JSON.stringify(gr);
+  let c = cache.get(ck);
+  if (c) return c;
+  const src = img(kind, key);
+  c = document.createElement('canvas');
+  c.width = src.width;
+  c.height = src.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(src, 0, 0);
+  const data = ctx.getImageData(0, 0, c.width, c.height);
+  const d = data.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const [r, g, b] = gradeColor(d[i], d[i + 1], d[i + 2], gr);
+    d[i] = r;
+    d[i + 1] = g;
+    d[i + 2] = b;
+  }
+  ctx.putImageData(data, 0, 0);
+  cache.set(ck, c);
+  return c;
+}

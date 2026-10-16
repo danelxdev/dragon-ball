@@ -1,7 +1,7 @@
-import { ROSTER, SAGAS, RARITY, GACHA, WEAPONS, PASSIVES, META, ITEMS, EVOLUTIONS, BIOMES, ULTS } from './data.js';
-import { Game, BUFF_COLORS } from './game.js';
+import { ROSTER, SAGAS, RARITY, GACHA, WEAPONS, PASSIVES, META, ITEMS, EVOLUTIONS, BIOMES, ULTS, DECOR_GRADE } from './data.js';
+import { Game, BUFF_COLORS, groundDetail } from './game.js';
 import { Input } from './input.js';
-import { loadAssets, heroCard, heroPortrait, img, meta, drawHero, recolor } from './assets.js';
+import { loadAssets, heroCard, heroPortrait, img, meta, drawHero, recolor, graded } from './assets.js';
 import { loadSave, writeSave } from './storage.js';
 import { unlockAudio, setMuted, isMuted, sfx, setVolumes } from './audio.js';
 import { playMusic } from './music.js';
@@ -434,8 +434,8 @@ function drawAttract(dt) {
   layer(H * 0.7, H * 0.16, 0.012, 6, '#7a3a6a', 1);
   layer(H * 0.78, H * 0.12, 0.02, 14, '#4a2050', 3);
   // Pináculos rocosos del Monte Paoz
-  const spire = img('decor', 'spire');
-  const spire2 = img('decor', 'spire2');
+  const spire = graded('decor', 'spire', DECOR_GRADE);
+  const spire2 = graded('decor', 'spire2', DECOR_GRADE);
   for (let i = 0; i < 6; i++) {
     const im = i % 2 ? spire : spire2;
     const x = ((i * 157 - t * 24) % (W + 160) + W + 160) % (W + 160) - 80;
@@ -446,7 +446,9 @@ function drawAttract(dt) {
   // Suelo
   ctx.save();
   ctx.translate(-Math.round((t * 40) % 64), 0);
-  ctx.fillStyle = ctx.createPattern(img('tiles', 'earth'), 'repeat');
+  ctx.fillStyle = ctx.createPattern(graded('tiles', 'earth', BIOMES[0].grade), 'repeat');
+  ctx.fillRect(0, Math.round(H * 0.86), W + 64, H);
+  ctx.fillStyle = ctx.createPattern(groundDetail(BIOMES[0]), 'repeat');
   ctx.fillRect(0, Math.round(H * 0.86), W + 64, H);
   ctx.restore();
   ctx.fillStyle = 'rgba(40,10,40,0.35)';
